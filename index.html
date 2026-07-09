@@ -121,8 +121,8 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
       <div id="map"></div>
       <div class="map-legend">
         <div class="legend-item"><div class="dot" style="background:#1a5c35"></div><span>분석 입지</span></div>
-        <div class="legend-item"><div class="dot" style="background:#e74c3c"></div><span>카페</span></div>
-        <div class="legend-item"><div class="dot" style="background:#f39c12"></div><span>집객시설</span></div>
+        <div class="legend-item"><img src="https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png" style="width:14px;height:20px;object-fit:contain"><span style="color:#ea580c;font-weight:700">저가커피</span></div>
+        <div class="legend-item"><img src="https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png" style="width:10px;height:14px;object-fit:contain"><span>일반카페</span></div>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px">
@@ -306,8 +306,30 @@ function searchNearby(lat,lng){
     if(status===kakao.maps.services.Status.OK){
       cafe=data.length;
       data.forEach(p=>{
-        if(LOW.some(b=>p.place_name.includes(b))) lowCafe++;
-        new kakao.maps.Circle({map,center:new kakao.maps.LatLng(p.y,p.x),radius:4,strokeWeight:1,strokeColor:'#e74c3c',strokeOpacity:.8,fillColor:'#e74c3c',fillOpacity:.7});
+        const isLow = LOW.some(b=>p.place_name.includes(b));
+        if(isLow) lowCafe++;
+        // 저가커피: 주황색 큰 마커 / 일반카페: 빨간 작은 마커
+        const markerImg = new kakao.maps.MarkerImage(
+          isLow
+            ? 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png'
+            : 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png',
+          isLow ? new kakao.maps.Size(28,40) : new kakao.maps.Size(18,26)
+        );
+        const marker = new kakao.maps.Marker({
+          map,
+          position: new kakao.maps.LatLng(p.y, p.x),
+          image: markerImg,
+          title: p.place_name
+        });
+        // 말풍선 (저가커피만)
+        if(isLow){
+          const overlay = new kakao.maps.CustomOverlay({
+            map,
+            position: new kakao.maps.LatLng(p.y, p.x),
+            content: '<div style="background:#ea580c;color:#fff;padding:2px 7px;border-radius:99px;font-size:10px;font-weight:700;white-space:nowrap;margin-bottom:32px;box-shadow:0 1px 4px rgba(0,0,0,.3)">'+p.place_name+'</div>',
+            yAnchor: 1
+          });
+        }
       });
     }
     document.getElementById('r-cafe').value=cafe;

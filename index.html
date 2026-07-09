@@ -8,8 +8,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;font-size:13px;background:#f0f3f8;color:#1a202c}
 .hdr{background:#1a5c35;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:12px}
-.hdr-t{font-size:15px;font-weight:700}
-.hdr-s{font-size:10px;opacity:.7;margin-top:1px}
+.hdr-t{font-size:15px;font-weight:700}.hdr-s{font-size:10px;opacity:.7;margin-top:1px}
 .tabs{background:#fff;border-bottom:2px solid #dde3ec;display:flex;overflow-x:auto;padding:0 16px}
 .tb{padding:10px 14px;border:none;background:transparent;font-size:12px;font-weight:500;color:#64748b;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;font-family:inherit}
 .tb.on{color:#1a5c35;border-bottom-color:#1a5c35;font-weight:700}
@@ -59,26 +58,19 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
 .itbl{width:100%;border-collapse:collapse;font-size:12px}
 .itbl tr{border-bottom:1px solid #f1f5f9}
 .itbl td{padding:6px 4px}
-.itbl td:first-child{color:#64748b;width:110px}
 @media(max-width:640px){.main{padding:12px}.g2,.g3,.g4{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
-
 <div class="hdr">
-  <div>
-    <div class="hdr-t">🍡 떠기다방 상권분석 대시보드</div>
-    <div class="hdr-s">가맹점주 브리핑용 · 전략기획부 · 대외비</div>
-  </div>
+  <div><div class="hdr-t">🍡 떠기다방 상권분석 대시보드</div><div class="hdr-s">가맹점주 브리핑용 · 전략기획부 · 대외비</div></div>
 </div>
-
 <div class="tabs">
   <button class="tb on" onclick="goTab('p-new',this)">🔍 신규 입지 분석</button>
   <button class="tb" onclick="goTab('p-stores',this)">📍 기존 점포 현황</button>
   <button class="tb" onclick="goTab('p-compare',this)">📊 유사점 비교</button>
   <button class="tb" onclick="goTab('p-guide',this)">📋 수집 가이드</button>
 </div>
-
 <div class="main">
 
 <div id="p-new" class="pnl on">
@@ -93,28 +85,18 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
       </div>
     </div>
     <div style="margin-bottom:10px">
-      <label class="lbl">탐색 반경 선택</label>
+      <label class="lbl">탐색 반경</label>
       <div style="display:flex;gap:6px;margin-top:4px">
         <button id="r-btn-150" class="btn" onclick="setRadius(150)" style="flex:1;font-size:12px">150m</button>
         <button id="r-btn-300" class="btn" onclick="setRadius(300)" style="flex:1;font-size:12px">300m</button>
         <button id="r-btn-500" class="btn btn-g" onclick="setRadius(500)" style="flex:1;font-size:12px">500m ✓</button>
       </div>
-      <div id="r-radius-note" style="font-size:10px;color:#64748b;margin-top:4px">현재 반경: 500m — 주소 검색 전 반경을 먼저 선택하세요</div>
     </div>
     <div class="g3" style="gap:10px;margin-bottom:10px">
       <div><label class="lbl">상권 유형 <span style="color:#1a5c35;font-weight:400">(자동 탐지)</span></label>
-        <select id="i-atype">
-          <option value="">자동 탐지 중...</option>
-          <option value="역세권">역세권</option>
-          <option value="오피스·관공서">오피스·관공서</option>
-          <option value="대학가">대학가</option>
-          <option value="병원상권">병원상권</option>
-          <option value="일반상권">일반상권</option>
-        </select>
+        <select id="i-atype"><option value="">자동 탐지 중...</option><option value="역세권">역세권</option><option value="오피스·관공서">오피스·관공서</option><option value="대학가">대학가</option><option value="병원상권">병원상권</option><option value="일반상권">일반상권</option></select>
       </div>
-      <div><label class="lbl">층수</label>
-        <select id="i-floor"><option value="1층">1층</option><option value="2층">2층</option><option value="지하">지하</option></select>
-      </div>
+      <div><label class="lbl">층수</label><select id="i-floor"><option value="1층">1층</option><option value="2층">2층</option><option value="지하">지하</option></select></div>
       <div><label class="lbl">면적 (평)</label><input id="i-area" type="number" placeholder="15" min="1"></div>
     </div>
     <div class="g4" style="gap:10px">
@@ -125,14 +107,14 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
     </div>
   </div>
 
-  <div class="st">카카오맵 자동 수집 <span style="font-size:10px;font-weight:400;color:#1a5c35">— 주소 검색 시 자동 입력</span></div>
+  <div class="st">카카오맵 자동 수집</div>
   <div class="card">
     <div class="map-wrap">
       <div id="map"></div>
       <div class="map-legend">
         <div class="legend-item"><div class="dot" style="background:#1a5c35"></div><span>분석 입지</span></div>
         <div class="legend-item"><div class="dot" style="background:#ea580c"></div><span style="color:#ea580c;font-weight:700">저가커피</span></div>
-        <div class="legend-item"><div class="dot" style="background:#1a5c35"></div><span>일반카페</span></div>
+        <div class="legend-item"><div class="dot" style="background:#1a5c35;opacity:.6"></div><span>일반카페</span></div>
         <div class="legend-item"><div class="dot" style="background:#7c3aed"></div><span>편의점</span></div>
       </div>
     </div>
@@ -143,7 +125,7 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
         <input id="r-cafe" type="number" readonly style="display:none">
       </div>
       <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:7px 10px;text-align:center">
-        <div style="font-size:9px;color:#64748b;font-weight:700;margin-bottom:2px">저가커피 브랜드</div>
+        <div style="font-size:9px;color:#64748b;font-weight:700;margin-bottom:2px">저가커피</div>
         <div id="r-lowcafe-disp" style="font-size:13px;font-weight:700;color:#ea580c">-</div>
         <input id="r-lowcafe" type="number" readonly style="display:none">
       </div>
@@ -154,59 +136,31 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
       </div>
       <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:7px 10px;text-align:center">
         <div style="font-size:9px;color:#64748b;font-weight:700;margin-bottom:2px">지하철역 거리</div>
-        <div id="r-subway-disp" style="font-size:13px;font-weight:700;color:#2563eb">-</div>
+        <div id="r-subway-disp" style="font-size:12px;font-weight:700;color:#2563eb">-</div>
         <input id="r-subway" type="text" readonly style="display:none">
       </div>
     </div>
     <div style="margin-top:8px;background:#f8fafc;border:1px solid #dde3ec;border-radius:8px;padding:10px 12px">
-      <div style="font-size:10px;color:#64748b;font-weight:700;margin-bottom:6px">주변 집객시설 <span style="color:#1a5c35;font-weight:400">(자동)</span></div>
-      <div id="r-anchor-disp" style="font-size:12px;color:#334155;line-height:1.8">주소 검색 후 자동으로 표시됩니다...</div>
+      <div style="font-size:10px;color:#64748b;font-weight:700;margin-bottom:6px">주변 집객시설</div>
+      <div id="r-anchor-disp" style="font-size:12px;color:#334155;line-height:1.8">주소 검색 후 자동 표시됩니다...</div>
       <textarea id="r-anchor" readonly style="display:none"></textarea>
     </div>
   </div>
 
   <div class="st">유동인구 & 소비자 정보 <span style="font-size:10px;font-weight:400;color:#64748b">— sg.sbiz.or.kr 에서 수집</span></div>
   <div class="card" style="border-left:3px solid #1a5c35">
-    <div style="font-size:11px;color:#64748b;margin-bottom:10px;line-height:1.6">
-      <a href="https://sg.sbiz.or.kr" target="_blank" style="color:#1a5c35;font-weight:700">sg.sbiz.or.kr</a> 접속 → 상권분석 → 주소 검색 → 커피음료 선택 후 아래 수치를 입력하세요
-    </div>
+    <div style="font-size:11px;color:#64748b;margin-bottom:10px"><a href="https://sg.sbiz.or.kr" target="_blank" style="color:#1a5c35;font-weight:700">sg.sbiz.or.kr</a> 접속 → 상권분석 → 주소 검색 후 입력</div>
     <div class="g4" style="gap:8px;margin-bottom:8px">
-      <div>
-        <label class="lbl">일평균 유동인구 (명)</label>
-        <input id="i-pop" type="number" placeholder="예: 15000" style="border-color:#1a5c35">
-      </div>
-      <div>
-        <label class="lbl">여성 비율 (%)</label>
-        <input id="i-female" type="number" placeholder="예: 58">
-      </div>
-      <div>
-        <label class="lbl">20~30대 비율 (%)</label>
-        <input id="i-young" type="number" placeholder="예: 62">
-      </div>
-      <div>
-        <label class="lbl">상권 등급</label>
-        <select id="i-grade">
-          <option value="">선택</option>
-          <option value="A">A등급 (최상)</option>
-          <option value="B">B등급 (상)</option>
-          <option value="C">C등급 (중)</option>
-          <option value="D">D등급 (하)</option>
-          <option value="E">E등급 (최하)</option>
-        </select>
-      </div>
+      <div><label class="lbl">일평균 유동인구 (명)</label><input id="i-pop" type="number" placeholder="예: 15000" style="border-color:#1a5c35"></div>
+      <div><label class="lbl">여성 비율 (%)</label><input id="i-female" type="number" placeholder="58"></div>
+      <div><label class="lbl">20~30대 비율 (%)</label><input id="i-young" type="number" placeholder="62"></div>
+      <div><label class="lbl">상권 등급</label><select id="i-grade"><option value="">선택</option><option value="A">A등급</option><option value="B">B등급</option><option value="C">C등급</option><option value="D">D등급</option><option value="E">E등급</option></select></div>
     </div>
     <div class="g2" style="gap:8px;margin-bottom:8px">
-      <div>
-        <label class="lbl">업종 3년 생존율 (%)</label>
-        <input id="i-survival" type="number" placeholder="예: 42">
-      </div>
-      <div>
-        <label class="lbl">피크 시간대</label>
-        <input id="i-peak" type="text" placeholder="예: 12~13시, 18~19시">
-      </div>
+      <div><label class="lbl">업종 3년 생존율 (%)</label><input id="i-survival" type="number" placeholder="42"></div>
+      <div><label class="lbl">피크 시간대</label><input id="i-peak" type="text" placeholder="예: 12~13시, 18~19시"></div>
     </div>
-    <div><label class="lbl">특이사항 (개발계획·현장 메모 등)</label>
-    <textarea id="i-extra" placeholder="예: 2026년 복합쇼핑몰 개장 예정 / 역 출구 50m / 유동인구 밀도 높음"></textarea></div>
+    <div><label class="lbl">특이사항</label><textarea id="i-extra" placeholder="예: 2026년 복합쇼핑몰 개장 예정"></textarea></div>
   </div>
 
   <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
@@ -250,26 +204,23 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
 <div id="p-guide" class="pnl">
   <div class="st">데이터 수집 경로</div>
   <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:11px 14px;margin-bottom:8px">
-    <div style="font-size:11px;font-weight:700;color:#16a34a;margin-bottom:6px">카카오맵이 자동 수집하는 항목</div>
-    <div style="font-size:11px;color:#334155;line-height:1.8">반경 500m 카페 수 · 저가커피 브랜드 수 · 지하철역 거리 · 대형마트·병원·학교 집객시설</div>
+    <div style="font-size:11px;font-weight:700;color:#16a34a;margin-bottom:6px">카카오맵 자동 수집</div>
+    <div style="font-size:11px;color:#334155;line-height:1.8">반경 내 카페·저가커피·편의점 수 · 지하철역 거리 · 집객시설</div>
   </div>
   <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:11px 14px;margin-bottom:8px">
     <div style="font-size:11px;font-weight:700;color:#1d4ed8;margin-bottom:6px">유동인구 — 소상공인 상권분석시스템 (무료)</div>
-    <div style="font-size:11px;color:#334155;line-height:1.8"><a href="https://sg.sbiz.or.kr" target="_blank" style="color:#1d4ed8;font-weight:600">sg.sbiz.or.kr</a> → 상권분석 → 주소 검색 → 커피음료 선택</div>
+    <div style="font-size:11px;color:#334155;line-height:1.8"><a href="https://sg.sbiz.or.kr" target="_blank" style="color:#1d4ed8;font-weight:600">sg.sbiz.or.kr</a> → 상권분석 → 주소 검색</div>
   </div>
   <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:11px 14px">
     <div style="font-size:11px;font-weight:700;color:#1d4ed8;margin-bottom:6px">권리·등기 — 인터넷 등기소 (건당 700원)</div>
-    <div style="font-size:11px;color:#334155;line-height:1.8"><a href="https://www.iros.go.kr" target="_blank" style="color:#1d4ed8;font-weight:600">iros.go.kr</a> → 등기열람 → 건물+토지 발급</div>
+    <div style="font-size:11px;color:#334155;line-height:1.8"><a href="https://www.iros.go.kr" target="_blank" style="color:#1d4ed8;font-weight:600">iros.go.kr</a> → 등기열람 → 건물+토지</div>
   </div>
 </div>
 
 </div>
 
 <div class="overlay" id="overlay">
-  <div class="overlay-box">
-    <div class="spinner"></div>
-    <p id="overlay-msg" style="font-size:13px;color:#64748b">처리 중...</p>
-  </div>
+  <div class="overlay-box"><div class="spinner"></div><p id="overlay-msg" style="font-size:13px;color:#64748b">처리 중...</p></div>
 </div>
 
 <script>
@@ -305,24 +256,40 @@ const STORES = [
   {name:'부천법원점',atype:'오피스·관공서',floor:'1층',area:14,avg:8460000,recent:9250000,months:15},
 ];
 
-let map=null, geocoder=null, ps=null, mapReady=false;
-let currentRadius=500;
-let currentLat=0, currentLng=0;
-let searchCircle=null;
-let cafeMarkers=[], cafeOverlays=[];
+var map=null, geocoder=null, ps=null;
+var currentRadius=500, currentLat=0, currentLng=0;
+var searchCircle=null, cafeMarkers=[], cafeOverlays=[];
+
+function goTab(id,btn){
+  document.querySelectorAll('.pnl').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('.tb').forEach(function(b){b.classList.remove('on');});
+  document.getElementById(id).classList.add('on');
+  if(btn) btn.classList.add('on');
+  if(id==='p-stores') renderStores();
+  if(id==='p-compare') renderCompare();
+}
+function g(id){var el=document.getElementById(id);return el?el.value:'';}
+function n(id){return parseFloat(g(id))||0;}
+function showLoad(msg){document.getElementById('overlay').classList.add('show');document.getElementById('overlay-msg').textContent=msg||'처리 중...';}
+function hideLoad(){document.getElementById('overlay').classList.remove('show');}
+
+function saveAddrHistory(addr){
+  try{var h=JSON.parse(localStorage.getItem('ddb_h')||'[]');h=h.filter(function(a){return a!==addr;});h.unshift(addr);h=h.slice(0,10);localStorage.setItem('ddb_h',JSON.stringify(h));loadAddrHistory();}catch(e){}
+}
+function loadAddrHistory(){
+  try{var h=JSON.parse(localStorage.getItem('ddb_h')||'[]');var dl=document.getElementById('addr-history');if(dl)dl.innerHTML=h.map(function(a){return'<option value="'+a+'">';}).join('');}catch(e){}
+}
 
 function setRadius(r){
   currentRadius=r;
-  document.querySelectorAll('[id^="r-btn-"]').forEach(b=>{
-    b.className='btn';
-    b.style.background='';b.style.color='';b.style.borderColor='';
+  ['150','300','500'].forEach(function(x){
+    var b=document.getElementById('r-btn-'+x);
+    if(b){b.className='btn'+(x==r?' btn-g':'');}
   });
-  var btn=document.getElementById('r-btn-'+r);
-  if(btn){btn.className='btn btn-g';}
-  document.getElementById('r-radius-note').textContent='현재 반경: '+r+'m — 주소 재검색하면 반영됩니다';
-  // 이미 검색된 위치가 있으면 즉시 재탐색
-  if(currentLat&&currentLng&&mapReady){
-    // 기존 마커/오버레이 제거 후 재탐색
+  if(r==500){var b=document.getElementById('r-btn-500');if(b)b.textContent='500m ✓';}
+  var lbl=document.getElementById('r-cafe-label');
+  if(lbl) lbl.textContent='반경'+r+'m 카페';
+  if(currentLat&&currentLng&&map){
     clearMarkers();
     drawCircle(currentLat,currentLng,r);
     showLoad('반경 '+r+'m 탐색 중...');
@@ -330,157 +297,93 @@ function setRadius(r){
   }
 }
 
-function goTab(id,btn){
-  document.querySelectorAll('.pnl').forEach(p=>p.classList.remove('on'));
-  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
-  document.getElementById(id).classList.add('on');
-  if(btn) btn.classList.add('on');
-  if(id==='p-stores') renderStores();
-  if(id==='p-compare') renderCompare();
-}
-function g(id){return(document.getElementById(id)||{}).value||'';}
-function n(id){return parseFloat(g(id))||0;}
-function showLoad(msg){document.getElementById('overlay').classList.add('show');document.getElementById('overlay-msg').textContent=msg||'처리 중...';}
-function hideLoad(){document.getElementById('overlay').classList.remove('show');}
-
-function saveAddrHistory(addr){
-  try{
-    var hist=JSON.parse(localStorage.getItem('ddb_addr_hist')||'[]');
-    hist=hist.filter(a=>a!==addr);
-    hist.unshift(addr);
-    hist=hist.slice(0,10);
-    localStorage.setItem('ddb_addr_hist',JSON.stringify(hist));
-    loadAddrHistory();
-  }catch(e){}
-}
-
-function loadAddrHistory(){
-  try{
-    var hist=JSON.parse(localStorage.getItem('ddb_addr_hist')||'[]');
-    var dl=document.getElementById('addr-history');
-    if(dl){
-      dl.innerHTML=hist.map(a=>'<option value="'+a+'">').join('');
-    }
-  }catch(e){}
-}
-
-function clearAddrHistory(){
-  localStorage.removeItem('ddb_addr_hist');
-  loadAddrHistory();
-}
-
 function clearMarkers(){
-  cafeMarkers.forEach(m=>m.setMap(null));
-  cafeOverlays.forEach(o=>o.setMap(null));
-  cafeMarkers=[]; cafeOverlays=[];
+  cafeMarkers.forEach(function(m){m.setMap(null);});
+  cafeOverlays.forEach(function(o){o.setMap(null);});
+  cafeMarkers=[];cafeOverlays=[];
   if(searchCircle) searchCircle.setMap(null);
 }
 
-function drawCircle(lat,lng,radius){
-  searchCircle=new kakao.maps.Circle({
-    map,
-    center:new kakao.maps.LatLng(lat,lng),
-    radius:radius,
-    strokeWeight:2,
-    strokeColor:'#1a5c35',
-    strokeOpacity:0.6,
-    fillColor:'#1a5c35',
-    fillOpacity:0.05
-  });
+function drawCircle(lat,lng,r){
+  searchCircle=new kakao.maps.Circle({map:map,center:new kakao.maps.LatLng(lat,lng),radius:r,
+    strokeWeight:2,strokeColor:'#1a5c35',strokeOpacity:0.6,fillColor:'#1a5c35',fillOpacity:0.05});
 }
 
 function initMap(){
-  const container=document.getElementById('map');
+  var container=document.getElementById('map');
   map=new kakao.maps.Map(container,{center:new kakao.maps.LatLng(37.5665,126.9780),level:5});
   geocoder=new kakao.maps.services.Geocoder();
   ps=new kakao.maps.services.Places();
-  mapReady=true;
 }
 
 function searchAddr(){
-  if(!mapReady){alert('지도가 아직 로드 중입니다. 잠시 후 다시 시도해주세요.');return;}
-  const addr=g('i-addr');
+  var addr=g('i-addr');
   if(!addr){alert('주소를 입력해주세요.');return;}
+  if(!map){alert('지도가 아직 로드 중입니다. 잠시 후 다시 시도해주세요.');return;}
   showLoad('주소 변환 중...');
   geocoder.addressSearch(addr,function(result,status){
     if(status===kakao.maps.services.Status.OK){
-      const lat=parseFloat(result[0].y), lng=parseFloat(result[0].x);
-      currentLat=lat; currentLng=lng;
-      // 최근 검색 주소 저장
-      saveAddrHistory(addr);
-      const latlng=new kakao.maps.LatLng(lat,lng);
-      map.setCenter(latlng); map.setLevel(3);
-      new kakao.maps.Marker({map,position:latlng,
+      var lat=parseFloat(result[0].y),lng=parseFloat(result[0].x);
+      currentLat=lat;currentLng=lng;
+      var latlng=new kakao.maps.LatLng(lat,lng);
+      map.setCenter(latlng);map.setLevel(3);
+      new kakao.maps.Marker({map:map,position:latlng,
         image:new kakao.maps.MarkerImage('https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png',new kakao.maps.Size(24,35))});
       clearMarkers();
       drawCircle(lat,lng,currentRadius);
       showLoad('반경 '+currentRadius+'m 탐색 중...');
       searchNearby(lat,lng);
-    } else {hideLoad();alert('주소를 찾을 수 없습니다. 도로명 주소로 다시 입력해주세요.');}
+      saveAddrHistory(addr);
+    } else {hideLoad();alert('주소를 찾을 수 없습니다.');}
   });
 }
 
 function searchNearby(lat,lng){
-  let cafe=0,lowCafe=0,convCount=0,subwayDist='미확인',done=0;
-  const anchors=[];
-  const LOW=['메가MGC','메가엠지씨','메가커피','컴포즈','더벤티','빽다방','백다방','우지','바나프레소','텐퍼센트','10%','카페봄봄','댄싱컵','하이요','하삼동'];
-  const latlng=new kakao.maps.LatLng(lat,lng);
+  var cafe=0,lowCafe=0,convCount=0,subwayDist='미확인',done=0;
+  var anchors=[];
+  var LOW=['메가MGC','메가엠지씨','메가커피','컴포즈','더벤티','빽다방','백다방','우지','바나프레소','텐퍼센트','10%','카페봄봄','댄싱컵','하이요','하삼동'];
+  var latlng=new kakao.maps.LatLng(lat,lng);
+
+  function makeLabel(name,bg,mb){
+    return '<div style="text-align:center;margin-bottom:'+mb+'px"><div style="background:'+bg+';color:#fff;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700;white-space:nowrap;box-shadow:0 2px 5px rgba(0,0,0,.25);display:inline-block;cursor:pointer" onclick="this.parentNode.parentNode.style.display='none'">'+name+' ✕</div><div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid '+bg+';margin:0 auto"></div></div>';
+  }
 
   ps.categorySearch('CE7',function(data,status){
     if(status===kakao.maps.services.Status.OK){
       cafe=data.length;
-      data.forEach(p=>{
-        const isLow = LOW.some(b=>p.place_name.includes(b));
+      data.forEach(function(p){
+        var isLow=LOW.some(function(b){return p.place_name.includes(b);});
         if(isLow) lowCafe++;
-        // 저가커피: 주황색 큰 마커 / 일반카페: 빨간 작은 마커
-        const markerImg = new kakao.maps.MarkerImage(
-          isLow
-            ? 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png'
-            : 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png',
-          isLow ? new kakao.maps.Size(28,40) : new kakao.maps.Size(18,26)
+        var markerImg=new kakao.maps.MarkerImage(
+          isLow?'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png':'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png',
+          isLow?new kakao.maps.Size(28,40):new kakao.maps.Size(18,26)
         );
-        const marker = new kakao.maps.Marker({
-          map,
-          position: new kakao.maps.LatLng(p.y, p.x),
-          image: markerImg,
-          title: p.place_name
+        var marker=new kakao.maps.Marker({map:map,position:new kakao.maps.LatLng(p.y,p.x),image:markerImg,title:p.place_name});
+        cafeMarkers.push(marker);
+        var bg=isLow?'#ea580c':'#1a5c35';
+        var mb=isLow?44:30;
+        var ov=new kakao.maps.CustomOverlay({
+          map:isLow?map:null,
+          position:new kakao.maps.LatLng(p.y,p.x),
+          content:makeLabel(p.place_name,bg,mb),
+          yAnchor:1,zIndex:isLow?10:5
         });
-        // 저가커피: 주황 말풍선 항상 표시 / 일반카페: 클릭 토글
-        const markerPos = new kakao.maps.LatLng(p.y, p.x);
-        if(isLow){
-          const lowOv=new kakao.maps.CustomOverlay({
-            map,
-            position:markerPos,
-            content:'<div style="text-align:center;margin-bottom:44px"><div style="background:#ea580c;color:#fff;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700;white-space:nowrap;box-shadow:0 2px 6px rgba(234,88,12,.4);display:inline-block">'+p.place_name+'</div><div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid #ea580c;margin:0 auto"></div></div>',
-            yAnchor:1,zIndex:10
-          });
-          cafeOverlays.push(lowOv);
-        } else {
-          const cafeOv=new kakao.maps.CustomOverlay({
-            position:markerPos,
-            content:'<div style="text-align:center;margin-bottom:28px"><div style="background:#1a5c35;color:#fff;padding:2px 8px;border-radius:5px;font-size:9px;font-weight:600;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.3);display:inline-block">'+p.place_name+'</div><div style="width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid #1a5c35;margin:0 auto"></div></div>',
-            yAnchor:1,
-            zIndex:5
-          });
-          cafeOverlays.push(cafeOv);
-          var isOpen=false;
-          kakao.maps.event.addListener(marker,'click',function(){
-            if(isOpen){cafeOv.setMap(null);isOpen=false;}
-            else{cafeOv.setMap(map);isOpen=true;}
-          });
-        }
+        cafeOverlays.push(ov);
+        kakao.maps.event.addListener(marker,'click',function(){
+          if(ov.getMap()) ov.setMap(null); else ov.setMap(map);
+        });
       });
     }
     document.getElementById('r-cafe').value=cafe;
-    document.getElementById('r-lowcafe').value=lowCafe;
     document.getElementById('r-cafe-disp').textContent=cafe+'개';
+    document.getElementById('r-lowcafe').value=lowCafe;
     document.getElementById('r-lowcafe-disp').textContent=lowCafe+'개';
     check();
   },{location:latlng,radius:currentRadius,size:15});
 
   ps.categorySearch('SW8',function(data,status){
     if(status===kakao.maps.services.Status.OK&&data.length>0){
-      const d=Math.round(data[0].distance);
+      var d=Math.round(data[0].distance);
       subwayDist=d<100?d+'m(초근접)':d<300?d+'m(도보3분)':d<500?d+'m(도보5분)':d+'m';
       anchors.push('지하철: '+data[0].place_name+'('+d+'m)');
       if(d<300) document.getElementById('i-atype').value='역세권';
@@ -490,40 +393,33 @@ function searchNearby(lat,lng){
     check();
   },{location:latlng,radius:currentRadius,size:3});
 
-  // 편의점 탐색
   ps.categorySearch('CS2',function(data,status){
     if(status===kakao.maps.services.Status.OK){
       convCount=data.length;
-      data.forEach(p=>{
-        const convPos=new kakao.maps.LatLng(p.y,p.x);
-        const convMarker=new kakao.maps.Marker({
-          map,
-          position:convPos,
-          image:new kakao.maps.MarkerImage(
-            'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_purple.png',
-            new kakao.maps.Size(20,28)
-          )
+      data.forEach(function(p){
+        var convPos=new kakao.maps.LatLng(p.y,p.x);
+        var convMarker=new kakao.maps.Marker({map:map,position:convPos,
+          image:new kakao.maps.MarkerImage('https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_purple.png',new kakao.maps.Size(20,28))
         });
         cafeMarkers.push(convMarker);
-        const convOv=new kakao.maps.CustomOverlay({
-          map,
-          position:convPos,
-          content:'<div style="text-align:center;margin-bottom:30px"><div style="background:#7c3aed;color:#fff;padding:2px 8px;border-radius:5px;font-size:9px;font-weight:600;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.3);display:inline-block">'+p.place_name+'</div><div style="width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid #7c3aed;margin:0 auto"></div></div>',
+        var convOv=new kakao.maps.CustomOverlay({
+          map:map,position:convPos,
+          content:makeLabel(p.place_name,'#7c3aed',30),
           yAnchor:1,zIndex:3
         });
         cafeOverlays.push(convOv);
-        var convOpen=false;
         kakao.maps.event.addListener(convMarker,'click',function(){
-          if(convOpen){convOv.setMap(null);convOpen=false;}
-          else{convOv.setMap(map);convOpen=true;}
+          if(convOv.getMap()) convOv.setMap(null); else convOv.setMap(map);
         });
       });
     }
+    document.getElementById('r-conv').value=convCount;
+    document.getElementById('r-conv-disp').textContent=convCount+'개';
     check();
   },{location:latlng,radius:currentRadius,size:15});
 
   ps.categorySearch('MT1',function(data,status){
-    if(status===kakao.maps.services.Status.OK) data.slice(0,2).forEach(p=>anchors.push('마트/백화점: '+p.place_name+'('+p.distance+'m)'));
+    if(status===kakao.maps.services.Status.OK) data.slice(0,2).forEach(function(p){anchors.push('마트/백화점: '+p.place_name+'('+p.distance+'m)');});
     check();
   },{location:latlng,radius:currentRadius,size:3});
 
@@ -537,8 +433,8 @@ function searchNearby(lat,lng){
 
   ps.categorySearch('SC4',function(data,status){
     if(status===kakao.maps.services.Status.OK&&data.length>0){
-      data.slice(0,2).forEach(p=>anchors.push('학교: '+p.place_name+'('+p.distance+'m)'));
-      if(data.some(p=>p.place_name.includes('대학')&&parseInt(p.distance)<500)) document.getElementById('i-atype').value='대학가';
+      data.slice(0,2).forEach(function(p){anchors.push('학교: '+p.place_name+'('+p.distance+'m)');});
+      if(data.some(function(p){return p.place_name.includes('대학')&&parseInt(p.distance)<500;})) document.getElementById('i-atype').value='대학가';
     }
     check();
   },{location:latlng,radius:currentRadius,size:5});
@@ -547,129 +443,100 @@ function searchNearby(lat,lng){
     done++;
     if(done>=6){
       document.getElementById('r-anchor').value=anchors.join('\n')||'주요 집객시설 없음';
-      document.getElementById('r-anchor-disp').innerHTML=anchors.length?anchors.map(a=>'<div style="display:flex;gap:6px;align-items:center"><span style="color:#1a5c35">▶</span><span>'+a+'</span></div>').join(''):'주요 집객시설 없음';
+      document.getElementById('r-anchor-disp').innerHTML=anchors.length?anchors.map(function(a){return'<div style="display:flex;gap:6px;align-items:center"><span style="color:#1a5c35">▶</span><span>'+a+'</span></div>';}).join(''):'주요 집객시설 없음';
       var lbl=document.getElementById('r-cafe-label');
       if(lbl) lbl.textContent='반경'+currentRadius+'m 카페';
-      document.getElementById('r-conv').value=convCount;
-      document.getElementById('r-conv-disp').textContent=convCount+'개';
-      // 지하철 카드 업데이트
-      var subDisp=document.getElementById('r-subway-disp');
-      if(subDisp) subDisp.style.fontSize=subwayDist.length>8?'11px':'13px';
       hideLoad();
-      // 주소 검색 완료 후 결과가 이미 표시된 경우 자동 갱신
-      if(document.getElementById('result-wrap').style.display!=='none'){
-        runAnalysis();
-      }
+      if(document.getElementById('result-wrap').style.display!=='none') runAnalysis();
     }
   }
 }
 
 function resetAll(){
-  ['i-addr','i-area','i-rent','i-deposit','i-premium','i-remain','i-pop','i-female','i-young','i-extra','i-survival','i-peak'].forEach(id=>{var el=document.getElementById(id);if(el)el.value='';});
+  ['i-addr','i-area','i-rent','i-deposit','i-premium','i-remain','i-pop','i-female','i-young','i-extra','i-survival','i-peak'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
   var ig=document.getElementById('i-grade');if(ig)ig.selectedIndex=0;
-  ['r-cafe','r-lowcafe','r-subway','r-anchor'].forEach(id=>{document.getElementById(id).value='';});
   document.getElementById('i-atype').selectedIndex=0;
   document.getElementById('i-floor').selectedIndex=0;
   document.getElementById('result-wrap').style.display='none';
 }
 
 function findSimilar(atype,floor,area){
-  return STORES.map(s=>{
-    let sc=0;
+  return STORES.map(function(s){
+    var sc=0;
     if(s.atype===atype) sc+=40;
     if(s.floor===floor) sc+=20;
-    const ad=Math.abs(s.area-(area||15));
-    if(ad<=5) sc+=30; else if(ad<=15) sc+=18; else if(ad<=25) sc+=8;
+    var ad=Math.abs(s.area-(area||15));
+    if(ad<=5)sc+=30;else if(ad<=15)sc+=18;else if(ad<=25)sc+=8;
     return Object.assign({},s,{score:sc});
   }).sort(function(a,b){return b.score-a.score;}).slice(0,5);
 }
 
 function estimateBase(D){
-  const ar={역세권:0.0095,'오피스·관공서':0.009,대학가:0.0075,병원상권:0.008,일반상권:0.007};
-  const rate=ar[D.atype]||0.008;
-  const pop=D.pop||8000;
-  let b=pop*rate*6500/10000*30;
-  if(D.floor==='2층') b*=0.72; else if(D.floor==='지하') b*=0.78;
+  var ar={'역세권':0.0095,'오피스·관공서':0.009,'대학가':0.0075,'병원상권':0.008,'일반상권':0.007};
+  var rate=ar[D.atype]||0.008;
+  var pop=D.pop||8000;
+  var b=pop*rate*6500/10000*30;
+  if(D.floor==='2층')b*=0.72;else if(D.floor==='지하')b*=0.78;
   return Math.round(b);
 }
 
 function calcScore(D){
-  let traffic=0;
-  if(D.pop>=30000)traffic=95; else if(D.pop>=15000)traffic=80;
-  else if(D.pop>=8000)traffic=65; else if(D.pop>=3000)traffic=48;
+  var traffic=0;
+  if(D.pop>=30000)traffic=95;else if(D.pop>=15000)traffic=80;
+  else if(D.pop>=8000)traffic=65;else if(D.pop>=3000)traffic=48;
   else if(D.pop>0)traffic=30;
-  // 상권등급 보정
   var gradeBonus={A:10,B:5,C:0,D:-8,E:-15};
   traffic=Math.min(100,Math.max(0,traffic+(gradeBonus[D.grade]||0)));
-  let comp=80;
+  var comp=80;
   comp-=Math.min(35,(D.cafe||0)*1.5);
   comp-=Math.min(20,(D.lowcafe||0)*6);
   comp=Math.max(10,Math.round(comp));
-  let target=50;
-  if(D.female>0) target+=(D.female-50)*0.8;
-  if(D.young>0) target+=(D.young-50)*0.6;
-  var ab={역세권:12,대학가:8,'오피스·관공서':6,병원상권:4,일반상권:0};
+  var target=50;
+  if(D.female>0)target+=(D.female-50)*0.8;
+  if(D.young>0)target+=(D.young-50)*0.6;
+  var ab={'역세권':12,'대학가':8,'오피스·관공서':6,'병원상권':4,'일반상권':0};
   target+=(ab[D.atype]||0);
-  if(D.floor==='2층') target-=8; else if(D.floor==='지하') target-=6;
+  if(D.floor==='2층')target-=8;else if(D.floor==='지하')target-=6;
   target=Math.max(15,Math.min(100,Math.round(target)));
-  const sim=findSimilar(D.atype,D.floor,D.area);
-  const simAvg=sim.length?Math.round(sim.reduce(function(a,s){return a+s.avg;},0)/sim.length):0;
-  let cost=65;
-  const base=simAvg||estimateBase(D);
+  var sim=findSimilar(D.atype,D.floor,D.area);
+  var simAvg=sim.length?Math.round(sim.reduce(function(a,s){return a+s.avg;},0)/sim.length):0;
+  var cost=65;
+  var base=simAvg||estimateBase(D);
   if(D.rent>0&&base>0){
-    const r=D.rent/base*100;
-    if(r<=8)cost=95; else if(r<=12)cost=82;
-    else if(r<=16)cost=68; else if(r<=22)cost=45; else cost=25;
+    var r=D.rent/base*100;
+    if(r<=8)cost=95;else if(r<=12)cost=82;else if(r<=16)cost=68;else if(r<=22)cost=45;else cost=25;
   }
-  if(D.floor==='2층'||D.floor==='지하') cost=Math.max(10,cost-8);
-  let growth=55;
-  if(D.survival>0){
-    if(D.survival>=60) growth+=15; else if(D.survival>=45) growth+=7;
-    else if(D.survival<30) growth-=15;
-  }
-  if((D.extra||'').includes('개장')||(D.extra||'').includes('개발')) growth+=12;
-  if((D.extra||'').includes('재건축')||(D.extra||'').includes('공사')) growth-=10;
+  if(D.floor==='2층'||D.floor==='지하')cost=Math.max(10,cost-8);
+  var growth=55;
+  if(D.survival>0){if(D.survival>=60)growth+=15;else if(D.survival>=45)growth+=7;else if(D.survival<30)growth-=15;}
+  if((D.extra||'').includes('개장')||(D.extra||'').includes('개발'))growth+=12;
+  if((D.extra||'').includes('재건축')||(D.extra||'').includes('공사'))growth-=10;
   growth=Math.max(10,Math.min(100,Math.round(growth)));
-  const overall=Math.round(traffic*0.20+comp*0.20+target*0.25+cost*0.20+growth*0.15);
-  return{traffic,comp,target,cost,growth,overall,sim,simAvg,base};
+  var overall=Math.round(traffic*0.20+comp*0.20+target*0.25+cost*0.20+growth*0.15);
+  return{traffic:traffic,comp:comp,target:target,cost:cost,growth:growth,overall:overall,sim:sim,simAvg:simAvg,base:base};
 }
 
-function getGrade(s){
-  if(s>=85)return{g:'S',c:'#16a34a'}; if(s>=72)return{g:'A',c:'#2563eb'};
-  if(s>=58)return{g:'B',c:'#d97706'}; if(s>=44)return{g:'C',c:'#ea580c'};
-  return{g:'D',c:'#dc2626'};
-}
-function getVerdict(s){
-  if(s>=78)return{t:'출점 권고',bg:'#dcfce7',tc:'#166534'};
-  if(s>=62)return{t:'조건부 권고',bg:'#dbeafe',tc:'#1e40af'};
-  if(s>=48)return{t:'재검토 필요',bg:'#fef3c7',tc:'#92400e'};
-  return{t:'출점 비권고',bg:'#fee2e2',tc:'#991b1b'};
-}
-function bar(l,v){
-  var c=v>=70?'#1a5c35':v>=50?'#2E75B6':v>=35?'#d97706':'#dc2626';
-  return '<div class="bar-row"><span class="bar-k">'+l+'</span><div class="bar-t"><div class="bar-f" style="width:'+v+'%;background:'+c+'"></div></div><span class="bar-v" style="color:'+c+'">'+v+'</span></div>';
-}
-function met(l,v,s,c){return '<div class="metric"><div class="m-l">'+l+'</div><div class="m-v" style="color:'+(c||'#1a5c35')+'">'+v+'</div>'+(s?'<div class="m-s">'+s+'</div>':'')+'</div>';}
-function li(ic,col,txt){return '<div class="li"><span class="ci" style="background:'+col+'22;color:'+col+'">'+ic+'</span><span>'+txt+'</span></div>';}
+function getGrade(s){if(s>=85)return{g:'S',c:'#16a34a'};if(s>=72)return{g:'A',c:'#2563eb'};if(s>=58)return{g:'B',c:'#d97706'};if(s>=44)return{g:'C',c:'#ea580c'};return{g:'D',c:'#dc2626'};}
+function getVerdict(s){if(s>=78)return{t:'출점 권고',bg:'#dcfce7',tc:'#166534'};if(s>=62)return{t:'조건부 권고',bg:'#dbeafe',tc:'#1e40af'};if(s>=48)return{t:'재검토 필요',bg:'#fef3c7',tc:'#92400e'};return{t:'출점 비권고',bg:'#fee2e2',tc:'#991b1b'};}
+function bar(l,v){var c=v>=70?'#1a5c35':v>=50?'#2E75B6':v>=35?'#d97706':'#dc2626';return'<div class="bar-row"><span class="bar-k">'+l+'</span><div class="bar-t"><div class="bar-f" style="width:'+v+'%;background:'+c+'"></div></div><span class="bar-v" style="color:'+c+'">'+v+'</span></div>';}
+function met(l,v,s,c){return'<div class="metric"><div class="m-l">'+l+'</div><div class="m-v" style="color:'+(c||'#1a5c35')+'">'+v+'</div>'+(s?'<div class="m-s">'+s+'</div>':'')+'</div>';}
+function li(ic,col,txt){return'<div class="li"><span class="ci" style="background:'+col+'22;color:'+col+'">'+ic+'</span><span>'+txt+'</span></div>';}
 
 function runAnalysis(){
   var D={addr:g('i-addr'),atype:g('i-atype'),floor:g('i-floor'),area:n('i-area'),
     rent:n('i-rent'),deposit:n('i-deposit'),premium:n('i-premium'),remain:g('i-remain'),
     pop:n('i-pop'),female:n('i-female'),young:n('i-young'),
     cafe:n('r-cafe'),lowcafe:n('r-lowcafe'),subway:g('r-subway'),
-    anchor:g('r-anchor'),extra:g('i-extra'),
-    grade:g('i-grade'),survival:n('i-survival'),peak:g('i-peak')};
+    anchor:g('r-anchor'),extra:g('i-extra'),grade:g('i-grade'),survival:n('i-survival')};
   if(!D.addr&&D.pop<=0){alert('주소를 검색하거나 유동인구를 입력해주세요.');return;}
-  // 상권유형 미탐지시 주소 키워드로 보완
   if(!D.atype||D.atype===''){
     var addr=D.addr.toLowerCase();
-    if(addr.includes('역')||addr.includes('지하철')) D.atype='역세권';
-    else if(addr.includes('대학')||addr.includes('대교')) D.atype='대학가';
-    else if(addr.includes('법원')||addr.includes('시청')||addr.includes('구청')||addr.includes('공단')) D.atype='오피스·관공서';
-    else if(addr.includes('병원')||addr.includes('의료원')) D.atype='병원상권';
+    if(addr.includes('역')||addr.includes('지하철'))D.atype='역세권';
+    else if(addr.includes('대학'))D.atype='대학가';
+    else if(addr.includes('법원')||addr.includes('시청')||addr.includes('구청'))D.atype='오피스·관공서';
+    else if(addr.includes('병원'))D.atype='병원상권';
     else D.atype='일반상권';
   }
-
   var sc=calcScore(D);
   var grd=getGrade(sc.overall);
   var vrd=getVerdict(sc.overall);
@@ -706,28 +573,27 @@ function runAnalysis(){
     met('총 초기투자',initInvest.toLocaleString()+'만','원');
 
   document.getElementById('similar-stores').innerHTML=sc.sim.length?sc.sim.map(function(s){
-    return '<div class="store-card">'+
-      '<div style="display:flex;justify-content:space-between;align-items:flex-start">'+
+    return'<div class="store-card"><div style="display:flex;justify-content:space-between;align-items:flex-start">'+
       '<div><span style="font-weight:700">'+s.name+'</span><span class="sim-badge">유사도 '+s.score+'점</span></div>'+
       '<div style="text-align:right"><div style="font-size:15px;font-weight:700;color:#1a5c35">'+Math.round(s.avg/10000).toLocaleString()+'만</div>'+
       '<div style="font-size:10px;color:#64748b">월평균('+s.months+'개월)</div></div></div>'+
       '<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">'+
-      [s.atype,s.floor,s.area+'평'].map(function(t){return '<span style="background:#f1f5f9;padding:2px 7px;border-radius:99px;font-size:10px">'+t+'</span>';}).join('')+
+      [s.atype,s.floor,s.area+'평'].map(function(t){return'<span style="background:#f1f5f9;padding:2px 7px;border-radius:99px;font-size:10px">'+t+'</span>';}).join('')+
       '</div></div>';
   }).join(''):'<div class="abox blue">유사 조건 기존점 데이터가 부족합니다.</div>';
 
   var strs=[],rsks=[];
-  if(D.pop>=10000) strs.push('일 유동인구 '+D.pop.toLocaleString()+'명 — 충분한 집객 기반');
-  if(D.floor==='1층') strs.push('1층 위치 — 가시성·접근성 최우수');
-  if(D.anchor) strs.push('주요 집객시설 인근 — 자연 유입 기대');
-  if(rentRatio>0&&rentRatio<=12) strs.push('임차료 비율 '+rentRatio+'% — 우수한 수익 구조');
-  if(sc.sim.length) strs.push('유사 기존점 '+sc.sim.length+'개 실매출 데이터 기반 예측');
-  if(!strs.length) strs.push('주소 검색 및 유동인구 입력 시 상세 분석 가능');
-  if((D.cafe||0)>=20) rsks.push('반경500m 카페 '+D.cafe+'개 — 높은 경쟁 강도');
-  if(rentRatio>20) rsks.push('임차료 비율 '+rentRatio+'% — 수익성 압박');
-  if(D.floor==='2층'||D.floor==='지하') rsks.push(D.floor+' 위치 — 가시성 불리');
-  if((D.lowcafe||0)>=3) rsks.push('저가커피 '+D.lowcafe+'개 — 직접 가격 경쟁');
-  if(!rsks.length) rsks.push('현재 입력 데이터상 주요 위험 요인 없음');
+  if(D.pop>=10000)strs.push('일 유동인구 '+D.pop.toLocaleString()+'명 — 충분한 집객 기반');
+  if(D.floor==='1층')strs.push('1층 위치 — 가시성·접근성 최우수');
+  if(D.anchor)strs.push('주요 집객시설 인근 — 자연 유입 기대');
+  if(rentRatio>0&&rentRatio<=12)strs.push('임차료 비율 '+rentRatio+'% — 우수한 수익 구조');
+  if(sc.sim.length)strs.push('유사 기존점 '+sc.sim.length+'개 실매출 데이터 기반 예측');
+  if(!strs.length)strs.push('주소 검색 및 유동인구 입력 시 상세 분석 가능');
+  if((D.cafe||0)>=20)rsks.push('반경 카페 '+D.cafe+'개 — 높은 경쟁 강도');
+  if(rentRatio>20)rsks.push('임차료 비율 '+rentRatio+'% — 수익성 압박');
+  if(D.floor==='2층'||D.floor==='지하')rsks.push(D.floor+' 위치 — 가시성 불리');
+  if((D.lowcafe||0)>=3)rsks.push('저가커피 '+D.lowcafe+'개 — 직접 가격 경쟁');
+  if(!rsks.length)rsks.push('현재 입력 데이터상 주요 위험 요인 없음');
 
   document.getElementById('r-str').innerHTML=strs.map(function(s){return li('✓','#16a34a',s);}).join('');
   document.getElementById('r-risk').innerHTML=rsks.map(function(r){return li('!','#dc2626',r);}).join('');
@@ -735,31 +601,28 @@ function runAnalysis(){
   var rmsg=!rentRatio?'임차료와 예상 매출을 입력하면 적정성을 판단합니다.':
     rentRatio<=10?'임차료 비율 '+rentRatio+'% — 매우 양호':
     rentRatio<=15?'임차료 비율 '+rentRatio+'% — 적정':
-    rentRatio<=20?'임차료 비율 '+rentRatio+'% — 다소 높음, 매출 확보 전략 필요':
-    '임차료 비율 '+rentRatio+'% — 높음, 재협상 또는 입지 재검토 권고';
+    rentRatio<=20?'임차료 비율 '+rentRatio+'% — 다소 높음':
+    '임차료 비율 '+rentRatio+'% — 높음, 재협상 권고';
   var rc2=rentRatio>20?'red':rentRatio>15?'amber':'';
   document.getElementById('rent-assess').innerHTML='<div class="abox '+rc2+'">'+rmsg+'</div>';
 
-  var acts=['인터넷 등기소(iros.go.kr)에서 등기부등본 발급 — 근저당·가처분 확인 (건당 700원)'];
-  if(!D.pop) acts.push('sg.sbiz.or.kr에서 일평균 유동인구·연령대 분포 확인');
-  if(rentRatio>20) acts.push('임차료 재협상 검토 — 현 수준으로는 수익 실현 어려움');
+  var acts=['인터넷 등기소(iros.go.kr)에서 등기부등본 발급 (건당 700원)'];
+  if(!D.pop)acts.push('sg.sbiz.or.kr에서 일평균 유동인구·연령대 분포 확인');
+  if(rentRatio>20)acts.push('임차료 재협상 검토');
   acts.push('오픈 D-30일 SNS 채널 개설 및 사전 이벤트 기획');
-  document.getElementById('r-actions').innerHTML=acts.map(function(a,i){
-    return '<div class="li"><span class="ci" style="background:#1a5c35;color:#fff">'+(i+1)+'</span><span>'+a+'</span></div>';
-  }).join('');
+  document.getElementById('r-actions').innerHTML=acts.map(function(a,i){return'<div class="li"><span class="ci" style="background:#1a5c35;color:#fff">'+(i+1)+'</span><span>'+a+'</span></div>';}).join('');
 
   var dt=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
   document.getElementById('r-meta').innerHTML='작성자: 송호인 부장 · 전략기획부 · '+dt+' · 대외비 | '+(D.addr||'미입력')+' · '+(D.atype||'')+' · '+(D.area||'?')+'평 '+D.floor;
-
   document.getElementById('result-wrap').style.display='block';
   document.getElementById('result-wrap').scrollIntoView({behavior:'smooth'});
 }
 
 function renderStores(){
   var t=document.getElementById('store-tbody');
-  if(t.children.length) return;
+  if(t.children.length)return;
   t.innerHTML=STORES.map(function(s){
-    return '<tr><td style="font-weight:600;padding:7px 4px">'+s.name+'</td>'+
+    return'<tr><td style="font-weight:600;padding:7px 4px">'+s.name+'</td>'+
       '<td><span style="background:#f0fdf4;color:#166534;padding:2px 7px;border-radius:99px;font-size:10px">'+s.atype+'</span></td>'+
       '<td>'+s.floor+'</td><td>'+s.area+'평</td>'+
       '<td style="font-weight:700;color:'+(s.avg>=20000000?'#1a5c35':s.avg>=12000000?'#2563eb':'#64748b')+'">'+Math.round(s.avg/10000).toLocaleString()+'만</td>'+
@@ -770,30 +633,27 @@ function renderStores(){
 
 function renderCompare(){
   var el=document.getElementById('compare-wrap');
-  if(el.children.length) return;
+  if(el.children.length)return;
   var groups={};
-  STORES.forEach(function(s){
-    if(!groups[s.atype]) groups[s.atype]={stores:[],total:0};
-    groups[s.atype].stores.push(s); groups[s.atype].total+=s.avg;
-  });
+  STORES.forEach(function(s){if(!groups[s.atype])groups[s.atype]={stores:[],total:0};groups[s.atype].stores.push(s);groups[s.atype].total+=s.avg;});
   var maxAvg=Math.max.apply(null,Object.values(groups).map(function(g){return g.total/g.stores.length;}));
   el.innerHTML=Object.entries(groups).sort(function(a,b){return b[1].total/b[1].stores.length-a[1].total/a[1].stores.length;}).map(function(entry){
-    var type=entry[0], g=entry[1];
+    var type=entry[0],g=entry[1];
     var avg=Math.round(g.total/g.stores.length/10000);
     var pct=Math.round(avg/(maxAvg/10000)*100);
-    return '<div class="card" style="margin-bottom:8px">'+
+    return'<div class="card" style="margin-bottom:8px">'+
       '<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-weight:700">'+type+'</span><span style="color:#64748b;font-size:11px">'+g.stores.length+'개점</span></div>'+
-      bar('평균월매출',pct).replace('bar-v" style="width:28px','bar-v" style="width:60px').replace('">'+pct+'</span>','">'+avg.toLocaleString()+'만</span>')+
+      '<div class="bar-row"><span class="bar-k">평균월매출</span><div class="bar-t"><div class="bar-f" style="width:'+pct+'%;background:#1a5c35"></div></div><span style="font-size:11px;font-weight:700;color:#1a5c35;width:60px;text-align:right">'+avg.toLocaleString()+'만</span></div>'+
       '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:7px">'+
-      g.stores.sort(function(a,b){return b.avg-a.avg;}).map(function(s){
-        return '<span style="background:#f8fafc;border:1px solid #dde3ec;border-radius:6px;padding:3px 7px;font-size:11px"><span style="font-weight:600">'+s.name+'</span> <span style="color:#1a5c35">'+Math.round(s.avg/10000)+'만</span></span>';
-      }).join('')+'</div></div>';
+      g.stores.sort(function(a,b){return b.avg-a.avg;}).map(function(s){return'<span style="background:#f8fafc;border:1px solid #dde3ec;border-radius:6px;padding:3px 7px;font-size:11px"><span style="font-weight:600">'+s.name+'</span> <span style="color:#1a5c35">'+Math.round(s.avg/10000)+'만</span></span>';}).join('')+
+      '</div></div>';
   }).join('');
 }
 
 loadAddrHistory();
 </script>
-<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=475ab6f89af7dc6ded8449065d23061c&libraries=services"></script>
-<script>window.onload=function(){initMap();loadAddrHistory();};</script>
+<!-- 카카오맵 SDK - 모든 JS 함수 정의 후 로드 -->
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=475ab6f89af7dc6ded8449065d23061c&libraries=services&autoload=false"></script>
+<script>kakao.maps.load(function(){initMap();});</script>
 </body>
 </html>

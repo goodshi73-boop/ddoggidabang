@@ -445,20 +445,24 @@ function searchNearby(lat,lng){
           image: markerImg,
           title: p.place_name
         });
-        // 저가커피: 주황 말풍선 항상 표시 / 일반카페: 마커 클릭시 InfoWindow로 표시
+        // 저가커피: 주황 말풍선 항상 표시 / 일반카페: 클릭 토글
         const markerPos = new kakao.maps.LatLng(p.y, p.x);
         if(isLow){
           const lowLabel='<div style="text-align:center;margin-bottom:44px"><div style="background:#ea580c;color:#fff;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700;white-space:nowrap;box-shadow:0 2px 6px rgba(234,88,12,.4);display:inline-block">'+p.place_name+'</div><div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid #ea580c;margin:0 auto"></div></div>';
           const ov=new kakao.maps.CustomOverlay({map,position:markerPos,content:lowLabel,yAnchor:1,zIndex:10});
           cafeOverlays.push(ov);
         } else {
-          // 일반카페 - InfoWindow 사용 (클릭시 하나만 표시)
-          const iw = new kakao.maps.InfoWindow({
-            content:'<div style="padding:4px 10px;font-size:11px;font-weight:500;color:#1a5c35;white-space:nowrap">'+p.place_name+'</div>',
-            removable:true
+          const cafeOv=new kakao.maps.CustomOverlay({
+            position:markerPos,
+            content:'<div style="text-align:center;margin-bottom:28px"><div style="background:#1a5c35;color:#fff;padding:2px 8px;border-radius:5px;font-size:9px;font-weight:600;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.3);display:inline-block">'+p.place_name+'</div><div style="width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid #1a5c35;margin:0 auto"></div></div>',
+            yAnchor:1,
+            zIndex:5
           });
+          cafeOverlays.push(cafeOv);
+          var isOpen=false;
           kakao.maps.event.addListener(marker,'click',function(){
-            iw.open(map, marker);
+            if(isOpen){ cafeOv.setMap(null); isOpen=false; }
+            else { cafeOv.setMap(map); isOpen=true; }
           });
         }
       });

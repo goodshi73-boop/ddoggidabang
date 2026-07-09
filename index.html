@@ -414,6 +414,10 @@ function searchNearby(lat,lng){
       document.getElementById('r-anchor').value=anchors.join('\n')||'주요 집객시설 없음';
       document.getElementById('r-anchor-disp').innerHTML=anchors.length?anchors.map(a=>'<div style="display:flex;gap:6px;align-items:center"><span style="color:#1a5c35">▶</span><span>'+a+'</span></div>').join(''):'주요 집객시설 없음';
       hideLoad();
+      // 주소 검색 완료 후 결과가 이미 표시된 경우 자동 갱신
+      if(document.getElementById('result-wrap').style.display!=='none'){
+        runAnalysis();
+      }
     }
   }
 }
@@ -452,6 +456,9 @@ function calcScore(D){
   if(D.pop>=30000)traffic=95; else if(D.pop>=15000)traffic=80;
   else if(D.pop>=8000)traffic=65; else if(D.pop>=3000)traffic=48;
   else if(D.pop>0)traffic=30;
+  // 상권등급 보정
+  var gradeBonus={A:10,B:5,C:0,D:-8,E:-15};
+  traffic=Math.min(100,Math.max(0,traffic+(gradeBonus[D.grade]||0)));
   let comp=80;
   comp-=Math.min(35,(D.cafe||0)*1.5);
   comp-=Math.min(20,(D.lowcafe||0)*6);
@@ -474,7 +481,12 @@ function calcScore(D){
   }
   if(D.floor==='2층'||D.floor==='지하') cost=Math.max(10,cost-8);
   let growth=55;
+  if(D.survival>0){
+    if(D.survival>=60) growth+=15; else if(D.survival>=45) growth+=7;
+    else if(D.survival<30) growth-=15;
+  }
   if((D.extra||'').includes('개장')||(D.extra||'').includes('개발')) growth+=12;
+  if((D.extra||'').includes('재건축')||(D.extra||'').includes('공사')) growth-=10;
   growth=Math.max(10,Math.min(100,Math.round(growth)));
   const overall=Math.round(traffic*0.20+comp*0.20+target*0.25+cost*0.20+growth*0.15);
   return{traffic,comp,target,cost,growth,overall,sim,simAvg,base};
@@ -503,8 +515,18 @@ function runAnalysis(){
     rent:n('i-rent'),deposit:n('i-deposit'),premium:n('i-premium'),remain:g('i-remain'),
     pop:n('i-pop'),female:n('i-female'),young:n('i-young'),
     cafe:n('r-cafe'),lowcafe:n('r-lowcafe'),subway:g('r-subway'),
-    anchor:g('r-anchor'),extra:g('i-extra')};
+    anchor:g('r-anchor'),extra:g('i-extra'),
+    grade:g('i-grade'),survival:n('i-survival'),peak:g('i-peak')};
   if(!D.addr&&D.pop<=0){alert('주소를 검색하거나 유동인구를 입력해주세요.');return;}
+  // 상권유형 미탐지시 주소 키워드로 보완
+  if(!D.atype||D.atype===''){
+    var addr=D.addr.toLowerCase();
+    if(addr.includes('역')||addr.includes('지하철')) D.atype='역세권';
+    else if(addr.includes('대학')||addr.includes('대교')) D.atype='대학가';
+    else if(addr.includes('법원')||addr.includes('시청')||addr.includes('구청')||addr.includes('공단')) D.atype='오피스·관공서';
+    else if(addr.includes('병원')||addr.includes('의료원')) D.atype='병원상권';
+    else D.atype='일반상권';
+  }
 
   var sc=calcScore(D);
   var grd=getGrade(sc.overall);

@@ -448,9 +448,18 @@ function searchNearby(lat,lng){
         // 저가커피: 주황 말풍선 항상 표시 / 일반카페: 클릭 토글
         const markerPos = new kakao.maps.LatLng(p.y, p.x);
         if(isLow){
-          const lowLabel='<div style="text-align:center;margin-bottom:44px"><div style="background:#ea580c;color:#fff;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700;white-space:nowrap;box-shadow:0 2px 6px rgba(234,88,12,.4);display:inline-block">'+p.place_name+'</div><div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid #ea580c;margin:0 auto"></div></div>';
-          const ov=new kakao.maps.CustomOverlay({map,position:markerPos,content:lowLabel,yAnchor:1,zIndex:10});
-          cafeOverlays.push(ov);
+          const lowOv=new kakao.maps.CustomOverlay({
+            map,
+            position:markerPos,
+            content:'<div style="text-align:center;margin-bottom:44px"><div style="background:#ea580c;color:#fff;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700;white-space:nowrap;box-shadow:0 2px 6px rgba(234,88,12,.4);display:inline-block">'+p.place_name+'</div><div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid #ea580c;margin:0 auto"></div></div>',
+            yAnchor:1,zIndex:10
+          });
+          cafeOverlays.push(lowOv);
+          var lowOpen=true;
+          kakao.maps.event.addListener(marker,'click',function(){
+            if(lowOpen){lowOv.setMap(null);lowOpen=false;}
+            else{lowOv.setMap(map);lowOpen=true;}
+          });
         } else {
           const cafeOv=new kakao.maps.CustomOverlay({
             position:markerPos,
@@ -491,15 +500,27 @@ function searchNearby(lat,lng){
     if(status===kakao.maps.services.Status.OK){
       convCount=data.length;
       data.forEach(p=>{
-        const convOverlay=new kakao.maps.CustomOverlay({
+        const convPos=new kakao.maps.LatLng(p.y,p.x);
+        const convMarker=new kakao.maps.Marker({
           map,
-          position:new kakao.maps.LatLng(p.y,p.x),
-          content:'<div style="text-align:center;margin-bottom:22px"><div style="background:#7c3aed;color:#fff;padding:2px 7px;border-radius:6px;font-size:10px;font-weight:600;white-space:nowrap;box-shadow:0 2px 5px rgba(124,58,237,.4);display:inline-block">'+p.place_name+'</div><div style="width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid #7c3aed;margin:0 auto"></div></div>',
-          yAnchor:1,
-          zIndex:3
+          position:convPos,
+          image:new kakao.maps.MarkerImage(
+            'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_purple.png',
+            new kakao.maps.Size(20,28)
+          )
         });
-        cafeOverlays.push(convOverlay);
-        new kakao.maps.Circle({map,center:new kakao.maps.LatLng(p.y,p.x),radius:3,strokeWeight:1,strokeColor:'#7c3aed',strokeOpacity:.8,fillColor:'#7c3aed',fillOpacity:.8});
+        cafeMarkers.push(convMarker);
+        const convOv=new kakao.maps.CustomOverlay({
+          position:convPos,
+          content:'<div style="text-align:center;margin-bottom:30px"><div style="background:#7c3aed;color:#fff;padding:2px 8px;border-radius:5px;font-size:9px;font-weight:600;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.3);display:inline-block">'+p.place_name+'</div><div style="width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid #7c3aed;margin:0 auto"></div></div>',
+          yAnchor:1,zIndex:3
+        });
+        cafeOverlays.push(convOv);
+        var convOpen=false;
+        kakao.maps.event.addListener(convMarker,'click',function(){
+          if(convOpen){convOv.setMap(null);convOpen=false;}
+          else{convOv.setMap(map);convOpen=true;}
+        });
       });
     }
     check();

@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>떠기다방 상권분석 대시보드</title>
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=475ab6f89af7dc6ded8449065d23061c&libraries=services&autoload=false"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;font-size:13px;background:#f0f3f8;color:#1a202c}
@@ -563,7 +562,14 @@ function renderCompare(){
 }
 
 // 카카오맵 초기화
-kakao.maps.load(function(){ initMap(); });
+var _kakaoTimer = setInterval(function(){
+  if(typeof kakao !== 'undefined' && kakao.maps && kakao.maps.services){
+    clearInterval(_kakaoTimer);
+    kakao.maps.load(function(){ initMap(); });
+  }
+}, 200);
+setTimeout(function(){ clearInterval(_kakaoTimer); }, 15000);
 </script>
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=475ab6f89af7dc6ded8449065d23061c&libraries=services&autoload=false"></script>
 </body>
 </html>

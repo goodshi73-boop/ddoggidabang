@@ -321,7 +321,7 @@ function searchAddr(){
     if(status===kakao.maps.services.Status.OK){
       const lat=parseFloat(result[0].y), lng=parseFloat(result[0].x);
       const latlng=new kakao.maps.LatLng(lat,lng);
-      map.setCenter(latlng); map.setLevel(4);
+      map.setCenter(latlng); map.setLevel(3);
       new kakao.maps.Marker({map,position:latlng,
         image:new kakao.maps.MarkerImage('https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png',new kakao.maps.Size(24,35))});
       showLoad('주변 상권 탐색 중...');
@@ -355,11 +355,17 @@ function searchNearby(lat,lng){
           image: markerImg,
           title: p.place_name
         });
-        // 모든 카페 이름 표시 (저가커피: 주황, 일반카페: 회색)
+        // 모든 카페 이름 표시 (저가커피: 주황 강조, 일반카페: 흰배경)
+        const bgColor = isLow ? '#ea580c' : '#fff';
+        const txtColor = isLow ? '#fff' : '#334155';
+        const border = isLow ? 'none' : '1px solid #cbd5e1';
+        const fSize = isLow ? '11px' : '10px';
+        const fWeight = isLow ? '700' : '400';
+        const mBottom = isLow ? '46px' : '30px';
         const overlay = new kakao.maps.CustomOverlay({
           map,
           position: new kakao.maps.LatLng(p.y, p.x),
-          content: '<div style="background:'+(isLow?'#ea580c':'#475569')+';color:#fff;padding:2px 7px;border-radius:99px;font-size:10px;font-weight:'+(isLow?'700':'500')+';white-space:nowrap;margin-bottom:'+(isLow?'42px':'28px')+';box-shadow:0 1px 4px rgba(0,0,0,.3)">'+p.place_name+'</div>',
+          content: '<div style="background:'+bgColor+';color:'+txtColor+';padding:3px 8px;border-radius:99px;font-size:'+fSize+';font-weight:'+fWeight+';white-space:nowrap;margin-bottom:'+mBottom+';box-shadow:0 2px 6px rgba(0,0,0,.2);border:'+border+'">'+p.place_name+'</div>',
           yAnchor: 1
         });
       });

@@ -388,7 +388,7 @@ function searchAddr(){
 function searchNearby(lat,lng){
   let cafe=0,lowCafe=0,subwayDist='미확인',done=0;
   const anchors=[];
-  const LOW=['메가커피','컴포즈','빽다방','더벤티','이디야','투썸','스타벅스'];
+  const LOW=['메가MGC','메가엠지씨','메가커피','컴포즈','더벤티','빽다방','백다방','우지','바나프레소','텐퍼센트','10%','카페봄봄','댄싱컵','하이요','하삼동'];
   const latlng=new kakao.maps.LatLng(lat,lng);
 
   ps.categorySearch('CE7',function(data,status){

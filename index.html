@@ -259,16 +259,6 @@ const STORES = [
 var map=null, geocoder=null, ps=null;
 var currentRadius=500, currentLat=0, currentLng=0;
 var searchCircle=null, cafeMarkers=[], cafeOverlays=[];
-var ovMap={}; // 전역 오버레이 관리
-
-function closeOv(id){
-  if(ovMap[id]) ovMap[id].setMap(null);
-}
-function toggleOv(id){
-  if(!ovMap[id]) return;
-  if(ovMap[id].getMap()) ovMap[id].setMap(null);
-  else ovMap[id].setMap(map);
-}
 
 function goTab(id,btn){
   document.querySelectorAll('.pnl').forEach(function(p){p.classList.remove('on');});
@@ -354,10 +344,8 @@ function searchNearby(lat,lng){
   var LOW=['메가MGC','메가엠지씨','메가커피','컴포즈','더벤티','빽다방','백다방','우지','바나프레소','텐퍼센트','10%','카페봄봄','댄싱컵','하이요','하삼동'];
   var latlng=new kakao.maps.LatLng(lat,lng);
 
-  var _ovIdx=0;
   function makeLabel(name,bg,mb){
-    var id='ov_'+(++_ovIdx);
-    return {id:id, content:'<div style="text-align:center;margin-bottom:'+mb+'px"><div style="background:'+bg+';color:#fff;padding:3px 9px;border-radius:5px;font-size:10px;font-weight:700;white-space:nowrap;box-shadow:0 2px 5px rgba(0,0,0,.25);display:inline-flex;align-items:center;gap:5px;cursor:pointer" onclick="closeOv(''+id+'')">'+name+' <span style="font-size:11px">✕</span></div><div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid '+bg+';margin:0 auto"></div></div>'};
+    return '<div style="text-align:center;margin-bottom:'+mb+'px"><div style="background:'+bg+';color:#fff;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700;white-space:nowrap;box-shadow:0 2px 5px rgba(0,0,0,.25);display:inline-block;cursor:pointer" onclick="this.parentNode.parentNode.style.display='none'">'+name+' ✕</div><div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid '+bg+';margin:0 auto"></div></div>';
   }
 
   ps.categorySearch('CE7',function(data,status){
@@ -374,14 +362,12 @@ function searchNearby(lat,lng){
         cafeMarkers.push(marker);
         var bg=isLow?'#ea580c':'#1a5c35';
         var mb=isLow?44:30;
-        var lbl=makeLabel(p.place_name,bg,mb);
         var ov=new kakao.maps.CustomOverlay({
           map:isLow?map:null,
           position:new kakao.maps.LatLng(p.y,p.x),
-          content:lbl.content,
+          content:makeLabel(p.place_name,bg,mb),
           yAnchor:1,zIndex:isLow?10:5
         });
-        ovMap[lbl.id]=ov;
         cafeOverlays.push(ov);
         kakao.maps.event.addListener(marker,'click',function(){
           if(ov.getMap()) ov.setMap(null); else ov.setMap(map);
@@ -416,13 +402,11 @@ function searchNearby(lat,lng){
           image:new kakao.maps.MarkerImage('https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_purple.png',new kakao.maps.Size(20,28))
         });
         cafeMarkers.push(convMarker);
-        var convLbl=makeLabel(p.place_name,'#7c3aed',30);
         var convOv=new kakao.maps.CustomOverlay({
           map:map,position:convPos,
-          content:convLbl.content,
+          content:makeLabel(p.place_name,'#7c3aed',30),
           yAnchor:1,zIndex:3
         });
-        ovMap[convLbl.id]=convOv;
         cafeOverlays.push(convOv);
         kakao.maps.event.addListener(convMarker,'click',function(){
           if(convOv.getMap()) convOv.setMap(null); else convOv.setMap(map);
@@ -668,10 +652,8 @@ function renderCompare(){
 
 loadAddrHistory();
 </script>
-<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=475ab6f89af7dc6ded8449065d23061c&libraries=services"></script>
-<script>
-try{ initMap(); }catch(e){ setTimeout(function(){ initMap(); }, 500); }
-loadAddrHistory();
-</script>
+<!-- 카카오맵 SDK - 모든 JS 함수 정의 후 로드 -->
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=475ab6f89af7dc6ded8449065d23061c&libraries=services&autoload=false"></script>
+<script>kakao.maps.load(function(){initMap();});</script>
 </body>
 </html>

@@ -65,6 +65,7 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
 .itbl td:first-child{color:#64748b;width:110px}
 @media(max-width:640px){.main{padding:12px}.g2,.g3,.g4{grid-template-columns:1fr 1fr}}
 </style>
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=475ab6f89af7dc6ded8449065d23061c&libraries=services"></script>
 </head>
 <body>
 
@@ -561,15 +562,12 @@ function renderCompare(){
   }).join('');
 }
 
-// 카카오맵 초기화
-var _kakaoTimer = setInterval(function(){
-  if(typeof kakao !== 'undefined' && kakao.maps && kakao.maps.services){
-    clearInterval(_kakaoTimer);
+// 카카오맵 초기화 - window.onload 후 실행
+window.addEventListener('load', function(){
+  if(typeof kakao !== 'undefined'){
     kakao.maps.load(function(){ initMap(); });
   }
-}, 200);
-setTimeout(function(){ clearInterval(_kakaoTimer); }, 15000);
+});
 </script>
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=475ab6f89af7dc6ded8449065d23061c&libraries=services&autoload=false"></script>
 </body>
 </html>

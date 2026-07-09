@@ -445,18 +445,22 @@ function searchNearby(lat,lng){
           image: markerImg,
           title: p.place_name
         });
-        // 카페 이름 말풍선
-        const nameLabel = isLow
-          ? '<div style="text-align:center;margin-bottom:52px"><div style="background:#ea580c;color:#fff;padding:5px 10px;border-radius:6px;font-size:12px;font-weight:700;white-space:nowrap;box-shadow:0 3px 8px rgba(234,88,12,.5);display:inline-block;letter-spacing:-.02em">'+p.place_name+'</div><div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:7px solid #ea580c;margin:0 auto"></div></div>'
-          : '<div style="text-align:center;margin-bottom:36px"><div style="background:#1a5c35;color:#fff;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:600;white-space:nowrap;box-shadow:0 2px 5px rgba(26,92,53,.4);display:inline-block">'+p.place_name+'</div><div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid #1a5c35;margin:0 auto"></div></div>';
-        const overlay = new kakao.maps.CustomOverlay({
-          map,
-          position: new kakao.maps.LatLng(p.y, p.x),
-          content: nameLabel,
-          yAnchor: 1,
-          zIndex: isLow ? 10 : 5
-        });
-        cafeOverlays.push(overlay);
+        // 저가커피: 항상 주황 말풍선, 일반카페: 클릭시 초록 말풍선
+        const markerPos = new kakao.maps.LatLng(p.y, p.x);
+        if(isLow){
+          const lowLabel='<div style="text-align:center;margin-bottom:44px"><div style="background:#ea580c;color:#fff;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700;white-space:nowrap;box-shadow:0 2px 6px rgba(234,88,12,.4);display:inline-block">'+p.place_name+'</div><div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid #ea580c;margin:0 auto"></div></div>';
+          const ov=new kakao.maps.CustomOverlay({map,position:markerPos,content:lowLabel,yAnchor:1,zIndex:10});
+          cafeOverlays.push(ov);
+        } else {
+          // 일반카페 - 클릭시 말풍선 토글
+          const cafeLabel='<div style="text-align:center;margin-bottom:30px"><div style="background:#1a5c35;color:#fff;padding:2px 7px;border-radius:5px;font-size:9px;font-weight:500;white-space:nowrap;box-shadow:0 1px 4px rgba(26,92,53,.35);display:inline-block">'+p.place_name+'</div><div style="width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid #1a5c35;margin:0 auto"></div></div>';
+          const ov=new kakao.maps.CustomOverlay({position:markerPos,content:cafeLabel,yAnchor:1,zIndex:5});
+          cafeOverlays.push(ov);
+          kakao.maps.event.addListener(marker,'click',function(){
+            if(ov.getMap()) ov.setMap(null);
+            else ov.setMap(map);
+          });
+        }
       });
     }
     document.getElementById('r-cafe').value=cafe;
@@ -527,6 +531,9 @@ function searchNearby(lat,lng){
       if(lbl) lbl.textContent='반경'+currentRadius+'m 카페';
       document.getElementById('r-conv').value=convCount;
       document.getElementById('r-conv-disp').textContent=convCount+'개';
+      // 지하철 카드 업데이트
+      var subDisp=document.getElementById('r-subway-disp');
+      if(subDisp) subDisp.style.fontSize=subwayDist.length>8?'11px':'13px';
       hideLoad();
       // 주소 검색 완료 후 결과가 이미 표시된 경우 자동 갱신
       if(document.getElementById('result-wrap').style.display!=='none'){

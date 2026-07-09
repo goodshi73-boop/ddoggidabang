@@ -357,7 +357,11 @@ function searchNearby(lat,lng){
   var _ovIdx=0;
   function makeLabel(name,bg,mb){
     var id='ov_'+(++_ovIdx);
-    return {id:id, content:'<div style="text-align:center;margin-bottom:'+mb+'px"><div style="background:'+bg+';color:#fff;padding:3px 9px;border-radius:5px;font-size:10px;font-weight:700;white-space:nowrap;box-shadow:0 2px 5px rgba(0,0,0,.25);display:inline-flex;align-items:center;gap:5px;cursor:pointer" onclick="closeOv(''+id+'')">'+name+' <span style="font-size:11px">✕</span></div><div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid '+bg+';margin:0 auto"></div></div>'};
+    var html='<div style="text-align:center;margin-bottom:'+mb+'px">';
+    html+='<div style="background:'+bg+';color:#fff;padding:3px 9px;border-radius:5px;font-size:10px;font-weight:700;white-space:nowrap;box-shadow:0 2px 5px rgba(0,0,0,.25);display:inline-flex;align-items:center;gap:5px;cursor:pointer" onclick="closeOv('+JSON.stringify(id)+')">';
+    html+=name+' <span style="font-size:11px">✕</span></div>';
+    html+='<div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid '+bg+';margin:0 auto"></div></div>';
+    return {id:id, content:html};
   }
 
   ps.categorySearch('CE7',function(data,status){

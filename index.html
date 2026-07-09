@@ -86,10 +86,19 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
   <div class="card">
     <div style="margin-bottom:10px">
       <label class="lbl">분석 주소 (도로명 주소)</label>
-      <div style="display:flex;gap:8px">
-        <input id="i-addr" type="text" placeholder="예: 서울시 마포구 양화로 45" style="flex:1">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input id="i-addr" type="text" placeholder="예: 서울시 마포구 양화로 45" style="flex:1;min-width:200px">
         <button class="btn btn-g" onclick="searchAddr()">📍 주소 검색</button>
       </div>
+    </div>
+    <div style="margin-bottom:10px">
+      <label class="lbl">탐색 반경 선택</label>
+      <div style="display:flex;gap:6px;margin-top:4px">
+        <button id="r-btn-150" class="btn" onclick="setRadius(150)" style="flex:1;font-size:12px">150m</button>
+        <button id="r-btn-300" class="btn" onclick="setRadius(300)" style="flex:1;font-size:12px">300m</button>
+        <button id="r-btn-500" class="btn btn-g" onclick="setRadius(500)" style="flex:1;font-size:12px">500m ✓</button>
+      </div>
+      <div id="r-radius-note" style="font-size:10px;color:#64748b;margin-top:4px">현재 반경: 500m — 주소 검색 전 반경을 먼저 선택하세요</div>
     </div>
     <div class="g3" style="gap:10px;margin-bottom:10px">
       <div><label class="lbl">상권 유형 <span style="color:#1a5c35;font-weight:400">(자동 탐지)</span></label>
@@ -127,7 +136,7 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
     </div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px">
       <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:7px 10px;text-align:center">
-        <div style="font-size:9px;color:#64748b;font-weight:700;margin-bottom:2px">반경500m 카페</div>
+        <div id="r-cafe-label" style="font-size:9px;color:#64748b;font-weight:700;margin-bottom:2px">반경500m 카페</div>
         <div id="r-cafe-disp" style="font-size:13px;font-weight:700;color:#1a5c35">-</div>
         <input id="r-cafe" type="number" readonly style="display:none">
       </div>
@@ -290,6 +299,29 @@ const STORES = [
 ];
 
 let map=null, geocoder=null, ps=null, mapReady=false;
+let currentRadius=500;
+let currentLat=0, currentLng=0;
+let searchCircle=null;
+let cafeMarkers=[], cafeOverlays=[];
+
+function setRadius(r){
+  currentRadius=r;
+  document.querySelectorAll('[id^="r-btn-"]').forEach(b=>{
+    b.className='btn';
+    b.style.background='';b.style.color='';b.style.borderColor='';
+  });
+  var btn=document.getElementById('r-btn-'+r);
+  if(btn){btn.className='btn btn-g';}
+  document.getElementById('r-radius-note').textContent='현재 반경: '+r+'m — 주소 재검색하면 반영됩니다';
+  // 이미 검색된 위치가 있으면 즉시 재탐색
+  if(currentLat&&currentLng&&mapReady){
+    // 기존 마커/오버레이 제거 후 재탐색
+    clearMarkers();
+    drawCircle(currentLat,currentLng,r);
+    showLoad('반경 '+r+'m 탐색 중...');
+    searchNearby(currentLat,currentLng);
+  }
+}
 
 function goTab(id,btn){
   document.querySelectorAll('.pnl').forEach(p=>p.classList.remove('on'));
@@ -303,6 +335,26 @@ function g(id){return(document.getElementById(id)||{}).value||'';}
 function n(id){return parseFloat(g(id))||0;}
 function showLoad(msg){document.getElementById('overlay').classList.add('show');document.getElementById('overlay-msg').textContent=msg||'처리 중...';}
 function hideLoad(){document.getElementById('overlay').classList.remove('show');}
+
+function clearMarkers(){
+  cafeMarkers.forEach(m=>m.setMap(null));
+  cafeOverlays.forEach(o=>o.setMap(null));
+  cafeMarkers=[]; cafeOverlays=[];
+  if(searchCircle) searchCircle.setMap(null);
+}
+
+function drawCircle(lat,lng,radius){
+  searchCircle=new kakao.maps.Circle({
+    map,
+    center:new kakao.maps.LatLng(lat,lng),
+    radius:radius,
+    strokeWeight:2,
+    strokeColor:'#1a5c35',
+    strokeOpacity:0.6,
+    fillColor:'#1a5c35',
+    fillOpacity:0.05
+  });
+}
 
 function initMap(){
   const container=document.getElementById('map');
@@ -320,11 +372,14 @@ function searchAddr(){
   geocoder.addressSearch(addr,function(result,status){
     if(status===kakao.maps.services.Status.OK){
       const lat=parseFloat(result[0].y), lng=parseFloat(result[0].x);
+      currentLat=lat; currentLng=lng;
       const latlng=new kakao.maps.LatLng(lat,lng);
       map.setCenter(latlng); map.setLevel(3);
       new kakao.maps.Marker({map,position:latlng,
         image:new kakao.maps.MarkerImage('https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png',new kakao.maps.Size(24,35))});
-      showLoad('주변 상권 탐색 중...');
+      clearMarkers();
+      drawCircle(lat,lng,currentRadius);
+      showLoad('반경 '+currentRadius+'m 탐색 중...');
       searchNearby(lat,lng);
     } else {hideLoad();alert('주소를 찾을 수 없습니다. 도로명 주소로 다시 입력해주세요.');}
   });
@@ -366,6 +421,7 @@ function searchNearby(lat,lng){
           yAnchor: 1,
           zIndex: isLow ? 10 : 5
         });
+        cafeOverlays.push(overlay);
       });
     }
     document.getElementById('r-cafe').value=cafe;
@@ -373,7 +429,7 @@ function searchNearby(lat,lng){
     document.getElementById('r-cafe-disp').textContent=cafe+'개';
     document.getElementById('r-lowcafe-disp').textContent=lowCafe+'개';
     check();
-  },{location:latlng,radius:500,size:15});
+  },{location:latlng,radius:currentRadius,size:15});
 
   ps.categorySearch('SW8',function(data,status){
     if(status===kakao.maps.services.Status.OK&&data.length>0){
@@ -385,12 +441,12 @@ function searchNearby(lat,lng){
     document.getElementById('r-subway').value=subwayDist;
     document.getElementById('r-subway-disp').textContent=subwayDist;
     check();
-  },{location:latlng,radius:500,size:3});
+  },{location:latlng,radius:currentRadius,size:3});
 
   ps.categorySearch('MT1',function(data,status){
     if(status===kakao.maps.services.Status.OK) data.slice(0,2).forEach(p=>anchors.push('마트/백화점: '+p.place_name+'('+p.distance+'m)'));
     check();
-  },{location:latlng,radius:500,size:3});
+  },{location:latlng,radius:currentRadius,size:3});
 
   ps.categorySearch('HP8',function(data,status){
     if(status===kakao.maps.services.Status.OK&&data.length>0){
@@ -398,7 +454,7 @@ function searchNearby(lat,lng){
       if(parseInt(data[0].distance)<200) document.getElementById('i-atype').value='병원상권';
     }
     check();
-  },{location:latlng,radius:300,size:3});
+  },{location:latlng,radius:Math.min(currentRadius,300),size:3});
 
   ps.categorySearch('SC4',function(data,status){
     if(status===kakao.maps.services.Status.OK&&data.length>0){
@@ -406,13 +462,15 @@ function searchNearby(lat,lng){
       if(data.some(p=>p.place_name.includes('대학')&&parseInt(p.distance)<500)) document.getElementById('i-atype').value='대학가';
     }
     check();
-  },{location:latlng,radius:500,size:5});
+  },{location:latlng,radius:currentRadius,size:5});
 
   function check(){
     done++;
     if(done>=5){
       document.getElementById('r-anchor').value=anchors.join('\n')||'주요 집객시설 없음';
       document.getElementById('r-anchor-disp').innerHTML=anchors.length?anchors.map(a=>'<div style="display:flex;gap:6px;align-items:center"><span style="color:#1a5c35">▶</span><span>'+a+'</span></div>').join(''):'주요 집객시설 없음';
+      var lbl=document.getElementById('r-cafe-label');
+      if(lbl) lbl.textContent='반경'+currentRadius+'m 카페';
       hideLoad();
       // 주소 검색 완료 후 결과가 이미 표시된 경우 자동 갱신
       if(document.getElementById('result-wrap').style.display!=='none'){

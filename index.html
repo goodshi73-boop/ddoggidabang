@@ -87,7 +87,8 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
     <div style="margin-bottom:10px">
       <label class="lbl">분석 주소 (도로명 주소)</label>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <input id="i-addr" type="text" placeholder="예: 서울시 마포구 양화로 45" style="flex:1;min-width:200px">
+        <input id="i-addr" type="text" placeholder="예: 서울시 마포구 양화로 45" style="flex:1;min-width:200px" list="addr-history" autocomplete="off">
+        <datalist id="addr-history"></datalist>
         <button class="btn btn-g" onclick="searchAddr()">📍 주소 검색</button>
       </div>
     </div>
@@ -336,6 +337,32 @@ function n(id){return parseFloat(g(id))||0;}
 function showLoad(msg){document.getElementById('overlay').classList.add('show');document.getElementById('overlay-msg').textContent=msg||'처리 중...';}
 function hideLoad(){document.getElementById('overlay').classList.remove('show');}
 
+function saveAddrHistory(addr){
+  try{
+    var hist=JSON.parse(localStorage.getItem('ddb_addr_hist')||'[]');
+    hist=hist.filter(a=>a!==addr);
+    hist.unshift(addr);
+    hist=hist.slice(0,10);
+    localStorage.setItem('ddb_addr_hist',JSON.stringify(hist));
+    loadAddrHistory();
+  }catch(e){}
+}
+
+function loadAddrHistory(){
+  try{
+    var hist=JSON.parse(localStorage.getItem('ddb_addr_hist')||'[]');
+    var dl=document.getElementById('addr-history');
+    if(dl){
+      dl.innerHTML=hist.map(a=>'<option value="'+a+'">').join('');
+    }
+  }catch(e){}
+}
+
+function clearAddrHistory(){
+  localStorage.removeItem('ddb_addr_hist');
+  loadAddrHistory();
+}
+
 function clearMarkers(){
   cafeMarkers.forEach(m=>m.setMap(null));
   cafeOverlays.forEach(o=>o.setMap(null));
@@ -373,6 +400,8 @@ function searchAddr(){
     if(status===kakao.maps.services.Status.OK){
       const lat=parseFloat(result[0].y), lng=parseFloat(result[0].x);
       currentLat=lat; currentLng=lng;
+      // 최근 검색 주소 저장
+      saveAddrHistory(addr);
       const latlng=new kakao.maps.LatLng(lat,lng);
       map.setCenter(latlng); map.setLevel(3);
       new kakao.maps.Marker({map,position:latlng,
@@ -707,7 +736,7 @@ function renderCompare(){
   }).join('');
 }
 
-window.onload = function(){ if(typeof kakao !== "undefined"){ initMap(); } };
+window.onload = function(){ if(typeof kakao !== "undefined"){ initMap(); } loadAddrHistory(); };
 </script>
 <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=475ab6f89af7dc6ded8449065d23061c&libraries=services"></script>
 </body>

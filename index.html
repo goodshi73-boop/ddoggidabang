@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>떠기다방 상권분석 대시보드</title>
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=475ab6f89af7dc6ded8449065d23061c&libraries=services"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;font-size:13px;background:#f0f3f8;color:#1a202c}
@@ -27,7 +28,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#1a5c35}
 textarea{resize:vertical;min-height:60px;line-height:1.55}
 .btn{padding:8px 18px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid #dde3ec;background:#fff;color:#1a202c;font-family:inherit}
 .btn-g{background:#1a5c35;color:#fff;border-color:#1a5c35}
-.btn-g:hover{background:#14502d}
 .metric{background:#f8fafc;border:1px solid #dde3ec;border-radius:8px;padding:11px;text-align:center}
 .m-l{font-size:10px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
 .m-v{font-size:19px;font-weight:700;color:#1a5c35;line-height:1}
@@ -43,29 +43,26 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
 .abox.amber{border-left-color:#d97706;background:#fffbeb;color:#78350f}
 .li{display:flex;gap:7px;align-items:flex-start;margin-bottom:7px;font-size:12px;line-height:1.6}
 .ci{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;margin-top:1px}
-#map{width:100%;height:340px;border-radius:8px;border:1px solid #dde3ec}
+#map{width:100%;height:340px;border-radius:8px;border:1px solid #dde3ec;background:#e8edf4}
 .map-wrap{position:relative}
 .map-legend{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.95);border-radius:8px;padding:9px 12px;font-size:11px;box-shadow:0 2px 8px rgba(0,0,0,.15);z-index:10}
 .legend-item{display:flex;align-items:center;gap:6px;margin-bottom:4px}
 .legend-item:last-child{margin-bottom:0}
 .dot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
-.loading{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:999}
-.loading.show{display:flex}
-.loading-box{background:#fff;border-radius:12px;padding:28px 36px;text-align:center}
+.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:999}
+.overlay.show{display:flex}
+.overlay-box{background:#fff;border-radius:12px;padding:28px 36px;text-align:center}
 .spinner{display:inline-block;width:30px;height:30px;border:3px solid #e2e8f0;border-top-color:#1a5c35;border-radius:50%;animation:spin .7s linear infinite;margin-bottom:10px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .pred-hero{background:linear-gradient(135deg,#1a5c35,#2d8f55);color:#fff;border-radius:12px;padding:18px 22px;margin-bottom:12px}
-.store-card{border:1px solid #dde3ec;border-radius:8px;padding:10px 12px;margin-bottom:7px;transition:all .15s;cursor:pointer}
-.store-card:hover{border-color:#1a5c35;background:#f0fdf4}
+.store-card{border:1px solid #dde3ec;border-radius:8px;padding:10px 12px;margin-bottom:7px}
 .sim-badge{background:#1a5c35;color:#fff;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700;margin-left:6px}
 .itbl{width:100%;border-collapse:collapse;font-size:12px}
 .itbl tr{border-bottom:1px solid #f1f5f9}
-.itbl tr:last-child{border-bottom:none}
 .itbl td{padding:6px 4px}
 .itbl td:first-child{color:#64748b;width:110px}
 @media(max-width:640px){.main{padding:12px}.g2,.g3,.g4{grid-template-columns:1fr 1fr}}
 </style>
-<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=475ab6f89af7dc6ded8449065d23061c&libraries=services"></script>
 </head>
 <body>
 
@@ -85,7 +82,6 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
 
 <div class="main">
 
-<!-- 신규 입지 분석 -->
 <div id="p-new" class="pnl on">
   <div class="st">신규 출점 예정 입지 정보</div>
   <div class="card">
@@ -131,23 +127,23 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
       </div>
     </div>
     <div class="g3" style="gap:10px;margin-top:10px">
-      <div><label class="lbl">반경500m 카페 수 <span style="color:#1a5c35">(자동)</span></label><input id="r-cafe" type="number" placeholder="탐색 중..." readonly style="background:#f8fafc"></div>
-      <div><label class="lbl">저가커피 브랜드 수 <span style="color:#1a5c35">(자동)</span></label><input id="r-lowcafe" type="number" placeholder="탐색 중..." readonly style="background:#f8fafc"></div>
-      <div><label class="lbl">지하철역 거리 <span style="color:#1a5c35">(자동)</span></label><input id="r-subway" type="text" placeholder="탐색 중..." readonly style="background:#f8fafc"></div>
+      <div><label class="lbl">반경500m 카페 수 <span style="color:#1a5c35">(자동)</span></label><input id="r-cafe" type="number" readonly style="background:#f8fafc"></div>
+      <div><label class="lbl">저가커피 브랜드 수 <span style="color:#1a5c35">(자동)</span></label><input id="r-lowcafe" type="number" readonly style="background:#f8fafc"></div>
+      <div><label class="lbl">지하철역 거리 <span style="color:#1a5c35">(자동)</span></label><input id="r-subway" type="text" readonly style="background:#f8fafc"></div>
     </div>
     <div style="margin-top:10px"><label class="lbl">주변 집객시설 <span style="color:#1a5c35">(자동)</span></label>
-      <textarea id="r-anchor" placeholder="주소 검색 후 자동으로 채워집니다..." readonly style="background:#f8fafc;min-height:50px"></textarea>
+      <textarea id="r-anchor" readonly style="background:#f8fafc;min-height:50px"></textarea>
     </div>
   </div>
 
-  <div class="st">추가 입력 <span style="font-size:10px;font-weight:400;color:#64748b">(소상공인상권분석에서 수집)</span></div>
+  <div class="st">추가 입력</div>
   <div class="card">
     <div class="g3" style="gap:10px;margin-bottom:10px">
       <div><label class="lbl">일평균 유동인구 (명)</label><input id="i-pop" type="number" placeholder="sg.sbiz.or.kr 확인"></div>
       <div><label class="lbl">여성 비율 (%)</label><input id="i-female" type="number" placeholder="58"></div>
       <div><label class="lbl">20~30대 비율 (%)</label><input id="i-young" type="number" placeholder="62"></div>
     </div>
-    <div><label class="lbl">특이사항</label><textarea id="i-extra" placeholder="예: 2026년 복합쇼핑몰 개장 예정 / 역 출구 50m"></textarea></div>
+    <div><label class="lbl">특이사항</label><textarea id="i-extra" placeholder="예: 2026년 복합쇼핑몰 개장 예정"></textarea></div>
   </div>
 
   <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
@@ -171,9 +167,8 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
   </div>
 </div>
 
-<!-- 기존 점포 현황 -->
 <div id="p-stores" class="pnl">
-  <div class="st">떠기다방 기존 점포 현황 (29개점 매출 데이터)</div>
+  <div class="st">떠기다방 기존 점포 현황 (29개점)</div>
   <div class="card" style="overflow-x:auto">
     <table class="itbl" style="min-width:650px">
       <thead><tr style="background:#f8fafc;font-size:11px;font-weight:700;color:#64748b">
@@ -184,13 +179,11 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
   </div>
 </div>
 
-<!-- 유사점 비교 -->
 <div id="p-compare" class="pnl">
   <div class="st">상권 유형별 매출 분포</div>
   <div id="compare-wrap"></div>
 </div>
 
-<!-- 수집 가이드 -->
 <div id="p-guide" class="pnl">
   <div class="st">데이터 수집 경로</div>
   <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:11px 14px;margin-bottom:8px">
@@ -199,25 +192,24 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
   </div>
   <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:11px 14px;margin-bottom:8px">
     <div style="font-size:11px;font-weight:700;color:#1d4ed8;margin-bottom:6px">유동인구 — 소상공인 상권분석시스템 (무료)</div>
-    <div style="font-size:11px;color:#334155;line-height:1.8"><a href="https://sg.sbiz.or.kr" target="_blank" style="color:#1d4ed8;font-weight:600">sg.sbiz.or.kr</a> → 상권분석 → 주소 검색 → 커피음료 선택 → 유동인구·연령·성별 수집</div>
+    <div style="font-size:11px;color:#334155;line-height:1.8"><a href="https://sg.sbiz.or.kr" target="_blank" style="color:#1d4ed8;font-weight:600">sg.sbiz.or.kr</a> → 상권분석 → 주소 검색 → 커피음료 선택</div>
   </div>
-  <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:11px 14px;margin-bottom:8px">
+  <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:11px 14px">
     <div style="font-size:11px;font-weight:700;color:#1d4ed8;margin-bottom:6px">권리·등기 — 인터넷 등기소 (건당 700원)</div>
-    <div style="font-size:11px;color:#334155;line-height:1.8"><a href="https://www.iros.go.kr" target="_blank" style="color:#1d4ed8;font-weight:600">iros.go.kr</a> → 등기열람 → 건물+토지 발급 → 갑구(가처분) / 을구(근저당) 확인</div>
+    <div style="font-size:11px;color:#334155;line-height:1.8"><a href="https://www.iros.go.kr" target="_blank" style="color:#1d4ed8;font-weight:600">iros.go.kr</a> → 등기열람 → 건물+토지 발급</div>
   </div>
 </div>
 
-</div><!-- /main -->
+</div>
 
-<div class="loading" id="loading">
-  <div class="loading-box">
+<div class="overlay" id="overlay">
+  <div class="overlay-box">
     <div class="spinner"></div>
-    <p id="loading-msg" style="font-size:13px;color:#64748b">카카오맵 데이터 수집 중...</p>
+    <p id="overlay-msg" style="font-size:13px;color:#64748b">처리 중...</p>
   </div>
 </div>
 
 <script>
-// 기존 29개 점포 실매출 DB
 const STORES = [
   {name:'신도림점',atype:'역세권',floor:'1층',area:20,avg:32680000,recent:59350000,months:2},
   {name:'구미점',atype:'오피스·관공서',floor:'1층',area:70,avg:26320000,recent:29160000,months:13},
@@ -250,7 +242,7 @@ const STORES = [
   {name:'부천법원점',atype:'오피스·관공서',floor:'1층',area:14,avg:8460000,recent:9250000,months:15},
 ];
 
-let map=null, geocoder=null, ps=null;
+let map=null, geocoder=null, ps=null, mapReady=false;
 
 function goTab(id,btn){
   document.querySelectorAll('.pnl').forEach(p=>p.classList.remove('on'));
@@ -262,25 +254,19 @@ function goTab(id,btn){
 }
 function g(id){return(document.getElementById(id)||{}).value||'';}
 function n(id){return parseFloat(g(id))||0;}
-function showLoad(msg){document.getElementById('loading').classList.add('show');document.getElementById('loading-msg').textContent=msg||'처리 중...';}
-function hideLoad(){document.getElementById('loading').classList.remove('show');}
-function resetAll(){
-  document.querySelectorAll('#p-new input,#p-new select,#p-new textarea').forEach(el=>{
-    if(el.readOnly) return;
-    if(el.tagName==='SELECT') el.selectedIndex=0; else el.value='';
-  });
-  ['r-cafe','r-lowcafe','r-subway','r-anchor'].forEach(id=>{document.getElementById(id).value='';});
-  document.getElementById('result-wrap').style.display='none';
-}
+function showLoad(msg){document.getElementById('overlay').classList.add('show');document.getElementById('overlay-msg').textContent=msg||'처리 중...';}
+function hideLoad(){document.getElementById('overlay').classList.remove('show');}
 
 function initMap(){
   const container=document.getElementById('map');
   map=new kakao.maps.Map(container,{center:new kakao.maps.LatLng(37.5665,126.9780),level:5});
   geocoder=new kakao.maps.services.Geocoder();
   ps=new kakao.maps.services.Places();
+  mapReady=true;
 }
 
 function searchAddr(){
+  if(!mapReady){alert('지도가 아직 로드 중입니다. 잠시 후 다시 시도해주세요.');return;}
   const addr=g('i-addr');
   if(!addr){alert('주소를 입력해주세요.');return;}
   showLoad('주소 변환 중...');
@@ -291,17 +277,17 @@ function searchAddr(){
       map.setCenter(latlng); map.setLevel(4);
       new kakao.maps.Marker({map,position:latlng,
         image:new kakao.maps.MarkerImage('https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png',new kakao.maps.Size(24,35))});
-      updateLoad('주변 상권 탐색 중...');
+      showLoad('주변 상권 탐색 중...');
       searchNearby(lat,lng);
-    } else {hideLoad();alert('주소를 찾을 수 없습니다.');}
+    } else {hideLoad();alert('주소를 찾을 수 없습니다. 도로명 주소로 다시 입력해주세요.');}
   });
 }
-function updateLoad(msg){document.getElementById('loading-msg').textContent=msg;}
 
 function searchNearby(lat,lng){
   let cafe=0,lowCafe=0,subwayDist='미확인',done=0;
   const anchors=[];
   const LOW=['메가커피','컴포즈','빽다방','더벤티','이디야','투썸','스타벅스'];
+  const latlng=new kakao.maps.LatLng(lat,lng);
 
   ps.categorySearch('CE7',function(data,status){
     if(status===kakao.maps.services.Status.OK){
@@ -314,39 +300,39 @@ function searchNearby(lat,lng){
     document.getElementById('r-cafe').value=cafe;
     document.getElementById('r-lowcafe').value=lowCafe;
     check();
-  },{location:new kakao.maps.LatLng(lat,lng),radius:500,size:15});
+  },{location:latlng,radius:500,size:15});
 
   ps.categorySearch('SW8',function(data,status){
     if(status===kakao.maps.services.Status.OK&&data.length>0){
       const d=Math.round(data[0].distance);
-      subwayDist=d<100?`${d}m(초근접)`:d<300?`${d}m(도보3분)`:d<500?`${d}m(도보5분)`:`${d}m`;
-      anchors.push(`지하철: ${data[0].place_name}(${d}m)`);
+      subwayDist=d<100?d+'m(초근접)':d<300?d+'m(도보3분)':d<500?d+'m(도보5분)':d+'m';
+      anchors.push('지하철: '+data[0].place_name+'('+d+'m)');
       if(d<300) document.getElementById('i-atype').value='역세권';
     }
     document.getElementById('r-subway').value=subwayDist;
     check();
-  },{location:new kakao.maps.LatLng(lat,lng),radius:500,size:3});
+  },{location:latlng,radius:500,size:3});
 
   ps.categorySearch('MT1',function(data,status){
-    if(status===kakao.maps.services.Status.OK) data.slice(0,2).forEach(p=>anchors.push(`마트/백화점: ${p.place_name}(${p.distance}m)`));
+    if(status===kakao.maps.services.Status.OK) data.slice(0,2).forEach(p=>anchors.push('마트/백화점: '+p.place_name+'('+p.distance+'m)'));
     check();
-  },{location:new kakao.maps.LatLng(lat,lng),radius:500,size:3});
+  },{location:latlng,radius:500,size:3});
 
   ps.categorySearch('HP8',function(data,status){
     if(status===kakao.maps.services.Status.OK&&data.length>0){
-      anchors.push(`병원: ${data[0].place_name}(${data[0].distance}m)`);
+      anchors.push('병원: '+data[0].place_name+'('+data[0].distance+'m)');
       if(parseInt(data[0].distance)<200) document.getElementById('i-atype').value='병원상권';
     }
     check();
-  },{location:new kakao.maps.LatLng(lat,lng),radius:300,size:3});
+  },{location:latlng,radius:300,size:3});
 
   ps.categorySearch('SC4',function(data,status){
     if(status===kakao.maps.services.Status.OK&&data.length>0){
-      data.slice(0,2).forEach(p=>anchors.push(`학교: ${p.place_name}(${p.distance}m)`));
+      data.slice(0,2).forEach(p=>anchors.push('학교: '+p.place_name+'('+p.distance+'m)'));
       if(data.some(p=>p.place_name.includes('대학')&&parseInt(p.distance)<500)) document.getElementById('i-atype').value='대학가';
     }
     check();
-  },{location:new kakao.maps.LatLng(lat,lng),radius:500,size:5});
+  },{location:latlng,radius:500,size:5});
 
   function check(){
     done++;
@@ -357,15 +343,32 @@ function searchNearby(lat,lng){
   }
 }
 
+function resetAll(){
+  ['i-addr','i-area','i-rent','i-deposit','i-premium','i-remain','i-pop','i-female','i-young','i-extra'].forEach(id=>{document.getElementById(id).value='';});
+  ['r-cafe','r-lowcafe','r-subway','r-anchor'].forEach(id=>{document.getElementById(id).value='';});
+  document.getElementById('i-atype').selectedIndex=0;
+  document.getElementById('i-floor').selectedIndex=0;
+  document.getElementById('result-wrap').style.display='none';
+}
+
 function findSimilar(atype,floor,area){
   return STORES.map(s=>{
-    let score=0;
-    if(s.atype===atype) score+=40;
-    if(s.floor===floor) score+=20;
+    let sc=0;
+    if(s.atype===atype) sc+=40;
+    if(s.floor===floor) sc+=20;
     const ad=Math.abs(s.area-(area||15));
-    if(ad<=5) score+=30; else if(ad<=15) score+=18; else if(ad<=25) score+=8;
-    return{...s,score};
-  }).sort((a,b)=>b.score-a.score).slice(0,5);
+    if(ad<=5) sc+=30; else if(ad<=15) sc+=18; else if(ad<=25) sc+=8;
+    return Object.assign({},s,{score:sc});
+  }).sort(function(a,b){return b.score-a.score;}).slice(0,5);
+}
+
+function estimateBase(D){
+  const ar={역세권:0.0095,'오피스·관공서':0.009,대학가:0.0075,병원상권:0.008,일반상권:0.007};
+  const rate=ar[D.atype]||0.008;
+  const pop=D.pop||8000;
+  let b=pop*rate*6500/10000*30;
+  if(D.floor==='2층') b*=0.72; else if(D.floor==='지하') b*=0.78;
+  return Math.round(b);
 }
 
 function calcScore(D){
@@ -373,48 +376,32 @@ function calcScore(D){
   if(D.pop>=30000)traffic=95; else if(D.pop>=15000)traffic=80;
   else if(D.pop>=8000)traffic=65; else if(D.pop>=3000)traffic=48;
   else if(D.pop>0)traffic=30;
-
   let comp=80;
   comp-=Math.min(35,(D.cafe||0)*1.5);
   comp-=Math.min(20,(D.lowcafe||0)*6);
   comp=Math.max(10,Math.round(comp));
-
   let target=50;
   if(D.female>0) target+=(D.female-50)*0.8;
   if(D.young>0) target+=(D.young-50)*0.6;
-  const ab={역세권:12,대학가:8,오피스·관공서:6,병원상권:4,일반상권:0};
+  var ab={역세권:12,대학가:8,'오피스·관공서':6,병원상권:4,일반상권:0};
   target+=(ab[D.atype]||0);
   if(D.floor==='2층') target-=8; else if(D.floor==='지하') target-=6;
   target=Math.max(15,Math.min(100,Math.round(target)));
-
   const sim=findSimilar(D.atype,D.floor,D.area);
-  const simAvg=sim.length?Math.round(sim.reduce((a,s)=>a+s.avg,0)/sim.length):0;
-
+  const simAvg=sim.length?Math.round(sim.reduce(function(a,s){return a+s.avg;},0)/sim.length):0;
   let cost=65;
   const base=simAvg||estimateBase(D);
   if(D.rent>0&&base>0){
     const r=D.rent/base*100;
     if(r<=8)cost=95; else if(r<=12)cost=82;
-    else if(r<=16)cost=68; else if(r<=22)cost=45;
-    else cost=25;
+    else if(r<=16)cost=68; else if(r<=22)cost=45; else cost=25;
   }
   if(D.floor==='2층'||D.floor==='지하') cost=Math.max(10,cost-8);
-
   let growth=55;
   if((D.extra||'').includes('개장')||(D.extra||'').includes('개발')) growth+=12;
   growth=Math.max(10,Math.min(100,Math.round(growth)));
-
   const overall=Math.round(traffic*0.20+comp*0.20+target*0.25+cost*0.20+growth*0.15);
   return{traffic,comp,target,cost,growth,overall,sim,simAvg,base};
-}
-
-function estimateBase(D){
-  const ar={역세권:0.0095,오피스·관공서:0.009,대학가:0.0075,병원상권:0.008,일반상권:0.007};
-  const rate=ar[D.atype]||0.008;
-  const pop=D.pop||8000;
-  let b=pop*rate*6500/10000*30;
-  if(D.floor==='2층') b*=0.72; else if(D.floor==='지하') b*=0.78;
-  return Math.round(b);
 }
 
 function getGrade(s){
@@ -429,144 +416,144 @@ function getVerdict(s){
   return{t:'출점 비권고',bg:'#fee2e2',tc:'#991b1b'};
 }
 function bar(l,v){
-  const c=v>=70?'#1a5c35':v>=50?'#2E75B6':v>=35?'#d97706':'#dc2626';
-  return`<div class="bar-row"><span class="bar-k">${l}</span><div class="bar-t"><div class="bar-f" style="width:${v}%;background:${c}"></div></div><span class="bar-v" style="color:${c}">${v}</span></div>`;
+  var c=v>=70?'#1a5c35':v>=50?'#2E75B6':v>=35?'#d97706':'#dc2626';
+  return '<div class="bar-row"><span class="bar-k">'+l+'</span><div class="bar-t"><div class="bar-f" style="width:'+v+'%;background:'+c+'"></div></div><span class="bar-v" style="color:'+c+'">'+v+'</span></div>';
 }
-function met(l,v,s,c){return`<div class="metric"><div class="m-l">${l}</div><div class="m-v" style="color:${c||'#1a5c35'}">${v}</div>${s?`<div class="m-s">${s}</div>`:''}</div>`;}
-function li(ic,col,txt){return`<div class="li"><span class="ci" style="background:${col}22;color:${col}">${ic}</span><span>${txt}</span></div>`;}
+function met(l,v,s,c){return '<div class="metric"><div class="m-l">'+l+'</div><div class="m-v" style="color:'+(c||'#1a5c35')+'">'+v+'</div>'+(s?'<div class="m-s">'+s+'</div>':'')+'</div>';}
+function li(ic,col,txt){return '<div class="li"><span class="ci" style="background:'+col+'22;color:'+col+'">'+ic+'</span><span>'+txt+'</span></div>';}
 
 function runAnalysis(){
-  const D={addr:g('i-addr'),atype:g('i-atype'),floor:g('i-floor'),area:n('i-area'),
+  var D={addr:g('i-addr'),atype:g('i-atype'),floor:g('i-floor'),area:n('i-area'),
     rent:n('i-rent'),deposit:n('i-deposit'),premium:n('i-premium'),remain:g('i-remain'),
     pop:n('i-pop'),female:n('i-female'),young:n('i-young'),
     cafe:n('r-cafe'),lowcafe:n('r-lowcafe'),subway:g('r-subway'),
     anchor:g('r-anchor'),extra:g('i-extra')};
   if(!D.addr&&D.pop<=0){alert('주소를 검색하거나 유동인구를 입력해주세요.');return;}
 
-  const sc=calcScore(D);
-  const grd=getGrade(sc.overall);
-  const vrd=getVerdict(sc.overall);
-  const pred=sc.simAvg||sc.base;
-  const rentRatio=D.rent&&pred?Math.round(D.rent/pred*100):0;
-  const fixedCost=D.rent+(D.area||15)*8;
-  const profit=pred?Math.round(pred*(1-0.42)-fixedCost):0;
-  const initInvest=7830+(D.premium||0)+(D.deposit||0);
-  const breakEven=profit>0?Math.ceil(initInvest/profit):0;
-  const basisNote=sc.sim.length?`유사 기존점 ${sc.sim.length}개 실매출 평균 기반`:'입지 조건 추정 기반';
+  var sc=calcScore(D);
+  var grd=getGrade(sc.overall);
+  var vrd=getVerdict(sc.overall);
+  var pred=sc.simAvg||sc.base;
+  var rentRatio=D.rent&&pred?Math.round(D.rent/pred*100):0;
+  var fixedCost=D.rent+(D.area||15)*8;
+  var profit=pred?Math.round(pred*(1-0.42)-fixedCost):0;
+  var initInvest=7830+(D.premium||0)+(D.deposit||0);
+  var breakEven=profit>0?Math.ceil(initInvest/profit):0;
+  var basisNote=sc.sim.length?'유사 기존점 '+sc.sim.length+'개 실매출 평균 기반':'입지 조건 추정 기반';
 
-  document.getElementById('pred-hero').innerHTML=`
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
-      <div>
-        <div style="font-size:11px;opacity:.75;margin-bottom:5px">떠기다방 실매출 기반 예상 월매출</div>
-        <div style="font-size:36px;font-weight:700;line-height:1">${pred?pred.toLocaleString()+'만':'-'}</div>
-        <div style="font-size:11px;opacity:.7;margin-top:3px">${basisNote}</div>
-        <div style="margin-top:8px;display:flex;gap:7px;flex-wrap:wrap">
-          <span style="background:rgba(255,255,255,.15);padding:2px 10px;border-radius:99px;font-size:11px">최소 ${pred?Math.round(pred*.72).toLocaleString()+'만':'?'}</span>
-          <span style="background:rgba(255,255,255,.25);padding:2px 10px;border-radius:99px;font-size:11px;font-weight:700">기준 ${pred?pred.toLocaleString()+'만':'?'}</span>
-          <span style="background:rgba(255,255,255,.15);padding:2px 10px;border-radius:99px;font-size:11px">최대 ${pred?Math.round(pred*1.35).toLocaleString()+'만':'?'}</span>
-        </div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-size:34px;font-weight:700">${sc.overall}<span style="font-size:13px;opacity:.7">/100</span></div>
-        <div style="background:rgba(255,255,255,.2);padding:2px 12px;border-radius:99px;font-size:12px;font-weight:700;display:inline-block;margin-top:3px">${grd.g}등급</div>
-        <div style="background:${vrd.bg};color:${vrd.tc};padding:3px 12px;border-radius:99px;font-size:12px;font-weight:700;display:inline-block;margin-top:5px">${vrd.t}</div>
-      </div>
-    </div>
-    <div style="margin-top:12px">${bar('유동인구',sc.traffic)}${bar('경쟁환경',sc.comp)}${bar('타겟부합',sc.target)}${bar('비용효율',sc.cost)}${bar('성장성',sc.growth)}</div>`;
+  document.getElementById('pred-hero').innerHTML=
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">'+
+    '<div><div style="font-size:11px;opacity:.75;margin-bottom:5px">떠기다방 실매출 기반 예상 월매출</div>'+
+    '<div style="font-size:36px;font-weight:700;line-height:1">'+(pred?pred.toLocaleString()+'만':'-')+'</div>'+
+    '<div style="font-size:11px;opacity:.7;margin-top:3px">'+basisNote+'</div>'+
+    '<div style="margin-top:8px;display:flex;gap:7px;flex-wrap:wrap">'+
+    '<span style="background:rgba(255,255,255,.15);padding:2px 10px;border-radius:99px;font-size:11px">최소 '+(pred?Math.round(pred*.72).toLocaleString()+'만':'?')+'</span>'+
+    '<span style="background:rgba(255,255,255,.25);padding:2px 10px;border-radius:99px;font-size:11px;font-weight:700">기준 '+(pred?pred.toLocaleString()+'만':'?')+'</span>'+
+    '<span style="background:rgba(255,255,255,.15);padding:2px 10px;border-radius:99px;font-size:11px">최대 '+(pred?Math.round(pred*1.35).toLocaleString()+'만':'?')+'</span>'+
+    '</div></div>'+
+    '<div style="text-align:right"><div style="font-size:34px;font-weight:700">'+sc.overall+'<span style="font-size:13px;opacity:.7">/100</span></div>'+
+    '<div style="background:rgba(255,255,255,.2);padding:2px 12px;border-radius:99px;font-size:12px;font-weight:700;display:inline-block;margin-top:3px">'+grd.g+'등급</div>'+
+    '<div style="background:'+vrd.bg+';color:'+vrd.tc+';padding:3px 12px;border-radius:99px;font-size:12px;font-weight:700;display:inline-block;margin-top:5px">'+vrd.t+'</div>'+
+    '</div></div>'+
+    '<div style="margin-top:12px">'+bar('유동인구',sc.traffic)+bar('경쟁환경',sc.comp)+bar('타겟부합',sc.target)+bar('비용효율',sc.cost)+bar('성장성',sc.growth)+'</div>';
 
-  const rc=rentRatio<=10?'#16a34a':rentRatio<=15?'#2563eb':rentRatio<=20?'#d97706':'#dc2626';
-  const pc=profit>=300?'#16a34a':profit>=150?'#2563eb':'#dc2626';
+  var rc=rentRatio<=10?'#16a34a':rentRatio<=15?'#2563eb':rentRatio<=20?'#d97706':'#dc2626';
+  var pc=profit>=300?'#16a34a':profit>=150?'#2563eb':'#dc2626';
   document.getElementById('kpi-grid').innerHTML=
     met('예상 월 순이익',profit>0?profit.toLocaleString()+'만':'-','',pc)+
     met('임차료 비율',rentRatio?rentRatio+'%':'-','매출 대비',rc)+
     met('손익분기',breakEven?breakEven+'개월':'-','')+
     met('총 초기투자',initInvest.toLocaleString()+'만','원');
 
-  document.getElementById('similar-stores').innerHTML=sc.sim.length?sc.sim.map(s=>`
-    <div class="store-card">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start">
-        <div><span style="font-weight:700">${s.name}</span><span class="sim-badge">유사도 ${s.score}점</span></div>
-        <div style="text-align:right"><div style="font-size:15px;font-weight:700;color:#1a5c35">${Math.round(s.avg/10000).toLocaleString()}만</div><div style="font-size:10px;color:#64748b">월평균(${s.months}개월)</div></div>
-      </div>
-      <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
-        ${[s.atype,s.floor,s.area+'평'].map(t=>`<span style="background:#f1f5f9;padding:2px 7px;border-radius:99px;font-size:10px">${t}</span>`).join('')}
-      </div>
-    </div>`).join(''):'<div class="abox blue">유사 조건 기존점 데이터가 부족합니다. 더 많은 점포가 쌓이면 정확도가 높아집니다.</div>';
+  document.getElementById('similar-stores').innerHTML=sc.sim.length?sc.sim.map(function(s){
+    return '<div class="store-card">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start">'+
+      '<div><span style="font-weight:700">'+s.name+'</span><span class="sim-badge">유사도 '+s.score+'점</span></div>'+
+      '<div style="text-align:right"><div style="font-size:15px;font-weight:700;color:#1a5c35">'+Math.round(s.avg/10000).toLocaleString()+'만</div>'+
+      '<div style="font-size:10px;color:#64748b">월평균('+s.months+'개월)</div></div></div>'+
+      '<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">'+
+      [s.atype,s.floor,s.area+'평'].map(function(t){return '<span style="background:#f1f5f9;padding:2px 7px;border-radius:99px;font-size:10px">'+t+'</span>';}).join('')+
+      '</div></div>';
+  }).join(''):'<div class="abox blue">유사 조건 기존점 데이터가 부족합니다.</div>';
 
-  const strs=[],rsks=[];
-  if(D.pop>=10000) strs.push(`일 유동인구 ${D.pop.toLocaleString()}명 — 충분한 집객 기반`);
+  var strs=[],rsks=[];
+  if(D.pop>=10000) strs.push('일 유동인구 '+D.pop.toLocaleString()+'명 — 충분한 집객 기반');
   if(D.floor==='1층') strs.push('1층 위치 — 가시성·접근성 최우수');
   if(D.anchor) strs.push('주요 집객시설 인근 — 자연 유입 기대');
-  if(rentRatio>0&&rentRatio<=12) strs.push(`임차료 비율 ${rentRatio}% — 우수한 수익 구조`);
-  if(sc.sim.length) strs.push(`유사 기존점 ${sc.sim.length}개 실매출 데이터 기반 예측`);
+  if(rentRatio>0&&rentRatio<=12) strs.push('임차료 비율 '+rentRatio+'% — 우수한 수익 구조');
+  if(sc.sim.length) strs.push('유사 기존점 '+sc.sim.length+'개 실매출 데이터 기반 예측');
   if(!strs.length) strs.push('주소 검색 및 유동인구 입력 시 상세 분석 가능');
-  if((D.cafe||0)>=20) rsks.push(`반경500m 카페 ${D.cafe}개 — 높은 경쟁 강도`);
-  if(rentRatio>20) rsks.push(`임차료 비율 ${rentRatio}% — 수익성 압박`);
-  if(D.floor==='2층'||D.floor==='지하') rsks.push(`${D.floor} 위치 — 가시성 불리`);
-  if((D.lowcafe||0)>=3) rsks.push(`저가커피 ${D.lowcafe}개 — 직접 가격 경쟁`);
+  if((D.cafe||0)>=20) rsks.push('반경500m 카페 '+D.cafe+'개 — 높은 경쟁 강도');
+  if(rentRatio>20) rsks.push('임차료 비율 '+rentRatio+'% — 수익성 압박');
+  if(D.floor==='2층'||D.floor==='지하') rsks.push(D.floor+' 위치 — 가시성 불리');
+  if((D.lowcafe||0)>=3) rsks.push('저가커피 '+D.lowcafe+'개 — 직접 가격 경쟁');
   if(!rsks.length) rsks.push('현재 입력 데이터상 주요 위험 요인 없음');
 
-  document.getElementById('r-str').innerHTML=strs.map(s=>li('✓','#16a34a',s)).join('');
-  document.getElementById('r-risk').innerHTML=rsks.map(r=>li('!','#dc2626',r)).join('');
+  document.getElementById('r-str').innerHTML=strs.map(function(s){return li('✓','#16a34a',s);}).join('');
+  document.getElementById('r-risk').innerHTML=rsks.map(function(r){return li('!','#dc2626',r);}).join('');
 
-  const rmsg=!rentRatio?'임차료와 예상 매출을 입력하면 적정성을 판단합니다.':
-    rentRatio<=10?`임차료 비율 ${rentRatio}% — 매우 양호`:rentRatio<=15?`임차료 비율 ${rentRatio}% — 적정`:
-    rentRatio<=20?`임차료 비율 ${rentRatio}% — 다소 높음, 매출 확보 전략 필요`:
-    `임차료 비율 ${rentRatio}% — 높음, 재협상 또는 입지 재검토 권고`;
-  const rc2=rentRatio>20?'red':rentRatio>15?'amber':'';
-  document.getElementById('rent-assess').innerHTML=`<div class="abox ${rc2}">${rmsg}</div>`;
+  var rmsg=!rentRatio?'임차료와 예상 매출을 입력하면 적정성을 판단합니다.':
+    rentRatio<=10?'임차료 비율 '+rentRatio+'% — 매우 양호':
+    rentRatio<=15?'임차료 비율 '+rentRatio+'% — 적정':
+    rentRatio<=20?'임차료 비율 '+rentRatio+'% — 다소 높음, 매출 확보 전략 필요':
+    '임차료 비율 '+rentRatio+'% — 높음, 재협상 또는 입지 재검토 권고';
+  var rc2=rentRatio>20?'red':rentRatio>15?'amber':'';
+  document.getElementById('rent-assess').innerHTML='<div class="abox '+rc2+'">'+rmsg+'</div>';
 
-  const acts=['인터넷 등기소(iros.go.kr)에서 등기부등본 발급 — 근저당·가처분 확인 (건당 700원)'];
+  var acts=['인터넷 등기소(iros.go.kr)에서 등기부등본 발급 — 근저당·가처분 확인 (건당 700원)'];
   if(!D.pop) acts.push('sg.sbiz.or.kr에서 일평균 유동인구·연령대 분포 확인');
   if(rentRatio>20) acts.push('임차료 재협상 검토 — 현 수준으로는 수익 실현 어려움');
   acts.push('오픈 D-30일 SNS 채널 개설 및 사전 이벤트 기획');
-  document.getElementById('r-actions').innerHTML=acts.map((a,i)=>`<div class="li"><span class="ci" style="background:#1a5c35;color:#fff">${i+1}</span><span>${a}</span></div>`).join('');
+  document.getElementById('r-actions').innerHTML=acts.map(function(a,i){
+    return '<div class="li"><span class="ci" style="background:#1a5c35;color:#fff">'+(i+1)+'</span><span>'+a+'</span></div>';
+  }).join('');
 
-  const dt=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
-  document.getElementById('r-meta').innerHTML=`작성자: 송호인 부장 · 전략기획부 · ${dt} · 대외비 | ${D.addr||'미입력'} · ${D.atype||''} · ${D.area||'?'}평 ${D.floor}`;
+  var dt=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('r-meta').innerHTML='작성자: 송호인 부장 · 전략기획부 · '+dt+' · 대외비 | '+(D.addr||'미입력')+' · '+(D.atype||'')+' · '+(D.area||'?')+'평 '+D.floor;
 
   document.getElementById('result-wrap').style.display='block';
   document.getElementById('result-wrap').scrollIntoView({behavior:'smooth'});
 }
 
 function renderStores(){
-  const t=document.getElementById('store-tbody');
+  var t=document.getElementById('store-tbody');
   if(t.children.length) return;
-  t.innerHTML=STORES.map(s=>`<tr>
-    <td style="font-weight:600;padding:7px 4px">${s.name}</td>
-    <td><span style="background:#f0fdf4;color:#166534;padding:2px 7px;border-radius:99px;font-size:10px">${s.atype}</span></td>
-    <td>${s.floor}</td><td>${s.area}평</td>
-    <td style="font-weight:700;color:${s.avg>=20000000?'#1a5c35':s.avg>=12000000?'#2563eb':'#64748b'}">${Math.round(s.avg/10000).toLocaleString()}만</td>
-    <td style="color:${s.recent>=s.avg?'#16a34a':'#64748b'}">${Math.round(s.recent/10000).toLocaleString()}만</td>
-    <td style="color:#64748b">${s.months}개월</td>
-  </tr>`).join('');
-}
-
-function renderCompare(){
-  const el=document.getElementById('compare-wrap');
-  if(el.children.length) return;
-  const groups={};
-  STORES.forEach(s=>{
-    if(!groups[s.atype]) groups[s.atype]={stores:[],total:0};
-    groups[s.atype].stores.push(s); groups[s.atype].total+=s.avg;
-  });
-  const maxAvg=Math.max(...Object.values(groups).map(g=>g.total/g.stores.length));
-  el.innerHTML=Object.entries(groups).sort((a,b)=>b[1].total/b[1].stores.length-a[1].total/a[1].stores.length).map(([type,g])=>{
-    const avg=Math.round(g.total/g.stores.length/10000);
-    const pct=Math.round(avg/(maxAvg/10000)*100);
-    return`<div class="card" style="margin-bottom:8px">
-      <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-weight:700">${type}</span><span style="color:#64748b;font-size:11px">${g.stores.length}개점</span></div>
-      <div class="bar-row"><span class="bar-k">평균월매출</span><div class="bar-t"><div class="bar-f" style="width:${pct}%;background:#1a5c35"></div></div><span class="bar-v" style="width:50px;color:#1a5c35">${avg.toLocaleString()}만</span></div>
-      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:7px">${g.stores.sort((a,b)=>b.avg-a.avg).map(s=>`<span style="background:#f8fafc;border:1px solid #dde3ec;border-radius:6px;padding:3px 7px;font-size:11px"><span style="font-weight:600">${s.name}</span> <span style="color:#1a5c35">${Math.round(s.avg/10000)}만</span></span>`).join('')}</div>
-    </div>`;
+  t.innerHTML=STORES.map(function(s){
+    return '<tr><td style="font-weight:600;padding:7px 4px">'+s.name+'</td>'+
+      '<td><span style="background:#f0fdf4;color:#166534;padding:2px 7px;border-radius:99px;font-size:10px">'+s.atype+'</span></td>'+
+      '<td>'+s.floor+'</td><td>'+s.area+'평</td>'+
+      '<td style="font-weight:700;color:'+(s.avg>=20000000?'#1a5c35':s.avg>=12000000?'#2563eb':'#64748b')+'">'+Math.round(s.avg/10000).toLocaleString()+'만</td>'+
+      '<td style="color:'+(s.recent>=s.avg?'#16a34a':'#64748b')+'">'+Math.round(s.recent/10000).toLocaleString()+'만</td>'+
+      '<td style="color:#64748b">'+s.months+'개월</td></tr>';
   }).join('');
 }
 
-// 카카오맵 초기화 - window.onload 후 실행
+function renderCompare(){
+  var el=document.getElementById('compare-wrap');
+  if(el.children.length) return;
+  var groups={};
+  STORES.forEach(function(s){
+    if(!groups[s.atype]) groups[s.atype]={stores:[],total:0};
+    groups[s.atype].stores.push(s); groups[s.atype].total+=s.avg;
+  });
+  var maxAvg=Math.max.apply(null,Object.values(groups).map(function(g){return g.total/g.stores.length;}));
+  el.innerHTML=Object.entries(groups).sort(function(a,b){return b[1].total/b[1].stores.length-a[1].total/a[1].stores.length;}).map(function(entry){
+    var type=entry[0], g=entry[1];
+    var avg=Math.round(g.total/g.stores.length/10000);
+    var pct=Math.round(avg/(maxAvg/10000)*100);
+    return '<div class="card" style="margin-bottom:8px">'+
+      '<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-weight:700">'+type+'</span><span style="color:#64748b;font-size:11px">'+g.stores.length+'개점</span></div>'+
+      bar('평균월매출',pct).replace('bar-v" style="width:28px','bar-v" style="width:60px').replace('">'+pct+'</span>','">'+avg.toLocaleString()+'만</span>')+
+      '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:7px">'+
+      g.stores.sort(function(a,b){return b.avg-a.avg;}).map(function(s){
+        return '<span style="background:#f8fafc;border:1px solid #dde3ec;border-radius:6px;padding:3px 7px;font-size:11px"><span style="font-weight:600">'+s.name+'</span> <span style="color:#1a5c35">'+Math.round(s.avg/10000)+'만</span></span>';
+      }).join('')+'</div></div>';
+  }).join('');
+}
+
+// 카카오맵 SDK 로드 완료 후 자동 초기화
 window.addEventListener('load', function(){
-  if(typeof kakao !== 'undefined'){
-    kakao.maps.load(function(){ initMap(); });
-  }
+  initMap();
 });
 </script>
 </body>

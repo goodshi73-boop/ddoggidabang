@@ -448,30 +448,25 @@ function searchNearby(lat,lng){
         // 저가커피: 주황 말풍선 항상 표시 / 일반카페: 클릭 토글
         const markerPos = new kakao.maps.LatLng(p.y, p.x);
         if(isLow){
-          const lowId='low_'+Date.now()+'_'+Math.random().toString(36).slice(2);
           const lowOv=new kakao.maps.CustomOverlay({
             map,
             position:markerPos,
-            content:'<div style="text-align:center;margin-bottom:44px"><div id="'+lowId+'" style="background:#ea580c;color:#fff;padding:3px 8px 3px 10px;border-radius:5px;font-size:10px;font-weight:700;white-space:nowrap;box-shadow:0 2px 6px rgba(234,88,12,.4);display:inline-flex;align-items:center;gap:6px;cursor:pointer" onclick="document.getElementById(''+lowId+'').parentNode.parentNode.style.display='none'">'+p.place_name+' <span style="font-size:11px;opacity:.8">✕</span></div><div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid #ea580c;margin:0 auto"></div></div>',
+            content:'<div style="text-align:center;margin-bottom:44px"><div style="background:#ea580c;color:#fff;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700;white-space:nowrap;box-shadow:0 2px 6px rgba(234,88,12,.4);display:inline-block">'+p.place_name+'</div><div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid #ea580c;margin:0 auto"></div></div>',
             yAnchor:1,zIndex:10
           });
           cafeOverlays.push(lowOv);
-          kakao.maps.event.addListener(marker,'click',function(){
-            if(lowOv.getMap()){lowOv.setMap(null);}
-            else{lowOv.setMap(map);}
-          });
         } else {
-          const cafeId='cafe_'+Date.now()+'_'+Math.random().toString(36).slice(2);
           const cafeOv=new kakao.maps.CustomOverlay({
             position:markerPos,
-            content:'<div style="text-align:center;margin-bottom:28px"><div id="'+cafeId+'" style="background:#1a5c35;color:#fff;padding:2px 8px 2px 10px;border-radius:5px;font-size:9px;font-weight:600;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.3);display:inline-flex;align-items:center;gap:5px;cursor:pointer" onclick="document.getElementById(''+cafeId+'').parentNode.parentNode.style.display='none'">'+p.place_name+' <span style="font-size:10px;opacity:.8">✕</span></div><div style="width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid #1a5c35;margin:0 auto"></div></div>',
+            content:'<div style="text-align:center;margin-bottom:28px"><div style="background:#1a5c35;color:#fff;padding:2px 8px;border-radius:5px;font-size:9px;font-weight:600;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.3);display:inline-block">'+p.place_name+'</div><div style="width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid #1a5c35;margin:0 auto"></div></div>',
             yAnchor:1,
             zIndex:5
           });
           cafeOverlays.push(cafeOv);
+          var isOpen=false;
           kakao.maps.event.addListener(marker,'click',function(){
-            if(cafeOv.getMap()){cafeOv.setMap(null);}
-            else{cafeOv.setMap(map);}
+            if(isOpen){cafeOv.setMap(null);isOpen=false;}
+            else{cafeOv.setMap(map);isOpen=true;}
           });
         }
       });
@@ -510,17 +505,17 @@ function searchNearby(lat,lng){
           )
         });
         cafeMarkers.push(convMarker);
-        const convId='conv_'+Date.now()+'_'+Math.random().toString(36).slice(2);
         const convOv=new kakao.maps.CustomOverlay({
           map,
           position:convPos,
-          content:'<div style="text-align:center;margin-bottom:30px"><div id="'+convId+'" style="background:#7c3aed;color:#fff;padding:2px 8px 2px 10px;border-radius:5px;font-size:9px;font-weight:600;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.3);display:inline-flex;align-items:center;gap:5px;cursor:pointer" onclick="document.getElementById(''+convId+'').parentNode.parentNode.style.display='none'">'+p.place_name+' <span style="font-size:10px;opacity:.8">✕</span></div><div style="width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid #7c3aed;margin:0 auto"></div></div>',
+          content:'<div style="text-align:center;margin-bottom:30px"><div style="background:#7c3aed;color:#fff;padding:2px 8px;border-radius:5px;font-size:9px;font-weight:600;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.3);display:inline-block">'+p.place_name+'</div><div style="width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid #7c3aed;margin:0 auto"></div></div>',
           yAnchor:1,zIndex:3
         });
         cafeOverlays.push(convOv);
+        var convOpen=false;
         kakao.maps.event.addListener(convMarker,'click',function(){
-          if(convOv.getMap()){convOv.setMap(null);}
-          else{convOv.setMap(map);}
+          if(convOpen){convOv.setMap(null);convOpen=false;}
+          else{convOv.setMap(map);convOpen=true;}
         });
       });
     }

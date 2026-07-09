@@ -358,7 +358,7 @@ function searchNearby(lat,lng){
   function makeLabel(name,bg,mb){
     var id='ov_'+(++_ovIdx);
     var html='<div style="text-align:center;margin-bottom:'+mb+'px">';
-    html+='<div style="background:'+bg+';color:#fff;padding:3px 9px;border-radius:5px;font-size:10px;font-weight:700;white-space:nowrap;box-shadow:0 2px 5px rgba(0,0,0,.25);display:inline-flex;align-items:center;gap:5px;cursor:pointer" onclick="closeOv('+JSON.stringify(id)+')">';
+    html+='<div style="background:'+bg+';color:#fff;padding:3px 9px;border-radius:5px;font-size:10px;font-weight:700;white-space:nowrap;box-shadow:0 2px 5px rgba(0,0,0,.25);display:inline-flex;align-items:center;gap:5px;cursor:pointer" onclick="event.stopPropagation();closeOv(\''+id+'\')">';
     html+=name+' <span style="font-size:11px">✕</span></div>';
     html+='<div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid '+bg+';margin:0 auto"></div></div>';
     return {id:id, content:html};
@@ -500,6 +500,30 @@ function estimateBase(D){
   return Math.round(b);
 }
 
+function locationFactor(D){
+  // 카카오맵 자동 수집 데이터(지하철 거리·집객시설·카페 밀집도)를 예상매출에 직접 반영
+  // → 동일 상권유형이라도 실제 주소에 따라 결과가 달라지도록 보정
+  var f=1.0, notes=[];
+  var sd=parseInt((D.subway||'').replace(/[^0-9]/g,''))||null;
+  if(sd!=null){
+    if(sd<=200){f+=0.08;notes.push('역세권 초근접(+8%)');}
+    else if(sd<=400){f+=0.04;notes.push('역 도보권(+4%)');}
+    else if(sd<=700){f+=0.01;}
+    else{f-=0.02;notes.push('역세권 이탈(-2%)');}
+  } else {
+    f-=0.03;notes.push('반경 내 지하철역 없음(-3%)');
+  }
+  var anchorLines=(D.anchor||'').split('\n').filter(function(l){return l&&l!=='주요 집객시설 없음'&&l.indexOf('지하철')!==0;});
+  if(anchorLines.length){var ab=Math.min(0.10,anchorLines.length*0.025);f+=ab;notes.push('집객시설 '+anchorLines.length+'곳(+'+Math.round(ab*100)+'%)');}
+  if((D.cafe||0)>=25){f-=0.08;notes.push('카페 과밀(-8%)');}
+  else if((D.cafe||0)>=15){f-=0.04;notes.push('카페 밀집(-4%)');}
+  else if((D.cafe||0)<=5){f+=0.03;notes.push('카페 희소(+3%)');}
+  if((D.lowcafe||0)>=5){f-=0.06;notes.push('저가커피 과밀(-6%)');}
+  else if((D.lowcafe||0)>=3){f-=0.03;notes.push('저가커피 경쟁(-3%)');}
+  f=Math.max(0.75,Math.min(1.25,f));
+  return{factor:f,notes:notes};
+}
+
 function calcScore(D){
   var traffic=0;
   if(D.pop>=30000)traffic=95;else if(D.pop>=15000)traffic=80;
@@ -560,13 +584,17 @@ function runAnalysis(){
   var sc=calcScore(D);
   var grd=getGrade(sc.overall);
   var vrd=getVerdict(sc.overall);
-  var pred=sc.simAvg||sc.base;
+  var loc=locationFactor(D);
+  var predBase=sc.simAvg||sc.base;
+  var pred=Math.round(predBase*loc.factor);
   var rentRatio=D.rent&&pred?Math.round(D.rent/pred*100):0;
   var fixedCost=D.rent+(D.area||15)*8;
   var profit=pred?Math.round(pred*(1-0.42)-fixedCost):0;
   var initInvest=7830+(D.premium||0)+(D.deposit||0);
   var breakEven=profit>0?Math.ceil(initInvest/profit):0;
-  var basisNote=sc.sim.length?'유사 기존점 '+sc.sim.length+'개 실매출 평균 기반':'입지 조건 추정 기반';
+  var basisNote=(sc.sim.length?'유사 기존점 '+sc.sim.length+'개 실매출 평균':'입지 조건 추정')+
+    (loc.notes.length?' · 입지보정 '+loc.notes.join(', '):'')+
+    (loc.factor!==1?' · 종합 '+(loc.factor>1?'+':'')+Math.round((loc.factor-1)*100)+'%':'');
 
   document.getElementById('pred-hero').innerHTML=
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">'+

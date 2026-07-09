@@ -383,7 +383,7 @@ function searchNearby(lat,lng){
           map:isLow?map:null,
           position:new kakao.maps.LatLng(p.y,p.x),
           content:lbl.content,
-          yAnchor:1,zIndex:isLow?10:5
+          yAnchor:1,zIndex:isLow?10:5,clickable:true
         });
         ovMap[lbl.id]=ov;
         cafeOverlays.push(ov);
@@ -424,7 +424,7 @@ function searchNearby(lat,lng){
         var convOv=new kakao.maps.CustomOverlay({
           map:map,position:convPos,
           content:convLbl.content,
-          yAnchor:1,zIndex:3
+          yAnchor:1,zIndex:3,clickable:true
         });
         ovMap[convLbl.id]=convOv;
         cafeOverlays.push(convOv);

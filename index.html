@@ -131,11 +131,12 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
       <div id="map"></div>
       <div class="map-legend">
         <div class="legend-item"><div class="dot" style="background:#1a5c35"></div><span>분석 입지</span></div>
-        <div class="legend-item"><img src="https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png" style="width:14px;height:20px;object-fit:contain"><span style="color:#ea580c;font-weight:700">저가커피</span></div>
-        <div class="legend-item"><img src="https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png" style="width:10px;height:14px;object-fit:contain"><span>일반카페</span></div>
+        <div class="legend-item"><div class="dot" style="background:#ea580c"></div><span style="color:#ea580c;font-weight:700">저가커피</span></div>
+        <div class="legend-item"><div class="dot" style="background:#1a5c35"></div><span>일반카페</span></div>
+        <div class="legend-item"><div class="dot" style="background:#7c3aed"></div><span>편의점</span></div>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px">
       <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:7px 10px;text-align:center">
         <div id="r-cafe-label" style="font-size:9px;color:#64748b;font-weight:700;margin-bottom:2px">반경500m 카페</div>
         <div id="r-cafe-disp" style="font-size:13px;font-weight:700;color:#1a5c35">-</div>
@@ -145,6 +146,11 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
         <div style="font-size:9px;color:#64748b;font-weight:700;margin-bottom:2px">저가커피 브랜드</div>
         <div id="r-lowcafe-disp" style="font-size:13px;font-weight:700;color:#ea580c">-</div>
         <input id="r-lowcafe" type="number" readonly style="display:none">
+      </div>
+      <div style="background:#fdf4ff;border:1px solid #e9d5ff;border-radius:8px;padding:7px 10px;text-align:center">
+        <div style="font-size:9px;color:#64748b;font-weight:700;margin-bottom:2px">편의점</div>
+        <div id="r-conv-disp" style="font-size:13px;font-weight:700;color:#7c3aed">-</div>
+        <input id="r-conv" type="number" readonly style="display:none">
       </div>
       <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:7px 10px;text-align:center">
         <div style="font-size:9px;color:#64748b;font-weight:700;margin-bottom:2px">지하철역 거리</div>
@@ -415,7 +421,7 @@ function searchAddr(){
 }
 
 function searchNearby(lat,lng){
-  let cafe=0,lowCafe=0,subwayDist='미확인',done=0;
+  let cafe=0,lowCafe=0,convCount=0,subwayDist='미확인',done=0;
   const anchors=[];
   const LOW=['메가MGC','메가엠지씨','메가커피','컴포즈','더벤티','빽다방','백다방','우지','바나프레소','텐퍼센트','10%','카페봄봄','댄싱컵','하이요','하삼동'];
   const latlng=new kakao.maps.LatLng(lat,lng);
@@ -472,6 +478,25 @@ function searchNearby(lat,lng){
     check();
   },{location:latlng,radius:currentRadius,size:3});
 
+  // 편의점 탐색
+  ps.categorySearch('CS2',function(data,status){
+    if(status===kakao.maps.services.Status.OK){
+      convCount=data.length;
+      data.forEach(p=>{
+        const convOverlay=new kakao.maps.CustomOverlay({
+          map,
+          position:new kakao.maps.LatLng(p.y,p.x),
+          content:'<div style="text-align:center;margin-bottom:22px"><div style="background:#7c3aed;color:#fff;padding:2px 7px;border-radius:6px;font-size:10px;font-weight:600;white-space:nowrap;box-shadow:0 2px 5px rgba(124,58,237,.4);display:inline-block">'+p.place_name+'</div><div style="width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid #7c3aed;margin:0 auto"></div></div>',
+          yAnchor:1,
+          zIndex:3
+        });
+        cafeOverlays.push(convOverlay);
+        new kakao.maps.Circle({map,center:new kakao.maps.LatLng(p.y,p.x),radius:3,strokeWeight:1,strokeColor:'#7c3aed',strokeOpacity:.8,fillColor:'#7c3aed',fillOpacity:.8});
+      });
+    }
+    check();
+  },{location:latlng,radius:currentRadius,size:15});
+
   ps.categorySearch('MT1',function(data,status){
     if(status===kakao.maps.services.Status.OK) data.slice(0,2).forEach(p=>anchors.push('마트/백화점: '+p.place_name+'('+p.distance+'m)'));
     check();
@@ -495,11 +520,13 @@ function searchNearby(lat,lng){
 
   function check(){
     done++;
-    if(done>=5){
+    if(done>=6){
       document.getElementById('r-anchor').value=anchors.join('\n')||'주요 집객시설 없음';
       document.getElementById('r-anchor-disp').innerHTML=anchors.length?anchors.map(a=>'<div style="display:flex;gap:6px;align-items:center"><span style="color:#1a5c35">▶</span><span>'+a+'</span></div>').join(''):'주요 집객시설 없음';
       var lbl=document.getElementById('r-cafe-label');
       if(lbl) lbl.textContent='반경'+currentRadius+'m 카페';
+      document.getElementById('r-conv').value=convCount;
+      document.getElementById('r-conv-disp').textContent=convCount+'개';
       hideLoad();
       // 주소 검색 완료 후 결과가 이미 표시된 경우 자동 갱신
       if(document.getElementById('result-wrap').style.display!=='none'){

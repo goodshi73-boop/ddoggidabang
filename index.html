@@ -268,6 +268,7 @@ const STORES = [
 var map=null, geocoder=null, ps=null;
 var currentRadius=500, currentLat=0, currentLng=0;
 var searchCircle=null, cafeMarkers=[], cafeOverlays=[];
+var allLabels=[]; // 말풍선 겹침 방지 레이아웃 관리용
 
 function goTab(id,btn){
   document.querySelectorAll('.pnl').forEach(function(p){p.classList.remove('on');});
@@ -310,6 +311,7 @@ function clearMarkers(){
   cafeMarkers.forEach(function(m){m.setMap(null);});
   cafeOverlays.forEach(function(o){o.setMap(null);});
   cafeMarkers=[];cafeOverlays=[];
+  allLabels=[];
   if(searchCircle) searchCircle.setMap(null);
 }
 
@@ -318,11 +320,39 @@ function drawCircle(lat,lng,r){
     strokeWeight:2,strokeColor:'#1a5c35',strokeOpacity:0.6,fillColor:'#1a5c35',fillOpacity:0.05});
 }
 
+function layoutLabels(){
+  if(!map)return;
+  var proj=map.getProjection();
+  var placed=[];
+  var visible=allLabels.filter(function(e){return e.ov.getMap();});
+  visible.sort(function(a,b){
+    var pa=proj.containerPointFromCoords(a.latlng),pb=proj.containerPointFromCoords(b.latlng);
+    return pa.y-pb.y;
+  });
+  visible.forEach(function(e){
+    var pt=proj.containerPointFromCoords(e.latlng);
+    var w=Math.max(50,e.wrap.offsetWidth||70);
+    var extra=0, tries=0;
+    while(tries<8){
+      var top=pt.y-(e.baseMb+extra)-20;
+      var box={l:pt.x-w/2-4,r:pt.x+w/2+4,t:top-14,b:top+14};
+      var hit=placed.some(function(o){return !(box.r<o.l||box.l>o.r||box.b<o.t||box.t>o.b);});
+      if(!hit)break;
+      extra+=26;tries++;
+    }
+    e.wrap.style.marginBottom=(e.baseMb+extra)+'px';
+    var top2=pt.y-(e.baseMb+extra)-20;
+    placed.push({l:pt.x-w/2-4,r:pt.x+w/2+4,t:top2-14,b:top2+14});
+  });
+}
+
 function initMap(){
   var container=document.getElementById('map');
   map=new kakao.maps.Map(container,{center:new kakao.maps.LatLng(37.5665,126.9780),level:5});
   geocoder=new kakao.maps.services.Geocoder();
   ps=new kakao.maps.services.Places();
+  kakao.maps.event.addListener(map,'zoom_changed',function(){setTimeout(layoutLabels,50);});
+  kakao.maps.event.addListener(map,'dragend',function(){setTimeout(layoutLabels,50);});
 }
 
 function searchAddr(){
@@ -382,24 +412,28 @@ function searchNearby(lat,lng){
       isLow?'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png':'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png',
       isLow?new kakao.maps.Size(28,40):new kakao.maps.Size(18,26)
     );
-    var marker=new kakao.maps.Marker({map:map,position:new kakao.maps.LatLng(p.y,p.x),image:markerImg,title:p.place_name,zIndex:isLow?4:3});
+    var latlng2=new kakao.maps.LatLng(p.y,p.x);
+    var marker=new kakao.maps.Marker({map:map,position:latlng2,image:markerImg,title:p.place_name,zIndex:isLow?4:3});
     cafeMarkers.push(marker);
     var bg=isLow?'#ea580c':'#1a5c35';
     var mb=isLow?44:30;
     var lbl=makeLabel(p.place_name,bg,mb);
     var ov=new kakao.maps.CustomOverlay({
       map:isLow?map:null,
-      position:new kakao.maps.LatLng(p.y,p.x),
+      position:latlng2,
       content:lbl.element,
       yAnchor:1,zIndex:isLow?10:5,clickable:true
     });
     cafeOverlays.push(ov);
+    allLabels.push({ov:ov,wrap:lbl.element,latlng:latlng2,baseMb:mb});
     lbl.pill.addEventListener('click',function(e){
       e.stopPropagation();
       ov.setMap(null);
+      setTimeout(layoutLabels,0);
     });
     kakao.maps.event.addListener(marker,'click',function(){
       if(ov.getMap()) ov.setMap(null); else ov.setMap(map);
+      setTimeout(layoutLabels,0);
     });
   }
 
@@ -497,12 +531,15 @@ function searchNearby(lat,lng){
       yAnchor:1,zIndex:12,clickable:true
     });
     cafeOverlays.push(convOv);
+    allLabels.push({ov:convOv,wrap:convLbl.element,latlng:convPos,baseMb:30});
     convLbl.pill.addEventListener('click',function(e){
       e.stopPropagation();
       convOv.setMap(null);
+      setTimeout(layoutLabels,0);
     });
     kakao.maps.event.addListener(convMarker,'click',function(){
       if(convOv.getMap()) convOv.setMap(null); else convOv.setMap(map);
+      setTimeout(layoutLabels,0);
     });
   }
 
@@ -551,6 +588,7 @@ function searchNearby(lat,lng){
       var lbl=document.getElementById('r-cafe-label');
       if(lbl) lbl.textContent='반경'+currentRadius+'m 카페';
       hideLoad();
+      setTimeout(layoutLabels,50);
       if(document.getElementById('result-wrap').style.display!=='none') runAnalysis();
     }
   }

@@ -203,7 +203,7 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
     </div>
     <div class="g4" style="gap:8px;margin-bottom:8px">
       <div><label class="lbl">면적(평)</label><input id="cs-area" type="number" placeholder="예: 20"></div>
-      <div><label class="lbl">전월매출(만원) <span style="color:#dc2626">*필수</span></label><input id="cs-recent" type="number" placeholder="예: 1500"></div>
+      <div><label class="lbl">전월매출(만원) <span style="color:#64748b">(오픈중이면 비워두기)</span></label><input id="cs-recent" type="number" placeholder="매출 발생 전이면 공란"></div>
       <div><label class="lbl">최근3개월평균(만원)</label><input id="cs-avg3" type="number" placeholder="영업 3개월↑ 시 입력"></div>
       <div><label class="lbl">최근6개월평균(만원)</label><input id="cs-avg6" type="number" placeholder="영업 6개월↑ 시 입력"></div>
     </div>
@@ -618,9 +618,10 @@ function resetAll(){
   document.getElementById('result-wrap').style.display='none';
 }
 
-function findSimilar(D){
-  var cSub=parseInt((D.subway||'').replace(/[^0-9]/g,''))||null;
-  return STORES.map(function(s){
+function findSimilar(D,candidates){
+  candidates=candidates||STORES;
+  var cSub=(typeof D.subway==='number')?D.subway:(parseInt((D.subway||'').replace(/[^0-9]/g,''))||null);
+  return candidates.map(function(s){
     var sc=0;
     // ① 상권유형 일치 (25점)
     if(s.atype===D.atype) sc+=25;
@@ -709,7 +710,8 @@ function calcScore(D){
   if(D.floor==='2층')target-=8;else if(D.floor==='지하')target-=6;
   if(D.compSales>=2000)target+=3;
   target=Math.max(15,Math.min(100,Math.round(target)));
-  var sim=findSimilar(D);
+  var realStores=STORES.filter(function(s){return repSales(s)!=null;});
+  var sim=findSimilar(D,realStores);
   var simAvg=sim.length?Math.round(sim.reduce(function(a,s){return a+repSales(s);},0)/sim.length):0;
   var cost=65;
   var base=simAvg||estimateBase(D);
@@ -850,6 +852,15 @@ function repSales(s){
   return s.recent;
 }
 
+function estimateStoreSales(store){
+  // 실매출 데이터가 아직 없는 매장(오픈 초기)을 위해, 유사매장 매칭 알고리즘으로 예상매출을 추정
+  var realCandidates=STORES.filter(function(s){return s.name!==store.name&&repSales(s)!=null;});
+  var sim=findSimilar(store,realCandidates);
+  if(!sim.length) return null;
+  var val=Math.round(sim.reduce(function(a,s){return a+repSales(s);},0)/sim.length);
+  return {value:val,basis:sim.map(function(s){return s.name;})};
+}
+
 function renderStores(force){
   var t=document.getElementById('store-tbody');
   if(t.children.length&&!force)return;
@@ -858,11 +869,17 @@ function renderStores(force){
   t.innerHTML=STORES.map(function(s,i){
     var avg6=s.avg6!=null?s.avg6:null;
     var avg3=s.avg3!=null?s.avg3:(s.avg!=null?s.avg:null); // 구버전 avg 필드는 3개월평균 칸에 값만 표시
+    var hasReal=repSales(s)!=null;
+    var estCell='';
+    if(!hasReal){
+      var est=estimateStoreSales(s);
+      estCell=est?('<span style="color:#d97706;font-weight:700">약 '+Math.round(est.value/10000).toLocaleString()+'만</span> <span style="font-size:9px;color:#d97706">(추정)</span>'):'<span style="color:#cbd5e1">-</span>';
+    }
     return'<tr'+(s.custom?' style="background:#fffbeb"':'')+'><td style="font-weight:600;padding:7px 4px">'+s.name+(s.custom?' <span style="font-size:9px;color:#b45309;font-weight:700;background:#fef3c7;padding:1px 5px;border-radius:99px">신규</span>':'')+'</td>'+
       '<td><span style="background:#f0fdf4;color:#166534;padding:2px 7px;border-radius:99px;font-size:10px">'+s.atype+'</span></td>'+
       '<td>'+s.floor+'</td><td>'+s.area+'평</td>'+
       '<td style="color:#64748b">'+fmt(avg6)+'</td>'+
-      '<td style="font-weight:700;color:#1a5c35">'+fmt(avg3)+'</td>'+
+      '<td style="font-weight:700;color:#1a5c35">'+(hasReal?fmt(avg3):estCell)+'</td>'+
       '<td style="color:'+(s.recent!=null&&avg3!=null&&s.recent>=avg3?'#16a34a':'#64748b')+'">'+fmt(s.recent)+'</td>'+
       '<td style="color:#64748b">'+s.months+'개월</td>'+
       '<td>'+(s.custom?'<button onclick="deleteCustomStore('+i+')" style="background:none;border:1px solid #dde3ec;border-radius:5px;padding:2px 8px;font-size:10px;cursor:pointer;color:#dc2626">삭제</button>':'')+'</td>'+
@@ -922,8 +939,7 @@ function addCustomStore(){
   var name=g('cs-name'),addr=g('cs-addr'),atype=g('cs-atype'),floor=g('cs-floor'),od=g('cs-opendate');
   var area=n('cs-area'),recentM=n('cs-recent'),avg3M=n('cs-avg3'),avg6M=n('cs-avg6');
   var months=calcEffectiveMonths(od);
-  if(!name||!addr||!atype||!floor||!area||!recentM||!od){alert('점포명·주소·상권유형·층수·면적·전월매출·오픈일자는 필수입니다.');return;}
-  if(months<1){alert('오픈월 영업일이 20일 미만이면 아직 "영업 1개월"로 집계되지 않습니다. 다음 달부터 다시 시도해주세요.');return;}
+  if(!name||!addr||!atype||!floor||!area||!od){alert('점포명·주소·상권유형·층수·면적·오픈일자는 필수입니다.');return;}
   // 영업개월수 기준 자동 규칙: 3개월 이하는 전월매출만, 3~6개월은 3개월평균까지, 6개월 이상만 6개월평균 허용
   var avg3=months>3?(avg3M||null):null;
   var avg6=months>=6?(avg6M||null):null;
@@ -936,7 +952,7 @@ function addCustomStore(){
     collectStoreStats(lat,lng,function(stats){
       hideLoad();
       var store={name:name,atype:atype,floor:floor,area:area,
-        recent:Math.round(recentM*10000),
+        recent:recentM?Math.round(recentM*10000):null,
         avg3:avg3?Math.round(avg3*10000):null,
         avg6:avg6?Math.round(avg6*10000):null,
         months:months,opendate:od,
@@ -998,7 +1014,13 @@ function renderCompare(force){
   var el=document.getElementById('compare-wrap');
   if(el.children.length&&!force)return;
   var groups={};
-  STORES.forEach(function(s){if(!groups[s.atype])groups[s.atype]={stores:[],total:0};groups[s.atype].stores.push(s);groups[s.atype].total+=repSales(s);});
+  STORES.forEach(function(s){
+    var val=repSales(s);
+    if(val==null)return; // 실매출 없는 오픈초기 매장은 평균 집계에서 제외 (통계 왜곡 방지)
+    if(!groups[s.atype])groups[s.atype]={stores:[],total:0};
+    groups[s.atype].stores.push(s);
+    groups[s.atype].total+=val;
+  });
   var maxAvg=Math.max.apply(null,Object.values(groups).map(function(g){return g.total/g.stores.length;}));
   el.innerHTML=Object.entries(groups).sort(function(a,b){return b[1].total/b[1].stores.length-a[1].total/a[1].stores.length;}).map(function(entry){
     var type=entry[0],g=entry[1];

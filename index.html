@@ -152,9 +152,9 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
     </div>
   </div>
 
-  <div class="st">유동인구 & 소비자 정보 <span style="font-size:10px;font-weight:400;color:#64748b">— sg.sbiz.or.kr 에서 수집</span></div>
+  <div class="st">유동인구 & 소비자 정보 <span style="font-size:10px;font-weight:400;color:#64748b">— 소상공인365(bigdata.sbiz.or.kr)에서 수집</span></div>
   <div class="card" style="border-left:3px solid #1a5c35">
-    <div style="font-size:11px;color:#64748b;margin-bottom:10px"><a href="https://sg.sbiz.or.kr" target="_blank" style="color:#1a5c35;font-weight:700">sg.sbiz.or.kr</a> 접속 → 상권분석 → 주소 검색 후 입력</div>
+    <div style="font-size:11px;color:#64748b;margin-bottom:10px"><a href="https://bigdata.sbiz.or.kr" target="_blank" style="color:#1a5c35;font-weight:700">bigdata.sbiz.or.kr</a> (소상공인365) 접속 → 상권분석 → 주소 검색 후 입력</div>
     <div class="g4" style="gap:8px;margin-bottom:8px">
       <div><label class="lbl">일평균 유동인구 (명)</label><input id="i-pop" type="number" placeholder="예: 15000" style="border-color:#1a5c35"></div>
       <div><label class="lbl">여성 비율 (%)</label><input id="i-female" type="number" placeholder="58"></div>
@@ -222,8 +222,8 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
     <div style="font-size:11px;color:#334155;line-height:1.8">반경 내 카페·저가커피·편의점 수 · 지하철역 거리 · 집객시설</div>
   </div>
   <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:11px 14px;margin-bottom:8px">
-    <div style="font-size:11px;font-weight:700;color:#1d4ed8;margin-bottom:6px">유동인구 — 소상공인 상권분석시스템 (무료)</div>
-    <div style="font-size:11px;color:#334155;line-height:1.8"><a href="https://sg.sbiz.or.kr" target="_blank" style="color:#1d4ed8;font-weight:600">sg.sbiz.or.kr</a> → 상권분석 → 주소 검색</div>
+    <div style="font-size:11px;font-weight:700;color:#1d4ed8;margin-bottom:6px">유동인구 — 소상공인365 (무료)</div>
+    <div style="font-size:11px;color:#334155;line-height:1.8"><a href="https://bigdata.sbiz.or.kr" target="_blank" style="color:#1d4ed8;font-weight:600">bigdata.sbiz.or.kr</a> → 상권분석 → 주소 검색</div>
   </div>
   <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:11px 14px">
     <div style="font-size:11px;font-weight:700;color:#1d4ed8;margin-bottom:6px">권리·등기 — 인터넷 등기소 (건당 700원)</div>
@@ -819,7 +819,7 @@ function runAnalysis(){
   document.getElementById('rent-assess').innerHTML='<div class="abox '+rc2+'">'+rmsg+'</div>';
 
   var acts=['인터넷 등기소(iros.go.kr)에서 등기부등본 발급 (건당 700원)'];
-  if(!D.pop)acts.push('sg.sbiz.or.kr에서 일평균 유동인구·연령대 분포 확인');
+  if(!D.pop)acts.push('소상공인365(bigdata.sbiz.or.kr)에서 일평균 유동인구·연령대 분포 확인');
   if(rentRatio>20)acts.push('임차료 재협상 검토');
   acts.push('오픈 D-30일 SNS 채널 개설 및 사전 이벤트 기획');
   document.getElementById('r-actions').innerHTML=acts.map(function(a,i){return'<div class="li"><span class="ci" style="background:#1a5c35;color:#fff">'+(i+1)+'</span><span>'+a+'</span></div>';}).join('');

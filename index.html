@@ -215,11 +215,12 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
     </div>
     <div class="g4" style="gap:8px;margin-bottom:8px">
       <div><label class="lbl">면적(평)</label><input id="cs-area" type="number" placeholder="예: 20"></div>
+      <div><label class="lbl">월세(만원)</label><input id="cs-rent" type="number" placeholder="예: 300"></div>
       <div><label class="lbl">전월매출(만원) <span style="color:#64748b">(오픈중이면 비워두기)</span></label><input id="cs-recent" type="number" placeholder="매출 발생 전이면 공란"></div>
       <div><label class="lbl">최근3개월평균(만원)</label><input id="cs-avg3" type="number" placeholder="영업 3개월↑ 시 입력"></div>
-      <div><label class="lbl">최근6개월평균(만원)</label><input id="cs-avg6" type="number" placeholder="영업 6개월↑ 시 입력"></div>
     </div>
-    <div class="g2" style="gap:8px;margin-bottom:8px">
+    <div class="g3" style="gap:8px;margin-bottom:8px">
+      <div><label class="lbl">최근6개월평균(만원)</label><input id="cs-avg6" type="number" placeholder="영업 6개월↑ 시 입력"></div>
       <div><label class="lbl">오픈일자 <span style="color:#dc2626">*필수</span></label><input id="cs-opendate" type="date" onchange="updateMonthsPreview()"></div>
       <div><label class="lbl">영업개월수 (자동계산)</label><input id="cs-months" type="text" readonly style="background:#f8fafc;color:#1a5c35;font-weight:700" placeholder="오픈일자 입력 시 자동 계산"></div>
     </div>
@@ -239,10 +240,13 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
   </div>
 
   <div class="st">떠기다방 기존 점포 현황 (<span id="store-count">29</span>개점)</div>
+  <div class="abox" style="margin-bottom:8px">
+    <b>이 표에 반영된 데이터</b>: 상권유형·층수·월세·면적은 수기 입력값이고, <b>지하철거리·카페·저가형카페는 각 매장 실제 위치를 기준으로 카카오맵에서 자동 수집한 실측값</b>입니다. 이 7가지 항목이 전부 "신규 입지 분석"의 유사매장 매칭·예상매출 계산에 그대로 쓰입니다 — 즉 여기 보이는 수치가 다른 탭 분석 결과의 실제 근거 데이터입니다.
+  </div>
   <div class="card" style="overflow-x:auto">
-    <table class="itbl" style="min-width:760px">
+    <table class="itbl" style="min-width:1020px">
       <thead><tr style="background:#f8fafc;font-size:11px;font-weight:700;color:#64748b">
-        <td style="padding:8px 6px">점포명</td><td>상권유형</td><td>층수</td><td>면적</td><td>최근6개월평균</td><td>최근3개월평균</td><td>전월매출</td><td>영업개월</td><td>관리</td>
+        <td style="padding:8px 6px">점포명</td><td>상권유형</td><td>층수</td><td>월세</td><td>면적</td><td>지하철거리</td><td>카페</td><td>저가형카페</td><td>최근6개월평균</td><td>최근3개월평균</td><td>전월매출</td><td>영업개월</td><td>관리</td>
       </tr></thead>
       <tbody id="store-tbody"></tbody>
     </table>
@@ -905,7 +909,12 @@ function renderStores(force){
     }
     return'<tr'+(s.custom?' style="background:#fffbeb"':'')+'><td style="font-weight:600;padding:7px 4px">'+s.name+(s.custom?' <span style="font-size:9px;color:#b45309;font-weight:700;background:#fef3c7;padding:1px 5px;border-radius:99px">신규</span>':'')+'</td>'+
       '<td><span style="background:#f0fdf4;color:#166534;padding:2px 7px;border-radius:99px;font-size:10px">'+s.atype+'</span></td>'+
-      '<td>'+s.floor+'</td><td>'+s.area+'평</td>'+
+      '<td>'+s.floor+'</td>'+
+      '<td style="color:#64748b">'+fmt(s.rent)+'</td>'+
+      '<td>'+s.area+'평</td>'+
+      '<td style="color:#2563eb">'+(s.subway==null?'<span style="color:#cbd5e1">-</span>':s.subway+'m')+'</td>'+
+      '<td style="color:#1a5c35">'+(s.cafe==null?'<span style="color:#cbd5e1">-</span>':s.cafe+'개')+'</td>'+
+      '<td style="color:#ea580c">'+(s.lowcafe==null?'<span style="color:#cbd5e1">-</span>':s.lowcafe+'개')+'</td>'+
       '<td style="color:#64748b">'+fmt(avg6)+'</td>'+
       '<td style="font-weight:700;color:#1a5c35">'+(hasReal?fmt(avg3):estCell)+'</td>'+
       '<td style="color:'+(s.recent!=null&&avg3!=null&&s.recent>=avg3?'#16a34a':'#64748b')+'">'+fmt(s.recent)+'</td>'+
@@ -965,7 +974,7 @@ function updateMonthsPreview(){
 
 function addCustomStore(){
   var name=g('cs-name'),addr=g('cs-addr'),atype=g('cs-atype'),floor=g('cs-floor'),od=g('cs-opendate');
-  var area=n('cs-area'),recentM=n('cs-recent'),avg3M=n('cs-avg3'),avg6M=n('cs-avg6');
+  var area=n('cs-area'),rentM=n('cs-rent'),recentM=n('cs-recent'),avg3M=n('cs-avg3'),avg6M=n('cs-avg6');
   var months=calcEffectiveMonths(od);
   if(!name||!addr||!atype||!floor||!area||!od){alert('점포명·주소·상권유형·층수·면적·오픈일자는 필수입니다.');return;}
   // 영업개월수 기준 자동 규칙: 3개월 이하는 전월매출만, 3~6개월은 3개월평균까지, 6개월 이상만 6개월평균 허용
@@ -980,6 +989,7 @@ function addCustomStore(){
     collectStoreStats(lat,lng,function(stats){
       hideLoad();
       var store={name:name,atype:atype,floor:floor,area:area,
+        rent:rentM?Math.round(rentM*10000):null,
         recent:recentM?Math.round(recentM*10000):null,
         avg3:avg3?Math.round(avg3*10000):null,
         avg6:avg6?Math.round(avg6*10000):null,
@@ -990,7 +1000,7 @@ function addCustomStore(){
       saveCustomStores();
       renderStores(true);
       renderCompare(true);
-      ['cs-name','cs-addr','cs-area','cs-recent','cs-avg3','cs-avg6','cs-months','cs-opendate'].forEach(function(id){document.getElementById(id).value='';});
+      ['cs-name','cs-addr','cs-area','cs-rent','cs-recent','cs-avg3','cs-avg6','cs-months','cs-opendate'].forEach(function(id){document.getElementById(id).value='';});
       document.getElementById('cs-atype').selectedIndex=0;
       document.getElementById('cs-floor').selectedIndex=0;
       alert(name+' 매장이 추가되었습니다.\n카페 '+stats.cafe+'개 · 저가형카페 '+stats.lowcafe+'개 · 편의점 '+stats.conv+'개 · 지하철 '+(stats.subway==null?'없음':stats.subway+'m'));
@@ -1103,6 +1113,7 @@ function importSalesDashboard(){
 function exportStores(){
   var lines=STORES.map(function(s){
     return"  {name:'"+s.name.replace(/'/g,"")+"',atype:'"+s.atype+"',floor:'"+s.floor+"',area:"+s.area+
+      (s.rent!=null?",rent:"+s.rent:"")+
       (s.avg!=null?",avg:"+s.avg:"")+
       (s.avg3!=null?",avg3:"+s.avg3:"")+
       (s.avg6!=null?",avg6:"+s.avg6:"")+

@@ -382,7 +382,7 @@ function searchNearby(lat,lng){
       isLow?'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png':'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png',
       isLow?new kakao.maps.Size(28,40):new kakao.maps.Size(18,26)
     );
-    var marker=new kakao.maps.Marker({map:map,position:new kakao.maps.LatLng(p.y,p.x),image:markerImg,title:p.place_name});
+    var marker=new kakao.maps.Marker({map:map,position:new kakao.maps.LatLng(p.y,p.x),image:markerImg,title:p.place_name,zIndex:isLow?4:3});
     cafeMarkers.push(marker);
     var bg=isLow?'#ea580c':'#1a5c35';
     var mb=isLow?44:30;
@@ -487,14 +487,15 @@ function searchNearby(lat,lng){
       data.forEach(function(p){
         var convPos=new kakao.maps.LatLng(p.y,p.x);
         var convMarker=new kakao.maps.Marker({map:map,position:convPos,
-          image:new kakao.maps.MarkerImage('https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_purple.png',new kakao.maps.Size(20,28))
+          image:new kakao.maps.MarkerImage('https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_purple.png',new kakao.maps.Size(20,28)),
+          zIndex:8
         });
         cafeMarkers.push(convMarker);
         var convLbl=makeLabel(p.place_name,'#7c3aed',30);
         var convOv=new kakao.maps.CustomOverlay({
           map:map,position:convPos,
           content:convLbl.element,
-          yAnchor:1,zIndex:3,clickable:true
+          yAnchor:1,zIndex:12,clickable:true
         });
         cafeOverlays.push(convOv);
         convLbl.pill.addEventListener('click',function(e){

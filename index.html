@@ -233,35 +233,35 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
 
 <script>
 const STORES = [
-  {name:'신도림점',atype:'역세권',floor:'1층',area:20,avg:32680000,recent:59350000,months:2},
-  {name:'구미점',atype:'오피스·관공서',floor:'1층',area:70,avg:26320000,recent:29160000,months:13},
-  {name:'증미역점',atype:'역세권',floor:'1층',area:15,avg:24080000,recent:24080000,months:1},
-  {name:'수원역로데오점',atype:'역세권',floor:'1층',area:20,avg:23460000,recent:24980000,months:16},
-  {name:'수원성균관대점',atype:'대학가',floor:'1층',area:22,avg:22340000,recent:23720000,months:3},
-  {name:'서초법원점',atype:'오피스·관공서',floor:'1층',area:18,avg:20630000,recent:23970000,months:18},
-  {name:'굴포천역점',atype:'역세권',floor:'1층',area:15,avg:17930000,recent:23530000,months:15},
-  {name:'김포통진마송점',atype:'일반상권',floor:'1층',area:33,avg:16580000,recent:21080000,months:3},
-  {name:'검암점',atype:'일반상권',floor:'1층',area:16,avg:16510000,recent:14890000,months:2},
-  {name:'한밭대점',atype:'대학가',floor:'1층',area:33,avg:16330000,recent:16290000,months:9},
-  {name:'고양법원점',atype:'오피스·관공서',floor:'1층',area:14,avg:15650000,recent:16370000,months:17},
-  {name:'완주봉동점',atype:'일반상권',floor:'1층',area:42,avg:15430000,recent:16790000,months:6},
-  {name:'포항문덕점',atype:'일반상권',floor:'1층',area:20,avg:14250000,recent:13840000,months:14},
-  {name:'의정부금오점',atype:'일반상권',floor:'1층',area:14,avg:13860000,recent:12280000,months:13},
-  {name:'강남구청점',atype:'역세권',floor:'지하',area:7,avg:13510000,recent:14560000,months:18},
-  {name:'안양시청점',atype:'오피스·관공서',floor:'2층',area:10,avg:12720000,recent:15910000,months:16},
-  {name:'상주북천교점',atype:'일반상권',floor:'1층',area:18,avg:12630000,recent:13520000,months:11},
-  {name:'부호역점',atype:'역세권',floor:'1층',area:18,avg:12370000,recent:12650000,months:8},
-  {name:'아산선문대점',atype:'대학가',floor:'1층',area:18,avg:11610000,recent:13080000,months:10},
-  {name:'울산법원점',atype:'오피스·관공서',floor:'2층',area:25,avg:11040000,recent:11600000,months:14},
-  {name:'강원대병원점',atype:'병원상권',floor:'1층',area:35,avg:11010000,recent:12050000,months:11},
-  {name:'남동인더스파크공단역점',atype:'역세권',floor:'1층',area:20,avg:10790000,recent:12130000,months:2},
-  {name:'구미인동점',atype:'일반상권',floor:'1층',area:40,avg:10580000,recent:9100000,months:8},
-  {name:'안산대학교점',atype:'대학가',floor:'1층',area:16,avg:9190000,recent:18380000,months:2},
-  {name:'춘천시청점',atype:'오피스·관공서',floor:'1층',area:20,avg:9060000,recent:11550000,months:4},
-  {name:'울산장검점',atype:'일반상권',floor:'지하',area:15,avg:8960000,recent:10010000,months:6},
-  {name:'대구시청점',atype:'오피스·관공서',floor:'1층',area:65,avg:8930000,recent:4620000,months:5},
-  {name:'천안병천순대거리점',atype:'일반상권',floor:'1층',area:25,avg:8660000,recent:7170000,months:2},
-  {name:'부천법원점',atype:'오피스·관공서',floor:'1층',area:14,avg:8460000,recent:9250000,months:15},
+  {name:'신도림점',atype:'역세권',floor:'1층',area:20,avg:32680000,recent:59350000,months:2,cafe:30,lowcafe:6,conv:21,subway:355},
+  {name:'구미점',atype:'오피스·관공서',floor:'1층',area:70,avg:26320000,recent:29160000,months:13,cafe:30,lowcafe:3,conv:15,subway:null},
+  {name:'증미역점',atype:'역세권',floor:'1층',area:15,avg:24080000,recent:24080000,months:1,cafe:30,lowcafe:5,conv:26,subway:131},
+  {name:'수원역로데오점',atype:'역세권',floor:'1층',area:20,avg:23460000,recent:24980000,months:16,cafe:30,lowcafe:2,conv:30,subway:248},
+  {name:'수원성균관대점',atype:'대학가',floor:'1층',area:22,avg:22340000,recent:23720000,months:3,cafe:30,lowcafe:4,conv:21,subway:388},
+  {name:'서초법원점',atype:'오피스·관공서',floor:'1층',area:18,avg:20630000,recent:23970000,months:18,cafe:30,lowcafe:2,conv:23,subway:247},
+  {name:'굴포천역점',atype:'역세권',floor:'1층',area:15,avg:17930000,recent:23530000,months:15,cafe:30,lowcafe:5,conv:24,subway:111},
+  {name:'김포통진마송점',atype:'일반상권',floor:'1층',area:33,avg:16580000,recent:21080000,months:3,cafe:30,lowcafe:5,conv:13,subway:null},
+  {name:'검암점',atype:'일반상권',floor:'1층',area:16,avg:16510000,recent:14890000,months:2,cafe:14,lowcafe:3,conv:6,subway:null},
+  {name:'한밭대점',atype:'대학가',floor:'1층',area:33,avg:16330000,recent:16290000,months:9,cafe:27,lowcafe:3,conv:8,subway:null},
+  {name:'고양법원점',atype:'오피스·관공서',floor:'1층',area:14,avg:15650000,recent:16370000,months:17,cafe:30,lowcafe:5,conv:21,subway:84},
+  {name:'완주봉동점',atype:'일반상권',floor:'1층',area:42,avg:15430000,recent:16790000,months:6,cafe:11,lowcafe:2,conv:4,subway:null},
+  {name:'포항문덕점',atype:'일반상권',floor:'1층',area:20,avg:14250000,recent:13840000,months:14,cafe:30,lowcafe:5,conv:21,subway:null},
+  {name:'의정부금오점',atype:'일반상권',floor:'1층',area:14,avg:13860000,recent:12280000,months:13,cafe:30,lowcafe:7,conv:14,subway:207},
+  {name:'강남구청점',atype:'역세권',floor:'지하',area:7,avg:13510000,recent:14560000,months:18,cafe:30,lowcafe:1,conv:25,subway:67},
+  {name:'안양시청점',atype:'오피스·관공서',floor:'2층',area:10,avg:12720000,recent:15910000,months:16,cafe:30,lowcafe:0,conv:24,subway:null},
+  {name:'상주북천교점',atype:'일반상권',floor:'1층',area:18,avg:12630000,recent:13520000,months:11,cafe:7,lowcafe:1,conv:0,subway:null},
+  {name:'부호역점',atype:'역세권',floor:'1층',area:18,avg:12370000,recent:12650000,months:8,cafe:5,lowcafe:1,conv:4,subway:144},
+  {name:'아산선문대점',atype:'대학가',floor:'1층',area:18,avg:11610000,recent:13080000,months:10,cafe:8,lowcafe:3,conv:6,subway:null},
+  {name:'울산법원점',atype:'오피스·관공서',floor:'2층',area:25,avg:11040000,recent:11600000,months:14,cafe:27,lowcafe:4,conv:8,subway:null},
+  {name:'강원대병원점',atype:'병원상권',floor:'1층',area:35,avg:11010000,recent:12050000,months:11,cafe:30,lowcafe:4,conv:20,subway:null},
+  {name:'남동인더스파크공단역점',atype:'역세권',floor:'1층',area:20,avg:10790000,recent:12130000,months:2,cafe:20,lowcafe:5,conv:7,subway:193},
+  {name:'구미인동점',atype:'일반상권',floor:'1층',area:40,avg:10580000,recent:9100000,months:8,cafe:30,lowcafe:6,conv:30,subway:null},
+  {name:'안산대학교점',atype:'대학가',floor:'1층',area:16,avg:9190000,recent:18380000,months:2,cafe:12,lowcafe:2,conv:11,subway:null},
+  {name:'춘천시청점',atype:'오피스·관공서',floor:'1층',area:20,avg:9060000,recent:11550000,months:4,cafe:30,lowcafe:2,conv:15,subway:null},
+  {name:'울산장검점',atype:'일반상권',floor:'지하',area:15,avg:8960000,recent:10010000,months:6,cafe:25,lowcafe:3,conv:12,subway:null},
+  {name:'대구시청점',atype:'오피스·관공서',floor:'1층',area:65,avg:8930000,recent:4620000,months:5,cafe:30,lowcafe:0,conv:30,subway:null},
+  {name:'천안병천순대거리점',atype:'일반상권',floor:'1층',area:25,avg:8660000,recent:7170000,months:2,cafe:14,lowcafe:4,conv:4,subway:null},
+  {name:'부천법원점',atype:'오피스·관공서',floor:'1층',area:14,avg:8460000,recent:9250000,months:15,cafe:30,lowcafe:9,conv:25,subway:483},
 ];
 
 var map=null, geocoder=null, ps=null;
@@ -590,13 +590,34 @@ function resetAll(){
   document.getElementById('result-wrap').style.display='none';
 }
 
-function findSimilar(atype,floor,area){
+function findSimilar(D){
+  var cSub=parseInt((D.subway||'').replace(/[^0-9]/g,''))||null;
   return STORES.map(function(s){
     var sc=0;
-    if(s.atype===atype) sc+=40;
-    if(s.floor===floor) sc+=20;
-    var ad=Math.abs(s.area-(area||15));
-    if(ad<=5)sc+=30;else if(ad<=15)sc+=18;else if(ad<=25)sc+=8;
+    // ① 상권유형 일치 (25점)
+    if(s.atype===D.atype) sc+=25;
+    // ② 층수 일치 (10점)
+    if(s.floor===D.floor) sc+=10;
+    // ③ 면적 유사도 (최대 15점)
+    var ad=Math.abs(s.area-(D.area||15));
+    if(ad<=5)sc+=15;else if(ad<=15)sc+=9;else if(ad<=25)sc+=4;
+    // ④ 지하철역 거리 유사도 (최대 20점) — 둘 다 데이터 있을 때만
+    if(s.subway!=null&&cSub!=null){
+      var sd=Math.abs(s.subway-cSub);
+      if(sd<=100)sc+=20;else if(sd<=300)sc+=12;else if(sd<=600)sc+=5;
+    } else if((s.subway==null)===(cSub==null)){
+      sc+=8; // 둘 다 역세권 아님 or 둘 다 정보없음 → 부분 유사
+    }
+    // ⑤ 카페 밀집도 유사도 (최대 15점)
+    if(s.cafe!=null&&D.cafe!=null){
+      var cd=Math.abs(s.cafe-D.cafe);
+      if(cd<=3)sc+=15;else if(cd<=8)sc+=9;else if(cd<=15)sc+=4;
+    }
+    // ⑥ 저가형카페 밀집도 유사도 (최대 15점)
+    if(s.lowcafe!=null&&D.lowcafe!=null){
+      var ld=Math.abs(s.lowcafe-D.lowcafe);
+      if(ld<=1)sc+=15;else if(ld<=3)sc+=9;else if(ld<=6)sc+=4;
+    }
     return Object.assign({},s,{score:sc});
   }).sort(function(a,b){return b.score-a.score;}).slice(0,5);
 }
@@ -660,7 +681,7 @@ function calcScore(D){
   if(D.floor==='2층')target-=8;else if(D.floor==='지하')target-=6;
   if(D.compSales>=2000)target+=3;
   target=Math.max(15,Math.min(100,Math.round(target)));
-  var sim=findSimilar(D.atype,D.floor,D.area);
+  var sim=findSimilar(D);
   var simAvg=sim.length?Math.round(sim.reduce(function(a,s){return a+s.avg;},0)/sim.length):0;
   var cost=65;
   var base=simAvg||estimateBase(D);
@@ -740,12 +761,16 @@ function runAnalysis(){
     met('총 초기투자',initInvest.toLocaleString()+'만','원');
 
   document.getElementById('similar-stores').innerHTML=sc.sim.length?sc.sim.map(function(s){
+    var extraTags=[s.atype,s.floor,s.area+'평'];
+    if(s.subway!=null)extraTags.push('역'+s.subway+'m');
+    if(s.cafe!=null)extraTags.push('카페'+s.cafe+'개');
+    if(s.lowcafe!=null)extraTags.push('저가형'+s.lowcafe+'개');
     return'<div class="store-card"><div style="display:flex;justify-content:space-between;align-items:flex-start">'+
       '<div><span style="font-weight:700">'+s.name+'</span><span class="sim-badge">유사도 '+s.score+'점</span></div>'+
       '<div style="text-align:right"><div style="font-size:15px;font-weight:700;color:#1a5c35">'+Math.round(s.avg/10000).toLocaleString()+'만</div>'+
       '<div style="font-size:10px;color:#64748b">월평균('+s.months+'개월)</div></div></div>'+
       '<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">'+
-      [s.atype,s.floor,s.area+'평'].map(function(t){return'<span style="background:#f1f5f9;padding:2px 7px;border-radius:99px;font-size:10px">'+t+'</span>';}).join('')+
+      extraTags.map(function(t){return'<span style="background:#f1f5f9;padding:2px 7px;border-radius:99px;font-size:10px">'+t+'</span>';}).join('')+
       '</div></div>';
   }).join(''):'<div class="abox blue">유사 조건 기존점 데이터가 부족합니다.</div>';
 

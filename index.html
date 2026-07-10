@@ -193,11 +193,31 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
 </div>
 
 <div id="p-stores" class="pnl">
-  <div class="st">떠기다방 기존 점포 현황 (29개점)</div>
+  <div class="st">➕ 신규 매장 추가 <span style="font-size:10px;font-weight:400;color:#64748b">— 주소 입력 시 상권데이터(카페·저가형카페·편의점·지하철거리) 자동 수집</span></div>
+  <div class="card" style="border-left:3px solid #1a5c35;margin-bottom:12px">
+    <div class="g4" style="gap:8px;margin-bottom:8px">
+      <div><label class="lbl">점포명</label><input id="cs-name" type="text" placeholder="예: 대전관평점"></div>
+      <div><label class="lbl">주소(도로명)</label><input id="cs-addr" type="text" placeholder="도로명주소 입력"></div>
+      <div><label class="lbl">상권유형</label><select id="cs-atype"><option value="">선택</option><option value="역세권">역세권</option><option value="대학가">대학가</option><option value="오피스·관공서">오피스·관공서</option><option value="병원상권">병원상권</option><option value="일반상권">일반상권</option></select></div>
+      <div><label class="lbl">층수</label><select id="cs-floor"><option value="">선택</option><option value="1층">1층</option><option value="2층">2층</option><option value="지하">지하</option></select></div>
+    </div>
+    <div class="g4" style="gap:8px;margin-bottom:8px">
+      <div><label class="lbl">면적(평)</label><input id="cs-area" type="number" placeholder="예: 20"></div>
+      <div><label class="lbl">월평균매출(만원)</label><input id="cs-avg" type="number" placeholder="예: 1500"></div>
+      <div><label class="lbl">최근월매출(만원)</label><input id="cs-recent" type="number" placeholder="비워두면 월평균과 동일"></div>
+      <div><label class="lbl">영업개월수</label><input id="cs-months" type="number" placeholder="예: 3"></div>
+    </div>
+    <button class="btn btn-g" onclick="addCustomStore()">매장 추가 (자동 상권수집)</button>
+    <button class="btn" onclick="exportStores()" style="margin-left:8px">전체 STORES 코드 내보내기</button>
+    <div style="font-size:10px;color:#64748b;margin-top:8px">추가한 매장은 이 브라우저에 자동 저장됩니다(새로고침해도 유지). 다른 컴퓨터·배포본에도 영구 반영하려면 "전체 STORES 코드 내보내기"로 복사한 코드를 index.html의 <code>const STORES = [...]</code> 부분에 붙여넣고 GitHub에 업로드하세요.</div>
+    <textarea id="cs-export" readonly style="display:none;width:100%;height:160px;margin-top:8px;font-family:monospace;font-size:11px"></textarea>
+  </div>
+
+  <div class="st">떠기다방 기존 점포 현황 (<span id="store-count">29</span>개점)</div>
   <div class="card" style="overflow-x:auto">
-    <table class="itbl" style="min-width:650px">
+    <table class="itbl" style="min-width:700px">
       <thead><tr style="background:#f8fafc;font-size:11px;font-weight:700;color:#64748b">
-        <td style="padding:8px 6px">점포명</td><td>상권유형</td><td>층수</td><td>면적</td><td>월평균매출</td><td>최근월매출</td><td>영업개월</td>
+        <td style="padding:8px 6px">점포명</td><td>상권유형</td><td>층수</td><td>면적</td><td>월평균매출</td><td>최근월매출</td><td>영업개월</td><td>관리</td>
       </tr></thead>
       <tbody id="store-tbody"></tbody>
     </table>
@@ -353,6 +373,7 @@ function initMap(){
   ps=new kakao.maps.services.Places();
   kakao.maps.event.addListener(map,'zoom_changed',function(){setTimeout(layoutLabels,50);});
   kakao.maps.event.addListener(map,'dragend',function(){setTimeout(layoutLabels,50);});
+  loadCustomStores();
 }
 
 function searchAddr(){
@@ -814,22 +835,114 @@ function runAnalysis(){
   document.getElementById('result-wrap').scrollIntoView({behavior:'smooth'});
 }
 
-function renderStores(){
+function renderStores(force){
   var t=document.getElementById('store-tbody');
-  if(t.children.length)return;
-  t.innerHTML=STORES.map(function(s){
-    return'<tr><td style="font-weight:600;padding:7px 4px">'+s.name+'</td>'+
+  if(t.children.length&&!force)return;
+  document.getElementById('store-count').textContent=STORES.length;
+  t.innerHTML=STORES.map(function(s,i){
+    return'<tr'+(s.custom?' style="background:#fffbeb"':'')+'><td style="font-weight:600;padding:7px 4px">'+s.name+(s.custom?' <span style="font-size:9px;color:#b45309;font-weight:700;background:#fef3c7;padding:1px 5px;border-radius:99px">신규</span>':'')+'</td>'+
       '<td><span style="background:#f0fdf4;color:#166534;padding:2px 7px;border-radius:99px;font-size:10px">'+s.atype+'</span></td>'+
       '<td>'+s.floor+'</td><td>'+s.area+'평</td>'+
       '<td style="font-weight:700;color:'+(s.avg>=20000000?'#1a5c35':s.avg>=12000000?'#2563eb':'#64748b')+'">'+Math.round(s.avg/10000).toLocaleString()+'만</td>'+
       '<td style="color:'+(s.recent>=s.avg?'#16a34a':'#64748b')+'">'+Math.round(s.recent/10000).toLocaleString()+'만</td>'+
-      '<td style="color:#64748b">'+s.months+'개월</td></tr>';
+      '<td style="color:#64748b">'+s.months+'개월</td>'+
+      '<td>'+(s.custom?'<button onclick="deleteCustomStore('+i+')" style="background:none;border:1px solid #dde3ec;border-radius:5px;padding:2px 8px;font-size:10px;cursor:pointer;color:#dc2626">삭제</button>':'')+'</td>'+
+      '</tr>';
   }).join('');
 }
 
-function renderCompare(){
+function collectStoreStats(lat,lng,cb){
+  var loc=new kakao.maps.LatLng(lat,lng);
+  var LOW=['메가MGC','메가엠지씨','메가커피','컴포즈','더벤티','빽다방','백다방','우지','바나프레소','텐퍼센트','10%','카페봄봄','댄싱컵','하이요','하삼동'];
+  var cafe=0,lowcafe=0,conv=0,subway=null,tasks=3,done=0;
+  function checkDone(){
+    done++;
+    if(done>=tasks) cb({cafe:cafe,lowcafe:lowcafe,conv:conv,subway:subway});
+  }
+  function pagedCat(code,maxPages,onEach){
+    var pc=0;
+    ps.categorySearch(code,function(data,status,pagination){
+      if(status===kakao.maps.services.Status.OK){data.forEach(onEach);}
+      pc++;
+      if(status===kakao.maps.services.Status.OK&&pagination&&pagination.hasNextPage&&pc<maxPages){pagination.nextPage();}
+      else{checkDone();}
+    },{location:loc,radius:500,size:15});
+  }
+  pagedCat('CE7',2,function(p){cafe++;if(LOW.some(function(b){return p.place_name.includes(b);}))lowcafe++;});
+  pagedCat('CS2',2,function(p){conv++;});
+  ps.categorySearch('SW8',function(data,status){
+    if(status===kakao.maps.services.Status.OK&&data.length>0){subway=Math.round(data[0].distance);}
+    checkDone();
+  },{location:loc,radius:500,size:3});
+}
+
+function addCustomStore(){
+  var name=g('cs-name'),addr=g('cs-addr'),atype=g('cs-atype'),floor=g('cs-floor');
+  var area=n('cs-area'),avgM=n('cs-avg'),recentM=n('cs-recent'),months=n('cs-months');
+  if(!name||!addr||!atype||!floor||!area||!avgM){alert('점포명·주소·상권유형·층수·면적·월평균매출은 필수입니다.');return;}
+  if(!map||!geocoder){alert('지도가 아직 로딩 중입니다. 잠시 후 다시 시도해주세요.');return;}
+  showLoad('주소 확인 중...');
+  geocoder.addressSearch(addr,function(res,status){
+    if(status!==kakao.maps.services.Status.OK||!res[0]){hideLoad();alert('주소를 찾을 수 없습니다. 도로명주소로 다시 입력해주세요.');return;}
+    var lat=parseFloat(res[0].y),lng=parseFloat(res[0].x);
+    showLoad('반경 500m 상권데이터 수집 중...');
+    collectStoreStats(lat,lng,function(stats){
+      hideLoad();
+      var store={name:name,atype:atype,floor:floor,area:area,
+        avg:Math.round(avgM*10000),recent:Math.round((recentM||avgM)*10000),months:months||1,
+        cafe:stats.cafe,lowcafe:stats.lowcafe,conv:stats.conv,subway:stats.subway,
+        custom:true,addr:addr};
+      STORES.push(store);
+      saveCustomStores();
+      renderStores(true);
+      renderCompare(true);
+      ['cs-name','cs-addr','cs-area','cs-avg','cs-recent','cs-months'].forEach(function(id){document.getElementById(id).value='';});
+      document.getElementById('cs-atype').selectedIndex=0;
+      document.getElementById('cs-floor').selectedIndex=0;
+      alert(name+' 매장이 추가되었습니다.\n카페 '+stats.cafe+'개 · 저가형카페 '+stats.lowcafe+'개 · 편의점 '+stats.conv+'개 · 지하철 '+(stats.subway==null?'없음':stats.subway+'m'));
+    });
+  });
+}
+
+function deleteCustomStore(idx){
+  if(!confirm('이 매장을 삭제하시겠습니까?'))return;
+  STORES.splice(idx,1);
+  saveCustomStores();
+  renderStores(true);
+  renderCompare(true);
+}
+
+function saveCustomStores(){
+  var custom=STORES.filter(function(s){return s.custom;});
+  try{localStorage.setItem('ddoggidabang_custom_stores',JSON.stringify(custom));}catch(e){}
+}
+
+function loadCustomStores(){
+  try{
+    var raw=localStorage.getItem('ddoggidabang_custom_stores');
+    if(!raw)return;
+    var arr=JSON.parse(raw);
+    arr.forEach(function(s){STORES.push(s);});
+  }catch(e){}
+}
+
+function exportStores(){
+  var lines=STORES.map(function(s){
+    return"  {name:'"+s.name.replace(/'/g,"")+"',atype:'"+s.atype+"',floor:'"+s.floor+"',area:"+s.area+",avg:"+s.avg+",recent:"+s.recent+",months:"+s.months+
+      (s.cafe!=null?",cafe:"+s.cafe+",lowcafe:"+s.lowcafe+",conv:"+s.conv+",subway:"+(s.subway==null?'null':s.subway):"")+"},";
+  }).join('\n');
+  var text='const STORES = [\n'+lines+'\n];';
+  var ta=document.getElementById('cs-export');
+  ta.style.display='block';
+  ta.value=text;
+  ta.select();
+  document.execCommand('copy');
+  alert('전체 STORES 코드가 복사되었습니다.\nindex.html의 "const STORES = [...]" 부분을 통째로 교체하고 GitHub에 업로드하면 영구 반영됩니다.');
+}
+
+function renderCompare(force){
   var el=document.getElementById('compare-wrap');
-  if(el.children.length)return;
+  if(el.children.length&&!force)return;
   var groups={};
   STORES.forEach(function(s){if(!groups[s.atype])groups[s.atype]={stores:[],total:0};groups[s.atype].stores.push(s);groups[s.atype].total+=s.avg;});
   var maxAvg=Math.max.apply(null,Object.values(groups).map(function(g){return g.total/g.stores.length;}));

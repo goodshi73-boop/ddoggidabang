@@ -31,7 +31,7 @@
 <textarea id="out" placeholder="결과가 여기 표시됩니다..." readonly></textarea>
 
 <script>
-var STORES_ADDR = [{"storesName": "신도림점", "addr": "서울 구로구 새말로 93 신도림 태영타운", "oldAtype": "역세권"}, {"storesName": "구미점", "addr": "경북 구미시 송정대로 48", "oldAtype": "오피스·관공서"}, {"storesName": "증미역점", "addr": "서울시 강서구 양천로 564", "oldAtype": "역세권"}, {"storesName": "수원역로데오점", "addr": "경기도 수원시 팔달구 덕영대로 905", "oldAtype": "역세권"}, {"storesName": "수원성균관대점", "addr": "경기도 수원시 장안구 서부로 2106번길 14", "oldAtype": "대학가"}, {"storesName": "서초법원점", "addr": "서울특별시 서초구 서초중앙로 147", "oldAtype": "오피스·관공서"}, {"storesName": "굴포천역점", "addr": "인천 부평구 길주로 623", "oldAtype": "역세권"}, {"storesName": "김포통진마송점", "addr": "경기도 김포시 통진읍 조강로36번길", "oldAtype": "일반상권"}, {"storesName": "검암점", "addr": "인천 서구 검암로30번길", "oldAtype": "일반상권"}, {"storesName": "한밭대점", "addr": "대전 유성구 학하서로121번길 71-26", "oldAtype": "대학가"}, {"storesName": "고양법원점", "addr": "경기 고양시 일산동구 장백로 194", "oldAtype": "오피스·관공서"}, {"storesName": "완주봉동점", "addr": "전북 완주군 봉동읍 봉동로 151", "oldAtype": "일반상권"}, {"storesName": "포항문덕점", "addr": "경북 포항시 남구 오천읍 원동로 32", "oldAtype": "일반상권"}, {"storesName": "의정부금오점", "addr": "경기도 의정부시 부용로 105", "oldAtype": "일반상권"}, {"storesName": "강남구청점", "addr": "서울 강남구 학동로 343", "oldAtype": "역세권"}, {"storesName": "안양시청점", "addr": "경기 안양시 동안구 시민대로 230", "oldAtype": "오피스·관공서"}, {"storesName": "상주북천교점", "addr": "경북 상주시 경상대로 3144", "oldAtype": "일반상권"}, {"storesName": "부호역점", "addr": "경북 경산시 하양읍 대경로105길 10", "oldAtype": "역세권"}, {"storesName": "아산선문대점", "addr": "충남 아산시 탕정면 탕정면로 114-1", "oldAtype": "대학가"}, {"storesName": "울산법원점", "addr": "울산 남구 법대로 94-1", "oldAtype": "오피스·관공서"}, {"storesName": "강원대병원점", "addr": "강원도 춘천시 성심로 100", "oldAtype": "병원상권"}, {"storesName": "남동인더스파크공단역점", "addr": "인천시 남동구 은청로 16-17", "oldAtype": "역세권"}, {"storesName": "구미인동점", "addr": "경북 구미시 인동26길 14-2", "oldAtype": "일반상권"}, {"storesName": "안산대학교점", "addr": "안산시 상록구 안산대학로 158", "oldAtype": "대학가"}, {"storesName": "춘천시청점", "addr": "강원도 춘천시 시청길 10번길 4-2", "oldAtype": "오피스·관공서"}, {"storesName": "울산장검점", "addr": "울산 울주군 범서읍 장검1길 57", "oldAtype": "일반상권"}, {"storesName": "대구시청점", "addr": "대구 중구 국채보상로 659", "oldAtype": "오피스·관공서"}, {"storesName": "천안병천순대거리점", "addr": "충남 천안시 동남구 병천면 아우내순대길", "oldAtype": "일반상권"}, {"storesName": "부천법원점", "addr": "경기 부천시 원미구 상일로 130", "oldAtype": "오피스·관공서"}];
+var STORES_ADDR = [{"storesName": "신도림점", "addr": "서울 구로구 새말로 93 신도림 태영타운", "oldAtype": "오피스·관공서"}, {"storesName": "구미점", "addr": "경북 구미시 송정대로 48", "oldAtype": "오피스·관공서"}, {"storesName": "증미역점", "addr": "서울시 강서구 양천로 564", "oldAtype": "역세권"}, {"storesName": "수원역로데오점", "addr": "경기도 수원시 팔달구 덕영대로 905", "oldAtype": "역세권"}, {"storesName": "수원성균관대점", "addr": "경기도 수원시 장안구 서부로 2106번길 14", "oldAtype": "오피스·관공서"}, {"storesName": "서초법원점", "addr": "서울특별시 서초구 서초중앙로 147", "oldAtype": "역세권"}, {"storesName": "굴포천역점", "addr": "인천 부평구 길주로 623", "oldAtype": "역세권"}, {"storesName": "김포통진마송점", "addr": "경기도 김포시 통진읍 조강로36번길", "oldAtype": "병원상권"}, {"storesName": "검암점", "addr": "인천 서구 검암로30번길", "oldAtype": "병원상권"}, {"storesName": "한밭대점", "addr": "대전 유성구 학하서로121번길 71-26", "oldAtype": "일반상권"}, {"storesName": "고양법원점", "addr": "경기 고양시 일산동구 장백로 194", "oldAtype": "역세권"}, {"storesName": "완주봉동점", "addr": "전북 완주군 봉동읍 봉동로 151", "oldAtype": "오피스·관공서"}, {"storesName": "포항문덕점", "addr": "경북 포항시 남구 오천읍 원동로 32", "oldAtype": "병원상권"}, {"storesName": "의정부금오점", "addr": "경기도 의정부시 부용로 105", "oldAtype": "역세권"}, {"storesName": "강남구청점", "addr": "서울 강남구 학동로 343", "oldAtype": "역세권"}, {"storesName": "안양시청점", "addr": "경기 안양시 동안구 시민대로 230", "oldAtype": "오피스·관공서"}, {"storesName": "상주북천교점", "addr": "경북 상주시 경상대로 3144", "oldAtype": "오피스·관공서"}, {"storesName": "부호역점", "addr": "경북 경산시 하양읍 대경로105길 10", "oldAtype": "역세권"}, {"storesName": "아산선문대점", "addr": "충남 아산시 탕정면 탕정면로 114-1", "oldAtype": "일반상권"}, {"storesName": "울산법원점", "addr": "울산 남구 법대로 94-1", "oldAtype": "병원상권"}, {"storesName": "강원대병원점", "addr": "강원도 춘천시 성심로 100", "oldAtype": "오피스·관공서"}, {"storesName": "남동인더스파크공단역점", "addr": "인천시 남동구 은청로 16-17", "oldAtype": "역세권"}, {"storesName": "구미인동점", "addr": "경북 구미시 인동26길 14-2", "oldAtype": "오피스·관공서"}, {"storesName": "안산대학교점", "addr": "안산시 상록구 안산대학로 158", "oldAtype": "일반상권"}, {"storesName": "춘천시청점", "addr": "강원도 춘천시 시청길 10번길 4-2", "oldAtype": "오피스·관공서"}, {"storesName": "울산장검점", "addr": "울산 울주군 범서읍 장검1길 57", "oldAtype": "병원상권"}, {"storesName": "대구시청점", "addr": "대구 중구 국채보상로 659", "oldAtype": "오피스·관공서"}, {"storesName": "천안병천순대거리점", "addr": "충남 천안시 동남구 병천면 아우내순대길", "oldAtype": "오피스·관공서"}, {"storesName": "부천법원점", "addr": "경기 부천시 원미구 상일로 130", "oldAtype": "오피스·관공서"}];
 var results = [];
 var doneCount = 0;
 var map=null, geocoder=null, ps=null;
@@ -69,7 +69,7 @@ function classifyAtype(sig){
   if(sig.hospital){
     return{atype:'병원상권',reason:sig.hospital.name+' '+sig.hospital.dist+'m 이내'};
   }
-  return{atype:'일반상권',reason:'반경 300m 내 지하철역·대학교·관공서·의료기관 없음'};
+  return{atype:'일반상권',reason:'지하철역 300m·대학교 500m·관공서 300m·종합병원 300m 이내 모두 해당없음'};
 }
 
 function collectOne(i,cb){
@@ -98,11 +98,11 @@ function collectOne(i,cb){
         data.forEach(function(p){
           if(!/대학/.test(p.place_name)&&!/대학/.test(p.category_name||''))return;
           var d=Math.round(p.distance);
-          if(d<=300&&(!university||d<university.dist)) university={name:p.place_name,dist:d};
+          if(d<=500&&(!university||d<university.dist)) university={name:p.place_name,dist:d};
         });
       }
       checkDone();
-    },{location:loc,radius:300,size:15});
+    },{location:loc,radius:500,size:15});
     ps.categorySearch('PO3',function(data,status2){
       if(status2===kakao.maps.services.Status.OK&&data.length>0){
         var d=Math.round(data[0].distance);
@@ -111,12 +111,15 @@ function collectOne(i,cb){
       checkDone();
     },{location:loc,radius:300,size:5});
     ps.categorySearch('HP8',function(data,status2){
-      if(status2===kakao.maps.services.Status.OK&&data.length>0){
-        var d=Math.round(data[0].distance);
-        if(d<=300) hospital={name:data[0].place_name,dist:d};
+      if(status2===kakao.maps.services.Status.OK){
+        data.forEach(function(p){
+          if(!/종합병원/.test(p.place_name)&&!/종합병원/.test(p.category_name||''))return;
+          var d=Math.round(p.distance);
+          if(d<=300&&(!hospital||d<hospital.dist)) hospital={name:p.place_name,dist:d};
+        });
       }
       checkDone();
-    },{location:loc,radius:300,size:5});
+    },{location:loc,radius:300,size:15});
   });
 }
 

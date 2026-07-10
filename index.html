@@ -418,6 +418,22 @@ function searchNearby(lat,lng){
     },{location:latlng,radius:currentRadius,size:15});
   }
 
+  function pagedKeywordSearch(keyword,maxPages,onEach,onDone){
+    var pageCount=0;
+    ps.keywordSearch(keyword,function(data,status,pagination){
+      if(status===kakao.maps.services.Status.OK){
+        data.forEach(onEach);
+      }
+      pageCount++;
+      if(status===kakao.maps.services.Status.OK&&pagination&&pagination.hasNextPage&&pageCount<maxPages){
+        pagination.nextPage();
+      } else {
+        onDone();
+      }
+    },{location:latlng,radius:currentRadius,size:15});
+  }
+  var EXCLUDE_RX=/PC방|피씨방|보드게임|만화카페|스터디카페|사진관|파티룸|룸카페|무인독서실|공유오피스/;
+
   pagedSearch('CE7',3,function(p){
     var isLow=LOW.some(function(b){return p.place_name.includes(b);});
     if(isLow) lowCafe++;
@@ -434,11 +450,22 @@ function searchNearby(lat,lng){
       cafe++;
       addCafeMarker(p,isLow);
     },function(){
-      document.getElementById('r-cafe').value=cafe;
-      document.getElementById('r-cafe-disp').textContent=cafe+'개';
-      document.getElementById('r-lowcafe').value=lowCafe;
-      document.getElementById('r-lowcafe-disp').textContent=lowCafe+'개';
-      check();
+      // 카테고리 코드 자체가 비어있어 CE7/FD6 어디에도 안 걸리는 업체 보강: "카페" 텍스트 직접 검색
+      pagedKeywordSearch('카페',2,function(p){
+        if(foundIds[p.id])return;
+        var text=(p.place_name||'')+' '+(p.category_name||'');
+        if(EXCLUDE_RX.test(text))return;
+        var isLow=LOW.some(function(b){return p.place_name.includes(b);});
+        if(isLow) lowCafe++;
+        cafe++;
+        addCafeMarker(p,isLow);
+      },function(){
+        document.getElementById('r-cafe').value=cafe;
+        document.getElementById('r-cafe-disp').textContent=cafe+'개';
+        document.getElementById('r-lowcafe').value=lowCafe;
+        document.getElementById('r-lowcafe-disp').textContent=lowCafe+'개';
+        check();
+      });
     });
   });
 

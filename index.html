@@ -403,35 +403,44 @@ function searchNearby(lat,lng){
     });
   }
 
-  ps.categorySearch('CE7',function(data,status){
-    if(status===kakao.maps.services.Status.OK){
-      cafe=data.length;
-      data.forEach(function(p){
-        var isLow=LOW.some(function(b){return p.place_name.includes(b);});
-        if(isLow) lowCafe++;
-        addCafeMarker(p,isLow);
-      });
-    }
-    // 음식점(FD6) 카테고리로 잘못 분류된 디저트·베이커리형 카페 보강 검색
-    ps.categorySearch('FD6',function(data2,status2){
-      if(status2===kakao.maps.services.Status.OK){
-        data2.forEach(function(p){
-          if(foundIds[p.id])return;
-          var text=(p.place_name||'')+' '+(p.category_name||'');
-          if(!DESSERT_RX.test(text))return;
-          var isLow=LOW.some(function(b){return p.place_name.includes(b);});
-          if(isLow) lowCafe++;
-          cafe++;
-          addCafeMarker(p,isLow);
-        });
+  function pagedSearch(code,maxPages,onEach,onDone){
+    var pageCount=0;
+    ps.categorySearch(code,function(data,status,pagination){
+      if(status===kakao.maps.services.Status.OK){
+        data.forEach(onEach);
       }
+      pageCount++;
+      if(status===kakao.maps.services.Status.OK&&pagination&&pagination.hasNextPage&&pageCount<maxPages){
+        pagination.nextPage();
+      } else {
+        onDone();
+      }
+    },{location:latlng,radius:currentRadius,size:15});
+  }
+
+  pagedSearch('CE7',3,function(p){
+    var isLow=LOW.some(function(b){return p.place_name.includes(b);});
+    if(isLow) lowCafe++;
+    cafe++;
+    addCafeMarker(p,isLow);
+  },function(){
+    // 음식점(FD6) 카테고리로 잘못 분류된 디저트·베이커리형 카페 보강 검색 (최대 3페이지)
+    pagedSearch('FD6',3,function(p){
+      if(foundIds[p.id])return;
+      var text=(p.place_name||'')+' '+(p.category_name||'');
+      if(!DESSERT_RX.test(text))return;
+      var isLow=LOW.some(function(b){return p.place_name.includes(b);});
+      if(isLow) lowCafe++;
+      cafe++;
+      addCafeMarker(p,isLow);
+    },function(){
       document.getElementById('r-cafe').value=cafe;
       document.getElementById('r-cafe-disp').textContent=cafe+'개';
       document.getElementById('r-lowcafe').value=lowCafe;
       document.getElementById('r-lowcafe-disp').textContent=lowCafe+'개';
       check();
-    },{location:latlng,radius:currentRadius,size:15});
-  },{location:latlng,radius:currentRadius,size:15});
+    });
+  });
 
   ps.categorySearch('SW8',function(data,status){
     if(status===kakao.maps.services.Status.OK&&data.length>0){

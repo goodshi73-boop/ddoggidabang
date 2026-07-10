@@ -208,12 +208,13 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
       <div><label class="lbl">최근6개월평균(만원)</label><input id="cs-avg6" type="number" placeholder="영업 6개월↑ 시 입력"></div>
     </div>
     <div class="g2" style="gap:8px;margin-bottom:8px">
-      <div><label class="lbl">영업개월수 <span style="color:#dc2626">*필수</span></label><input id="cs-months" type="number" placeholder="예: 3"></div>
+      <div><label class="lbl">오픈일자 <span style="color:#dc2626">*필수</span></label><input id="cs-opendate" type="date" onchange="updateMonthsPreview()"></div>
+      <div><label class="lbl">영업개월수 (자동계산)</label><input id="cs-months" type="text" readonly style="background:#f8fafc;color:#1a5c35;font-weight:700" placeholder="오픈일자 입력 시 자동 계산"></div>
     </div>
     <button class="btn btn-g" onclick="addCustomStore()">매장 추가 (자동 상권수집)</button>
     <button class="btn" onclick="exportStores()" style="margin-left:8px">전체 STORES 코드 내보내기</button>
     <div style="font-size:10px;color:#64748b;margin-top:8px">
-      영업 3개월 이하는 전월매출만 입력(3·6개월 평균은 자동 비활성). 3개월 초과 6개월 미만은 전월매출+3개월평균만 입력. 6개월 이상부터 전체 입력 가능 — 기준에 안 맞게 입력해도 저장 시 자동으로 걸러집니다.<br>
+      영업개월수는 오픈일자로 자동 계산됩니다. <b>오픈월은 영업일이 20일 이상일 때만 1개월로 인정</b>됩니다 (예: 1/20 오픈 시 1월은 영업일 12일뿐이라 미포함, 2월부터 카운트). 이 개월수 기준으로 3개월 이하는 전월매출만, 3개월 초과 6개월 미만은 3개월평균까지, 6개월 이상은 전체 입력이 활성화됩니다.<br>
       추가한 매장은 이 브라우저에 자동 저장됩니다(새로고침해도 유지). 다른 컴퓨터·배포본에도 영구 반영하려면 "전체 STORES 코드 내보내기"로 복사한 코드를 index.html의 <code>const STORES = [...]</code> 부분에 붙여넣고 GitHub에 업로드하세요.
     </div>
     <textarea id="cs-export" readonly style="display:none;width:100%;height:160px;margin-top:8px;font-family:monospace;font-size:11px"></textarea>
@@ -795,7 +796,7 @@ function runAnalysis(){
     return'<div class="store-card"><div style="display:flex;justify-content:space-between;align-items:flex-start">'+
       '<div><span style="font-weight:700">'+s.name+'</span><span class="sim-badge">유사도 '+s.score+'점</span></div>'+
       '<div style="text-align:right"><div style="font-size:15px;font-weight:700;color:#1a5c35">'+Math.round(repSales(s)/10000).toLocaleString()+'만</div>'+
-      '<div style="font-size:10px;color:#64748b">'+(s.avg3!=null?'3개월평균':s.avg6!=null?'6개월평균':s.avg!=null?'평균(구)':'전월매출')+' · 영업'+s.months+'개월</div></div></div>'+
+      '<div style="font-size:10px;color:#64748b">'+(s.avg3!=null?'3개월평균':s.avg6!=null?'6개월평균':s.avg!=null?'평균매출':'전월매출')+' · 영업'+s.months+'개월</div></div></div>'+
       '<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">'+
       extraTags.map(function(t){return'<span style="background:#f1f5f9;padding:2px 7px;border-radius:99px;font-size:10px">'+t+'</span>';}).join('')+
       '</div></div>';
@@ -856,13 +857,12 @@ function renderStores(force){
   function fmt(v){return v==null?'<span style="color:#cbd5e1">-</span>':Math.round(v/10000).toLocaleString()+'만';}
   t.innerHTML=STORES.map(function(s,i){
     var avg6=s.avg6!=null?s.avg6:null;
-    var avg3=s.avg3!=null?s.avg3:(s.avg!=null?s.avg:null); // 구버전 avg 필드는 3개월평균 칸에 구분 표시
-    var isLegacyAvg=s.avg3==null&&s.avg!=null;
+    var avg3=s.avg3!=null?s.avg3:(s.avg!=null?s.avg:null); // 구버전 avg 필드는 3개월평균 칸에 값만 표시
     return'<tr'+(s.custom?' style="background:#fffbeb"':'')+'><td style="font-weight:600;padding:7px 4px">'+s.name+(s.custom?' <span style="font-size:9px;color:#b45309;font-weight:700;background:#fef3c7;padding:1px 5px;border-radius:99px">신규</span>':'')+'</td>'+
       '<td><span style="background:#f0fdf4;color:#166534;padding:2px 7px;border-radius:99px;font-size:10px">'+s.atype+'</span></td>'+
       '<td>'+s.floor+'</td><td>'+s.area+'평</td>'+
       '<td style="color:#64748b">'+fmt(avg6)+'</td>'+
-      '<td style="font-weight:700;color:#1a5c35">'+fmt(avg3)+(isLegacyAvg?' <span style="font-size:9px;color:#94a3b8">(구)</span>':'')+'</td>'+
+      '<td style="font-weight:700;color:#1a5c35">'+fmt(avg3)+'</td>'+
       '<td style="color:'+(s.recent!=null&&avg3!=null&&s.recent>=avg3?'#16a34a':'#64748b')+'">'+fmt(s.recent)+'</td>'+
       '<td style="color:#64748b">'+s.months+'개월</td>'+
       '<td>'+(s.custom?'<button onclick="deleteCustomStore('+i+')" style="background:none;border:1px solid #dde3ec;border-radius:5px;padding:2px 8px;font-size:10px;cursor:pointer;color:#dc2626">삭제</button>':'')+'</td>'+
@@ -895,10 +895,35 @@ function collectStoreStats(lat,lng,cb){
   },{location:loc,radius:500,size:3});
 }
 
+function calcEffectiveMonths(openDateStr){
+  if(!openDateStr) return 0;
+  var open=new Date(openDateStr+'T00:00:00');
+  var today=new Date();
+  if(isNaN(open.getTime())||open>today) return 0;
+  var daysInOpenMonth=new Date(open.getFullYear(),open.getMonth()+1,0).getDate();
+  var operatingDaysInOpenMonth=daysInOpenMonth-open.getDate()+1;
+  var startY=open.getFullYear(), startM=open.getMonth();
+  if(operatingDaysInOpenMonth<20){
+    // 오픈월 영업일 20일 미만 → 오픈월은 개월수에서 제외, 다음달부터 카운트
+    startM+=1;
+    if(startM>11){startM=0;startY+=1;}
+  }
+  var months=(today.getFullYear()-startY)*12+(today.getMonth()-startM);
+  return Math.max(0,months);
+}
+
+function updateMonthsPreview(){
+  var od=g('cs-opendate');
+  var m=calcEffectiveMonths(od);
+  document.getElementById('cs-months').value=od?m+'개월':'';
+}
+
 function addCustomStore(){
-  var name=g('cs-name'),addr=g('cs-addr'),atype=g('cs-atype'),floor=g('cs-floor');
-  var area=n('cs-area'),recentM=n('cs-recent'),avg3M=n('cs-avg3'),avg6M=n('cs-avg6'),months=n('cs-months');
-  if(!name||!addr||!atype||!floor||!area||!recentM||!months){alert('점포명·주소·상권유형·층수·면적·전월매출·영업개월수는 필수입니다.');return;}
+  var name=g('cs-name'),addr=g('cs-addr'),atype=g('cs-atype'),floor=g('cs-floor'),od=g('cs-opendate');
+  var area=n('cs-area'),recentM=n('cs-recent'),avg3M=n('cs-avg3'),avg6M=n('cs-avg6');
+  var months=calcEffectiveMonths(od);
+  if(!name||!addr||!atype||!floor||!area||!recentM||!od){alert('점포명·주소·상권유형·층수·면적·전월매출·오픈일자는 필수입니다.');return;}
+  if(months<1){alert('오픈월 영업일이 20일 미만이면 아직 "영업 1개월"로 집계되지 않습니다. 다음 달부터 다시 시도해주세요.');return;}
   // 영업개월수 기준 자동 규칙: 3개월 이하는 전월매출만, 3~6개월은 3개월평균까지, 6개월 이상만 6개월평균 허용
   var avg3=months>3?(avg3M||null):null;
   var avg6=months>=6?(avg6M||null):null;
@@ -914,14 +939,14 @@ function addCustomStore(){
         recent:Math.round(recentM*10000),
         avg3:avg3?Math.round(avg3*10000):null,
         avg6:avg6?Math.round(avg6*10000):null,
-        months:months,
+        months:months,opendate:od,
         cafe:stats.cafe,lowcafe:stats.lowcafe,conv:stats.conv,subway:stats.subway,
         custom:true,addr:addr};
       STORES.push(store);
       saveCustomStores();
       renderStores(true);
       renderCompare(true);
-      ['cs-name','cs-addr','cs-area','cs-recent','cs-avg3','cs-avg6','cs-months'].forEach(function(id){document.getElementById(id).value='';});
+      ['cs-name','cs-addr','cs-area','cs-recent','cs-avg3','cs-avg6','cs-months','cs-opendate'].forEach(function(id){document.getElementById(id).value='';});
       document.getElementById('cs-atype').selectedIndex=0;
       document.getElementById('cs-floor').selectedIndex=0;
       alert(name+' 매장이 추가되었습니다.\n카페 '+stats.cafe+'개 · 저가형카페 '+stats.lowcafe+'개 · 편의점 '+stats.conv+'개 · 지하철 '+(stats.subway==null?'없음':stats.subway+'m'));

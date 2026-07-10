@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="UTF-8"><title>1개매장 재조회</title></head>
+<body style="font-family:sans-serif;padding:20px;font-size:16px">
+<h2>남동인더스파크공단역점 재조회</h2>
+<div id="r">조회 중...</div>
+<script>
+var LOW=['메가MGC','메가엠지씨','메가커피','컴포즈','더벤티','빽다방','백다방','우지','바나프레소','텐퍼센트','10%','카페봄봄','댄싱컵','하이요','하삼동'];
+function initKakao(){
+  var geocoder = new kakao.maps.services.Geocoder();
+  var ps = new kakao.maps.services.Places();
+  geocoder.addressSearch('인천시 남동구 은청로 16-17', function(res,status){
+    if(status!==kakao.maps.services.Status.OK){
+      document.getElementById('r').textContent = '주소 검색 실패';
+      return;
+    }
+    var loc = new kakao.maps.LatLng(parseFloat(res[0].y), parseFloat(res[0].x));
+    var cafe=0, lowcafe=0, conv=0, subway=null, tasks=3, done=0;
+    function checkDone(){
+      done++;
+      if(done>=tasks){
+        document.getElementById('r').innerHTML =
+          "<p>결과:</p><textarea style='width:100%;height:60px'>cafe:"+cafe+",lowcafe:"+lowcafe+",conv:"+conv+",subway:"+(subway==null?'null':subway)+"</textarea>";
+      }
+    }
+    function pagedCat(code,maxPages,onEach){
+      var pc=0;
+      ps.categorySearch(code,function(data,status2,pagination){
+        if(status2===kakao.maps.services.Status.OK){ data.forEach(onEach); }
+        pc++;
+        if(status2===kakao.maps.services.Status.OK&&pagination&&pagination.hasNextPage&&pc<2){
+          pagination.nextPage();
+        } else { checkDone(); }
+      },{location:loc,radius:500,size:15});
+    }
+    pagedCat('CE7',2,function(p){
+      cafe++;
+      if(LOW.some(function(b){return p.place_name.includes(b);})) lowcafe++;
+    });
+    pagedCat('CS2',2,function(p){ conv++; });
+    ps.categorySearch('SW8',function(data,status2){
+      if(status2===kakao.maps.services.Status.OK&&data.length>0){ subway = Math.round(data[0].distance); }
+      checkDone();
+    },{location:loc,radius:500,size:3});
+  });
+}
+</script>
+<script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=475ab6f89af7dc6ded8449065d23061c&libraries=services&autoload=false"></script>
+<script>kakao.maps.load(initKakao);</script>
+</body>
+</html>

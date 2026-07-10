@@ -203,21 +203,27 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
     </div>
     <div class="g4" style="gap:8px;margin-bottom:8px">
       <div><label class="lbl">면적(평)</label><input id="cs-area" type="number" placeholder="예: 20"></div>
-      <div><label class="lbl">월평균매출(만원)</label><input id="cs-avg" type="number" placeholder="예: 1500"></div>
-      <div><label class="lbl">최근월매출(만원)</label><input id="cs-recent" type="number" placeholder="비워두면 월평균과 동일"></div>
-      <div><label class="lbl">영업개월수</label><input id="cs-months" type="number" placeholder="예: 3"></div>
+      <div><label class="lbl">전월매출(만원) <span style="color:#dc2626">*필수</span></label><input id="cs-recent" type="number" placeholder="예: 1500"></div>
+      <div><label class="lbl">최근3개월평균(만원)</label><input id="cs-avg3" type="number" placeholder="영업 3개월↑ 시 입력"></div>
+      <div><label class="lbl">최근6개월평균(만원)</label><input id="cs-avg6" type="number" placeholder="영업 6개월↑ 시 입력"></div>
+    </div>
+    <div class="g2" style="gap:8px;margin-bottom:8px">
+      <div><label class="lbl">영업개월수 <span style="color:#dc2626">*필수</span></label><input id="cs-months" type="number" placeholder="예: 3"></div>
     </div>
     <button class="btn btn-g" onclick="addCustomStore()">매장 추가 (자동 상권수집)</button>
     <button class="btn" onclick="exportStores()" style="margin-left:8px">전체 STORES 코드 내보내기</button>
-    <div style="font-size:10px;color:#64748b;margin-top:8px">추가한 매장은 이 브라우저에 자동 저장됩니다(새로고침해도 유지). 다른 컴퓨터·배포본에도 영구 반영하려면 "전체 STORES 코드 내보내기"로 복사한 코드를 index.html의 <code>const STORES = [...]</code> 부분에 붙여넣고 GitHub에 업로드하세요.</div>
+    <div style="font-size:10px;color:#64748b;margin-top:8px">
+      영업 3개월 이하는 전월매출만 입력(3·6개월 평균은 자동 비활성). 3개월 초과 6개월 미만은 전월매출+3개월평균만 입력. 6개월 이상부터 전체 입력 가능 — 기준에 안 맞게 입력해도 저장 시 자동으로 걸러집니다.<br>
+      추가한 매장은 이 브라우저에 자동 저장됩니다(새로고침해도 유지). 다른 컴퓨터·배포본에도 영구 반영하려면 "전체 STORES 코드 내보내기"로 복사한 코드를 index.html의 <code>const STORES = [...]</code> 부분에 붙여넣고 GitHub에 업로드하세요.
+    </div>
     <textarea id="cs-export" readonly style="display:none;width:100%;height:160px;margin-top:8px;font-family:monospace;font-size:11px"></textarea>
   </div>
 
   <div class="st">떠기다방 기존 점포 현황 (<span id="store-count">29</span>개점)</div>
   <div class="card" style="overflow-x:auto">
-    <table class="itbl" style="min-width:700px">
+    <table class="itbl" style="min-width:760px">
       <thead><tr style="background:#f8fafc;font-size:11px;font-weight:700;color:#64748b">
-        <td style="padding:8px 6px">점포명</td><td>상권유형</td><td>층수</td><td>면적</td><td>월평균매출</td><td>최근월매출</td><td>영업개월</td><td>관리</td>
+        <td style="padding:8px 6px">점포명</td><td>상권유형</td><td>층수</td><td>면적</td><td>최근6개월평균</td><td>최근3개월평균</td><td>전월매출</td><td>영업개월</td><td>관리</td>
       </tr></thead>
       <tbody id="store-tbody"></tbody>
     </table>
@@ -703,7 +709,7 @@ function calcScore(D){
   if(D.compSales>=2000)target+=3;
   target=Math.max(15,Math.min(100,Math.round(target)));
   var sim=findSimilar(D);
-  var simAvg=sim.length?Math.round(sim.reduce(function(a,s){return a+s.avg;},0)/sim.length):0;
+  var simAvg=sim.length?Math.round(sim.reduce(function(a,s){return a+repSales(s);},0)/sim.length):0;
   var cost=65;
   var base=simAvg||estimateBase(D);
   if(D.rent>0&&base>0){
@@ -788,8 +794,8 @@ function runAnalysis(){
     if(s.lowcafe!=null)extraTags.push('저가형'+s.lowcafe+'개');
     return'<div class="store-card"><div style="display:flex;justify-content:space-between;align-items:flex-start">'+
       '<div><span style="font-weight:700">'+s.name+'</span><span class="sim-badge">유사도 '+s.score+'점</span></div>'+
-      '<div style="text-align:right"><div style="font-size:15px;font-weight:700;color:#1a5c35">'+Math.round(s.avg/10000).toLocaleString()+'만</div>'+
-      '<div style="font-size:10px;color:#64748b">월평균('+s.months+'개월)</div></div></div>'+
+      '<div style="text-align:right"><div style="font-size:15px;font-weight:700;color:#1a5c35">'+Math.round(repSales(s)/10000).toLocaleString()+'만</div>'+
+      '<div style="font-size:10px;color:#64748b">'+(s.avg3!=null?'3개월평균':s.avg6!=null?'6개월평균':s.avg!=null?'평균(구)':'전월매출')+' · 영업'+s.months+'개월</div></div></div>'+
       '<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">'+
       extraTags.map(function(t){return'<span style="background:#f1f5f9;padding:2px 7px;border-radius:99px;font-size:10px">'+t+'</span>';}).join('')+
       '</div></div>';
@@ -835,16 +841,29 @@ function runAnalysis(){
   document.getElementById('result-wrap').scrollIntoView({behavior:'smooth'});
 }
 
+function repSales(s){
+  // 대표 월매출: 최근3개월평균 > 최근6개월평균 > (구)월평균 > 전월매출 순으로 사용 가능한 값 채택
+  if(s.avg3!=null) return s.avg3;
+  if(s.avg6!=null) return s.avg6;
+  if(s.avg!=null) return s.avg;
+  return s.recent;
+}
+
 function renderStores(force){
   var t=document.getElementById('store-tbody');
   if(t.children.length&&!force)return;
   document.getElementById('store-count').textContent=STORES.length;
+  function fmt(v){return v==null?'<span style="color:#cbd5e1">-</span>':Math.round(v/10000).toLocaleString()+'만';}
   t.innerHTML=STORES.map(function(s,i){
+    var avg6=s.avg6!=null?s.avg6:null;
+    var avg3=s.avg3!=null?s.avg3:(s.avg!=null?s.avg:null); // 구버전 avg 필드는 3개월평균 칸에 구분 표시
+    var isLegacyAvg=s.avg3==null&&s.avg!=null;
     return'<tr'+(s.custom?' style="background:#fffbeb"':'')+'><td style="font-weight:600;padding:7px 4px">'+s.name+(s.custom?' <span style="font-size:9px;color:#b45309;font-weight:700;background:#fef3c7;padding:1px 5px;border-radius:99px">신규</span>':'')+'</td>'+
       '<td><span style="background:#f0fdf4;color:#166534;padding:2px 7px;border-radius:99px;font-size:10px">'+s.atype+'</span></td>'+
       '<td>'+s.floor+'</td><td>'+s.area+'평</td>'+
-      '<td style="font-weight:700;color:'+(s.avg>=20000000?'#1a5c35':s.avg>=12000000?'#2563eb':'#64748b')+'">'+Math.round(s.avg/10000).toLocaleString()+'만</td>'+
-      '<td style="color:'+(s.recent>=s.avg?'#16a34a':'#64748b')+'">'+Math.round(s.recent/10000).toLocaleString()+'만</td>'+
+      '<td style="color:#64748b">'+fmt(avg6)+'</td>'+
+      '<td style="font-weight:700;color:#1a5c35">'+fmt(avg3)+(isLegacyAvg?' <span style="font-size:9px;color:#94a3b8">(구)</span>':'')+'</td>'+
+      '<td style="color:'+(s.recent!=null&&avg3!=null&&s.recent>=avg3?'#16a34a':'#64748b')+'">'+fmt(s.recent)+'</td>'+
       '<td style="color:#64748b">'+s.months+'개월</td>'+
       '<td>'+(s.custom?'<button onclick="deleteCustomStore('+i+')" style="background:none;border:1px solid #dde3ec;border-radius:5px;padding:2px 8px;font-size:10px;cursor:pointer;color:#dc2626">삭제</button>':'')+'</td>'+
       '</tr>';
@@ -878,8 +897,11 @@ function collectStoreStats(lat,lng,cb){
 
 function addCustomStore(){
   var name=g('cs-name'),addr=g('cs-addr'),atype=g('cs-atype'),floor=g('cs-floor');
-  var area=n('cs-area'),avgM=n('cs-avg'),recentM=n('cs-recent'),months=n('cs-months');
-  if(!name||!addr||!atype||!floor||!area||!avgM){alert('점포명·주소·상권유형·층수·면적·월평균매출은 필수입니다.');return;}
+  var area=n('cs-area'),recentM=n('cs-recent'),avg3M=n('cs-avg3'),avg6M=n('cs-avg6'),months=n('cs-months');
+  if(!name||!addr||!atype||!floor||!area||!recentM||!months){alert('점포명·주소·상권유형·층수·면적·전월매출·영업개월수는 필수입니다.');return;}
+  // 영업개월수 기준 자동 규칙: 3개월 이하는 전월매출만, 3~6개월은 3개월평균까지, 6개월 이상만 6개월평균 허용
+  var avg3=months>3?(avg3M||null):null;
+  var avg6=months>=6?(avg6M||null):null;
   if(!map||!geocoder){alert('지도가 아직 로딩 중입니다. 잠시 후 다시 시도해주세요.');return;}
   showLoad('주소 확인 중...');
   geocoder.addressSearch(addr,function(res,status){
@@ -889,14 +911,17 @@ function addCustomStore(){
     collectStoreStats(lat,lng,function(stats){
       hideLoad();
       var store={name:name,atype:atype,floor:floor,area:area,
-        avg:Math.round(avgM*10000),recent:Math.round((recentM||avgM)*10000),months:months||1,
+        recent:Math.round(recentM*10000),
+        avg3:avg3?Math.round(avg3*10000):null,
+        avg6:avg6?Math.round(avg6*10000):null,
+        months:months,
         cafe:stats.cafe,lowcafe:stats.lowcafe,conv:stats.conv,subway:stats.subway,
         custom:true,addr:addr};
       STORES.push(store);
       saveCustomStores();
       renderStores(true);
       renderCompare(true);
-      ['cs-name','cs-addr','cs-area','cs-avg','cs-recent','cs-months'].forEach(function(id){document.getElementById(id).value='';});
+      ['cs-name','cs-addr','cs-area','cs-recent','cs-avg3','cs-avg6','cs-months'].forEach(function(id){document.getElementById(id).value='';});
       document.getElementById('cs-atype').selectedIndex=0;
       document.getElementById('cs-floor').selectedIndex=0;
       alert(name+' 매장이 추가되었습니다.\n카페 '+stats.cafe+'개 · 저가형카페 '+stats.lowcafe+'개 · 편의점 '+stats.conv+'개 · 지하철 '+(stats.subway==null?'없음':stats.subway+'m'));
@@ -928,7 +953,11 @@ function loadCustomStores(){
 
 function exportStores(){
   var lines=STORES.map(function(s){
-    return"  {name:'"+s.name.replace(/'/g,"")+"',atype:'"+s.atype+"',floor:'"+s.floor+"',area:"+s.area+",avg:"+s.avg+",recent:"+s.recent+",months:"+s.months+
+    return"  {name:'"+s.name.replace(/'/g,"")+"',atype:'"+s.atype+"',floor:'"+s.floor+"',area:"+s.area+
+      (s.avg!=null?",avg:"+s.avg:"")+
+      (s.avg3!=null?",avg3:"+s.avg3:"")+
+      (s.avg6!=null?",avg6:"+s.avg6:"")+
+      ",recent:"+s.recent+",months:"+s.months+
       (s.cafe!=null?",cafe:"+s.cafe+",lowcafe:"+s.lowcafe+",conv:"+s.conv+",subway:"+(s.subway==null?'null':s.subway):"")+"},";
   }).join('\n');
   var text='const STORES = [\n'+lines+'\n];';
@@ -944,7 +973,7 @@ function renderCompare(force){
   var el=document.getElementById('compare-wrap');
   if(el.children.length&&!force)return;
   var groups={};
-  STORES.forEach(function(s){if(!groups[s.atype])groups[s.atype]={stores:[],total:0};groups[s.atype].stores.push(s);groups[s.atype].total+=s.avg;});
+  STORES.forEach(function(s){if(!groups[s.atype])groups[s.atype]={stores:[],total:0};groups[s.atype].stores.push(s);groups[s.atype].total+=repSales(s);});
   var maxAvg=Math.max.apply(null,Object.values(groups).map(function(g){return g.total/g.stores.length;}));
   el.innerHTML=Object.entries(groups).sort(function(a,b){return b[1].total/b[1].stores.length-a[1].total/a[1].stores.length;}).map(function(entry){
     var type=entry[0],g=entry[1];
@@ -954,7 +983,7 @@ function renderCompare(force){
       '<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-weight:700">'+type+'</span><span style="color:#64748b;font-size:11px">'+g.stores.length+'개점</span></div>'+
       '<div class="bar-row"><span class="bar-k">평균월매출</span><div class="bar-t"><div class="bar-f" style="width:'+pct+'%;background:#1a5c35"></div></div><span style="font-size:11px;font-weight:700;color:#1a5c35;width:60px;text-align:right">'+avg.toLocaleString()+'만</span></div>'+
       '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:7px">'+
-      g.stores.sort(function(a,b){return b.avg-a.avg;}).map(function(s){return'<span style="background:#f8fafc;border:1px solid #dde3ec;border-radius:6px;padding:3px 7px;font-size:11px"><span style="font-weight:600">'+s.name+'</span> <span style="color:#1a5c35">'+Math.round(s.avg/10000)+'만</span></span>';}).join('')+
+      g.stores.sort(function(a,b){return repSales(b)-repSales(a);}).map(function(s){return'<span style="background:#f8fafc;border:1px solid #dde3ec;border-radius:6px;padding:3px 7px;font-size:11px"><span style="font-weight:600">'+s.name+'</span> <span style="color:#1a5c35">'+Math.round(repSales(s)/10000)+'만</span></span>';}).join('')+
       '</div></div>';
   }).join('');
 }

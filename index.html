@@ -205,12 +205,14 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
     <div id="sd-result" style="margin-top:10px"></div>
   </div>
 
-  <div class="st">➕ 신규 매장 추가 <span style="font-size:10px;font-weight:400;color:#64748b">— 주소 입력 시 상권데이터(카페·저가형카페·편의점·지하철거리) 자동 수집</span></div>
+  <div class="st">➕ 신규 매장 추가 <span style="font-size:10px;font-weight:400;color:#64748b">— 주소 입력 시 상권데이터·상권유형 자동 분석</span></div>
   <div class="card" style="border-left:3px solid #1a5c35;margin-bottom:12px">
-    <div class="g4" style="gap:8px;margin-bottom:8px">
+    <div class="abox" style="margin-bottom:10px;font-size:11px">
+      <b>상권유형은 이름이 아니라 위치 기반으로 자동 분류됩니다</b> (매장 추가 시 지도상 실제 반경을 분석). 우선순위: ① 지하철역 300m 이내 → 역세권 ② 대학교 500m 이내 → 대학가 ③ 법원·시청 등 관공서 300m 이내 → 오피스·관공서 ④ "종합병원" 명칭 300m 이내(개인 의원·동물병원 제외) → 병원상권 ⑤ 해당없음 → 일반상권. 분류 근거(거리·시설명)는 추가 완료 후 표에서 확인할 수 있습니다.
+    </div>
+    <div class="g3" style="gap:8px;margin-bottom:8px">
       <div><label class="lbl">점포명</label><input id="cs-name" type="text" placeholder="예: 대전관평점"></div>
       <div><label class="lbl">주소(도로명)</label><input id="cs-addr" type="text" placeholder="도로명주소 입력"></div>
-      <div><label class="lbl">상권유형</label><select id="cs-atype"><option value="">선택</option><option value="역세권">역세권</option><option value="대학가">대학가</option><option value="오피스·관공서">오피스·관공서</option><option value="병원상권">병원상권</option><option value="일반상권">일반상권</option></select></div>
       <div><label class="lbl">층수</label><select id="cs-floor"><option value="">선택</option><option value="1층">1층</option><option value="2층">2층</option><option value="지하">지하</option></select></div>
     </div>
     <div class="g4" style="gap:8px;margin-bottom:8px">
@@ -241,7 +243,7 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
 
   <div class="st">떠기다방 기존 점포 현황 (<span id="store-count">29</span>개점)</div>
   <div class="abox" style="margin-bottom:8px">
-    <b>이 표에 반영된 데이터</b>: 상권유형·층수·월세·면적은 수기 입력값이고, <b>지하철거리·카페·저가형카페는 각 매장 실제 위치를 기준으로 카카오맵에서 자동 수집한 실측값</b>입니다. 이 7가지 항목이 전부 "신규 입지 분석"의 유사매장 매칭·예상매출 계산에 그대로 쓰입니다 — 즉 여기 보이는 수치가 다른 탭 분석 결과의 실제 근거 데이터입니다.
+    <b>이 표에 반영된 데이터</b>: 층수·월세·면적은 수기 입력값이고, <b>상권유형·지하철거리·카페·저가형카페는 각 매장 실제 위치를 기준으로 카카오맵에서 자동 수집·분석한 값</b>입니다. 상권유형은 지하철역(300m)〉대학교(500m)〉관공서(300m)〉종합병원(300m, 개인 의원 제외) 순으로 자동 분류됩니다 (뱃지에 마우스를 올리면 분류 근거 확인 가능). 이 항목들이 전부 "신규 입지 분석"의 유사매장 매칭·예상매출 계산에 그대로 쓰입니다 — 즉 여기 보이는 수치가 다른 탭 분석 결과의 실제 근거 데이터입니다.
   </div>
   <div class="card" style="overflow-x:auto">
     <table class="itbl" style="min-width:1020px">
@@ -292,35 +294,35 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
 
 <script>
 const STORES = [
-  {name:'신도림점',atype:'역세권',floor:'1층',area:20,recent:59254691,avg3:null,avg6:null,months:2,cafe:30,lowcafe:6,conv:21,subway:355},
-  {name:'구미점',atype:'오피스·관공서',floor:'1층',area:70,recent:28799502,avg3:25870369,avg6:24013507,months:13,cafe:30,lowcafe:3,conv:15,subway:null},
-  {name:'증미역점',atype:'역세권',floor:'1층',area:15,recent:24046449,avg3:null,avg6:null,months:1,cafe:30,lowcafe:5,conv:26,subway:131},
-  {name:'수원역로데오점',atype:'역세권',floor:'1층',area:20,recent:24611998,avg3:24917031,avg6:22506800,months:16,cafe:30,lowcafe:2,conv:30,subway:248},
-  {name:'수원성균관대점',atype:'대학가',floor:'1층',area:22,recent:23557845,avg3:null,avg6:null,months:3,cafe:30,lowcafe:4,conv:21,subway:388},
-  {name:'서초법원점',atype:'오피스·관공서',floor:'1층',area:18,recent:23593294,avg3:22806047,avg6:20853914,months:18,cafe:30,lowcafe:2,conv:23,subway:247},
-  {name:'굴포천역점',atype:'역세권',floor:'1층',area:15,recent:23174414,avg3:22301159,avg6:19198427,months:15,cafe:30,lowcafe:5,conv:24,subway:111},
-  {name:'김포통진마송점',atype:'일반상권',floor:'1층',area:33,recent:21007162,avg3:null,avg6:null,months:3,cafe:30,lowcafe:5,conv:13,subway:null},
-  {name:'검암점',atype:'일반상권',floor:'1층',area:16,recent:14831363,avg3:null,avg6:null,months:2,cafe:14,lowcafe:3,conv:6,subway:null},
-  {name:'한밭대점',atype:'대학가',floor:'1층',area:33,recent:16057487,avg3:17148968,avg6:15553723,months:9,cafe:27,lowcafe:3,conv:8,subway:null},
-  {name:'고양법원점',atype:'오피스·관공서',floor:'1층',area:14,recent:16096682,avg3:15570589,avg6:14120974,months:17,cafe:30,lowcafe:5,conv:21,subway:84},
-  {name:'완주봉동점',atype:'일반상권',floor:'1층',area:42,recent:16679340,avg3:16693141,avg6:15376453,months:6,cafe:11,lowcafe:2,conv:4,subway:null},
-  {name:'포항문덕점',atype:'일반상권',floor:'1층',area:20,recent:13661456,avg3:13021164,avg6:11302405,months:14,cafe:30,lowcafe:5,conv:21,subway:null},
-  {name:'의정부금오점',atype:'일반상권',floor:'1층',area:14,recent:11996669,avg3:12561049,avg6:12694072,months:13,cafe:30,lowcafe:7,conv:14,subway:207},
-  {name:'강남구청점',atype:'역세권',floor:'지하',area:7,recent:14248471,avg3:13740449,avg6:12873663,months:18,cafe:30,lowcafe:1,conv:25,subway:67},
-  {name:'안양시청점',atype:'오피스·관공서',floor:'2층',area:10,recent:15477020,avg3:14184422,avg6:12817920,months:16,cafe:30,lowcafe:0,conv:24,subway:null},
-  {name:'상주북천교점',atype:'일반상권',floor:'1층',area:18,recent:13384270,avg3:13084672,avg6:12061492,months:11,cafe:7,lowcafe:1,conv:0,subway:null},
-  {name:'부호역점',atype:'역세권',floor:'1층',area:18,recent:12485962,avg3:13902859,avg6:11484689,months:8,cafe:5,lowcafe:1,conv:4,subway:144},
-  {name:'아산선문대점',atype:'대학가',floor:'1층',area:18,recent:12911464,avg3:13859359,avg6:11060364,months:10,cafe:8,lowcafe:3,conv:6,subway:null},
-  {name:'울산법원점',atype:'오피스·관공서',floor:'2층',area:25,recent:11409505,avg3:14282740,avg6:12312354,months:14,cafe:27,lowcafe:4,conv:8,subway:null},
-  {name:'강원대병원점',atype:'병원상권',floor:'1층',area:35,recent:11946183,avg3:11905331,avg6:10487706,months:11,cafe:30,lowcafe:4,conv:20,subway:null},
-  {name:'남동인더스파크공단역점',atype:'역세권',floor:'1층',area:20,recent:12054632,avg3:null,avg6:null,months:2,cafe:20,lowcafe:5,conv:7,subway:193},
-  {name:'구미인동점',atype:'일반상권',floor:'1층',area:40,recent:8979098,avg3:10180897,avg6:10269812,months:8,cafe:30,lowcafe:6,conv:30,subway:null},
-  {name:'안산대학교점',atype:'대학가',floor:'1층',area:16,recent:18338042,avg3:null,avg6:null,months:2,cafe:12,lowcafe:2,conv:11,subway:null},
-  {name:'춘천시청점',atype:'오피스·관공서',floor:'1층',area:20,recent:11444252,avg3:11643657,avg6:null,months:4,cafe:30,lowcafe:2,conv:15,subway:null},
-  {name:'울산장검점',atype:'일반상권',floor:'지하',area:15,recent:9930175,avg3:10026356,avg6:8915010,months:6,cafe:25,lowcafe:3,conv:12,subway:null},
-  {name:'대구시청점',atype:'오피스·관공서',floor:'1층',area:65,recent:4584094,avg3:8249057,avg6:null,months:5,cafe:30,lowcafe:0,conv:30,subway:null},
-  {name:'천안병천순대거리점',atype:'일반상권',floor:'1층',area:25,recent:7159640,avg3:null,avg6:null,months:2,cafe:14,lowcafe:4,conv:4,subway:null},
-  {name:'부천법원점',atype:'오피스·관공서',floor:'1층',area:14,recent:9120086,avg3:8720980,avg6:8008652,months:15,cafe:30,lowcafe:9,conv:25,subway:483},
+  {name:'신도림점',atype:'오피스·관공서',atypeReason:'서울구로경찰서 임시청사 133m 이내',floor:'1층',area:20,recent:59254691,avg3:null,avg6:null,months:2,cafe:30,lowcafe:6,conv:21,subway:355},
+  {name:'구미점',atype:'오피스·관공서',atypeReason:'구미시청 229m 이내',floor:'1층',area:70,recent:28799502,avg3:25870369,avg6:24013507,months:13,cafe:30,lowcafe:3,conv:15,subway:null},
+  {name:'증미역점',atype:'역세권',atypeReason:'증미역 9호선 131m 이내',floor:'1층',area:15,recent:24046449,avg3:null,avg6:null,months:1,cafe:30,lowcafe:5,conv:26,subway:131},
+  {name:'수원역로데오점',atype:'역세권',atypeReason:'수원역 1호선 248m 이내',floor:'1층',area:20,recent:24611998,avg3:24917031,avg6:22506800,months:16,cafe:30,lowcafe:2,conv:30,subway:248},
+  {name:'수원성균관대점',atype:'오피스·관공서',atypeReason:'율천동행정복지센터 87m 이내',floor:'1층',area:22,recent:23557845,avg3:null,avg6:null,months:3,cafe:30,lowcafe:4,conv:21,subway:388},
+  {name:'서초법원점',atype:'역세권',atypeReason:'교대역 3호선 247m 이내',floor:'1층',area:18,recent:23593294,avg3:22806047,avg6:20853914,months:18,cafe:30,lowcafe:2,conv:23,subway:247},
+  {name:'굴포천역점',atype:'역세권',atypeReason:'굴포천역 7호선 111m 이내',floor:'1층',area:15,recent:23174414,avg3:22301159,avg6:19198427,months:15,cafe:30,lowcafe:5,conv:24,subway:111},
+  {name:'김포통진마송점',atype:'병원상권',atypeReason:'김포다조은병원 159m 이내',floor:'1층',area:33,recent:21007162,avg3:null,avg6:null,months:3,cafe:30,lowcafe:5,conv:13,subway:null},
+  {name:'검암점',atype:'병원상권',atypeReason:'검암중앙의원 60m 이내',floor:'1층',area:16,recent:14831363,avg3:null,avg6:null,months:2,cafe:14,lowcafe:3,conv:6,subway:null},
+  {name:'한밭대점',atype:'일반상권',atypeReason:'반경 300m 내 지하철역·대학교·관공서·의료기관 없음',floor:'1층',area:33,recent:16057487,avg3:17148968,avg6:15553723,months:9,cafe:27,lowcafe:3,conv:8,subway:null},
+  {name:'고양법원점',atype:'역세권',atypeReason:'마두역 3호선 84m 이내',floor:'1층',area:14,recent:16096682,avg3:15570589,avg6:14120974,months:17,cafe:30,lowcafe:5,conv:21,subway:84},
+  {name:'완주봉동점',atype:'오피스·관공서',atypeReason:'봉동파출소 101m 이내',floor:'1층',area:42,recent:16679340,avg3:16693141,avg6:15376453,months:6,cafe:11,lowcafe:2,conv:4,subway:null},
+  {name:'포항문덕점',atype:'병원상권',atypeReason:'우리이비인후과의원 272m 이내',floor:'1층',area:20,recent:13661456,avg3:13021164,avg6:11302405,months:14,cafe:30,lowcafe:5,conv:21,subway:null},
+  {name:'의정부금오점',atype:'역세권',atypeReason:'경기도청북부청사역 의정부경전철 207m 이내',floor:'1층',area:14,recent:11996669,avg3:12561049,avg6:12694072,months:13,cafe:30,lowcafe:7,conv:14,subway:207},
+  {name:'강남구청점',atype:'역세권',atypeReason:'강남구청역 7호선 67m 이내',floor:'지하',area:7,recent:14248471,avg3:13740449,avg6:12873663,months:18,cafe:30,lowcafe:1,conv:25,subway:67},
+  {name:'안양시청점',atype:'오피스·관공서',atypeReason:'안양시청 218m 이내',floor:'2층',area:10,recent:15477020,avg3:14184422,avg6:12817920,months:16,cafe:30,lowcafe:0,conv:24,subway:null},
+  {name:'상주북천교점',atype:'오피스·관공서',atypeReason:'대구지방법원 상주지원 135m 이내',floor:'1층',area:18,recent:13384270,avg3:13084672,avg6:12061492,months:11,cafe:7,lowcafe:1,conv:0,subway:null},
+  {name:'부호역점',atype:'역세권',atypeReason:'부호역 대구1호선 144m 이내',floor:'1층',area:18,recent:12485962,avg3:13902859,avg6:11484689,months:8,cafe:5,lowcafe:1,conv:4,subway:144},
+  {name:'아산선문대점',atype:'일반상권',atypeReason:'반경 300m 내 지하철역·대학교·관공서·의료기관 없음',floor:'1층',area:18,recent:12911464,avg3:13859359,avg6:11060364,months:10,cafe:8,lowcafe:3,conv:6,subway:null},
+  {name:'울산법원점',atype:'병원상권',atypeReason:'에스마리의원 213m 이내',floor:'2층',area:25,recent:11409505,avg3:14282740,avg6:12312354,months:14,cafe:27,lowcafe:4,conv:8,subway:null},
+  {name:'강원대병원점',atype:'오피스·관공서',atypeReason:'효자3동행정복지센터 200m 이내',floor:'1층',area:35,recent:11946183,avg3:11905331,avg6:10487706,months:11,cafe:30,lowcafe:4,conv:20,subway:null},
+  {name:'남동인더스파크공단역점',atype:'역세권',atypeReason:'남동인더스파크역 수인분당선 193m 이내',floor:'1층',area:20,recent:12054632,avg3:null,avg6:null,months:2,cafe:20,lowcafe:5,conv:7,subway:193},
+  {name:'구미인동점',atype:'오피스·관공서',atypeReason:'진평파출소 251m 이내',floor:'1층',area:40,recent:8979098,avg3:10180897,avg6:10269812,months:8,cafe:30,lowcafe:6,conv:30,subway:null},
+  {name:'안산대학교점',atype:'일반상권',atypeReason:'반경 300m 내 지하철역·대학교·관공서·의료기관 없음',floor:'1층',area:16,recent:18338042,avg3:null,avg6:null,months:2,cafe:12,lowcafe:2,conv:11,subway:null},
+  {name:'춘천시청점',atype:'오피스·관공서',atypeReason:'춘천시청 168m 이내',floor:'1층',area:20,recent:11444252,avg3:11643657,avg6:null,months:4,cafe:30,lowcafe:2,conv:15,subway:null},
+  {name:'울산장검점',atype:'병원상권',atypeReason:'울산아이가정의학과의원 172m 이내',floor:'지하',area:15,recent:9930175,avg3:10026356,avg6:8915010,months:6,cafe:25,lowcafe:3,conv:12,subway:null},
+  {name:'대구시청점',atype:'오피스·관공서',atypeReason:'대구광역시청 동인청사 216m 이내',floor:'1층',area:65,recent:4584094,avg3:8249057,avg6:null,months:5,cafe:30,lowcafe:0,conv:30,subway:null},
+  {name:'천안병천순대거리점',atype:'오피스·관공서',atypeReason:'병천동면파출소 271m 이내',floor:'1층',area:25,recent:7159640,avg3:null,avg6:null,months:2,cafe:14,lowcafe:4,conv:4,subway:null},
+  {name:'부천법원점',atype:'오피스·관공서',atypeReason:'인천지방법원 부천지원 129m 이내',floor:'1층',area:14,recent:9120086,avg3:8720980,avg6:8008652,months:15,cafe:30,lowcafe:9,conv:25,subway:483},
 ];
 
 var map=null, geocoder=null, ps=null;
@@ -614,11 +616,16 @@ function searchNearby(lat,lng){
 
   ps.categorySearch('HP8',function(data,status){
     if(status===kakao.maps.services.Status.OK&&data.length>0){
-      anchors.push('병원: '+data[0].place_name+'('+data[0].distance+'m)');
-      if(parseInt(data[0].distance)<200) document.getElementById('i-atype').value='병원상권';
+      var general=data.filter(function(p){return /종합병원/.test(p.place_name)||/종합병원/.test(p.category_name||'');})[0];
+      if(general){
+        anchors.push('병원: '+general.place_name+'('+Math.round(general.distance)+'m)');
+        if(parseInt(general.distance)<300) document.getElementById('i-atype').value='병원상권';
+      } else {
+        anchors.push('병원: '+data[0].place_name+'('+Math.round(data[0].distance)+'m)');
+      }
     }
     check();
-  },{location:latlng,radius:Math.min(currentRadius,300),size:3});
+  },{location:latlng,radius:Math.min(currentRadius,300),size:10});
 
   ps.categorySearch('SC4',function(data,status){
     if(status===kakao.maps.services.Status.OK&&data.length>0){
@@ -908,7 +915,7 @@ function renderStores(force){
       estCell=est?('<span style="color:#d97706;font-weight:700">약 '+Math.round(est.value/10000).toLocaleString()+'만</span> <span style="font-size:9px;color:#d97706">(추정)</span>'):'<span style="color:#cbd5e1">-</span>';
     }
     return'<tr'+(s.custom?' style="background:#fffbeb"':'')+'><td style="font-weight:600;padding:7px 4px">'+s.name+(s.custom?' <span style="font-size:9px;color:#b45309;font-weight:700;background:#fef3c7;padding:1px 5px;border-radius:99px">신규</span>':'')+'</td>'+
-      '<td><span style="background:#f0fdf4;color:#166534;padding:2px 7px;border-radius:99px;font-size:10px">'+s.atype+'</span></td>'+
+      '<td><span title="'+(s.atypeReason?s.atypeReason.replace(/"/g,''):'분류 근거 정보 없음(구 데이터)')+'" style="background:#f0fdf4;color:#166534;padding:2px 7px;border-radius:99px;font-size:10px;cursor:help;border-bottom:1px dotted #166534">'+s.atype+'</span></td>'+
       '<td>'+s.floor+'</td>'+
       '<td style="color:#64748b">'+fmt(s.rent)+'</td>'+
       '<td>'+s.area+'평</td>'+
@@ -927,10 +934,15 @@ function renderStores(force){
 function collectStoreStats(lat,lng,cb){
   var loc=new kakao.maps.LatLng(lat,lng);
   var LOW=['메가MGC','메가엠지씨','메가커피','컴포즈','더벤티','빽다방','백다방','우지','바나프레소','텐퍼센트','10%','카페봄봄','댄싱컵','하이요','하삼동'];
-  var cafe=0,lowcafe=0,conv=0,subway=null,tasks=3,done=0;
+  var cafe=0,lowcafe=0,conv=0,subway=null,subwayName=null;
+  var university=null,govoffice=null,hospital=null;
+  var tasks=6,done=0;
   function checkDone(){
     done++;
-    if(done>=tasks) cb({cafe:cafe,lowcafe:lowcafe,conv:conv,subway:subway});
+    if(done>=tasks){
+      var atypeInfo=classifyAtype({subway:subway,subwayName:subwayName,university:university,govoffice:govoffice,hospital:hospital});
+      cb({cafe:cafe,lowcafe:lowcafe,conv:conv,subway:subway,atype:atypeInfo.atype,atypeReason:atypeInfo.reason});
+    }
   }
   function pagedCat(code,maxPages,onEach){
     var pc=0;
@@ -944,9 +956,56 @@ function collectStoreStats(lat,lng,cb){
   pagedCat('CE7',2,function(p){cafe++;if(LOW.some(function(b){return p.place_name.includes(b);}))lowcafe++;});
   pagedCat('CS2',2,function(p){conv++;});
   ps.categorySearch('SW8',function(data,status){
-    if(status===kakao.maps.services.Status.OK&&data.length>0){subway=Math.round(data[0].distance);}
+    if(status===kakao.maps.services.Status.OK&&data.length>0){subway=Math.round(data[0].distance);subwayName=data[0].place_name;}
     checkDone();
   },{location:loc,radius:500,size:3});
+  // 대학교 500m 이내 탐지 (SC4 학교 카테고리 중 "대학" 포함만 필터)
+  ps.categorySearch('SC4',function(data,status){
+    if(status===kakao.maps.services.Status.OK){
+      data.forEach(function(p){
+        if(!/대학/.test(p.place_name)&&!/대학/.test(p.category_name||''))return;
+        var d=Math.round(p.distance);
+        if(d<=500&&(!university||d<university.dist)) university={name:p.place_name,dist:d};
+      });
+    }
+    checkDone();
+  },{location:loc,radius:500,size:15});
+  // 관공서 300m 이내 탐지 (PO3 공공기관 카테고리)
+  ps.categorySearch('PO3',function(data,status){
+    if(status===kakao.maps.services.Status.OK&&data.length>0){
+      var d=Math.round(data[0].distance);
+      if(d<=300) govoffice={name:data[0].place_name,dist:d};
+    }
+    checkDone();
+  },{location:loc,radius:300,size:5});
+  // 종합병원 300m 이내 탐지 (HP8 카테고리 중 "종합병원" 명칭만 인정, 개인 의원 제외)
+  ps.categorySearch('HP8',function(data,status){
+    if(status===kakao.maps.services.Status.OK){
+      data.forEach(function(p){
+        if(!/종합병원/.test(p.place_name)&&!/종합병원/.test(p.category_name||''))return;
+        var d=Math.round(p.distance);
+        if(d<=300&&(!hospital||d<hospital.dist)) hospital={name:p.place_name,dist:d};
+      });
+    }
+    checkDone();
+  },{location:loc,radius:300,size:15});
+}
+
+function classifyAtype(sig){
+  // 우선순위: 지하철역(300m) > 대학교(500m) > 관공서(300m) > 종합병원(300m) > 해당없음
+  if(sig.subway!=null&&sig.subway<=300){
+    return{atype:'역세권',reason:(sig.subwayName||'지하철역')+' '+sig.subway+'m 이내'};
+  }
+  if(sig.university){
+    return{atype:'대학가',reason:sig.university.name+' '+sig.university.dist+'m 이내'};
+  }
+  if(sig.govoffice){
+    return{atype:'오피스·관공서',reason:sig.govoffice.name+' '+sig.govoffice.dist+'m 이내'};
+  }
+  if(sig.hospital){
+    return{atype:'병원상권',reason:sig.hospital.name+' '+sig.hospital.dist+'m 이내'};
+  }
+  return{atype:'일반상권',reason:'지하철역 300m·대학교 500m·관공서 300m·종합병원 300m 이내 모두 해당없음'};
 }
 
 function calcEffectiveMonths(openDateStr){
@@ -973,10 +1032,10 @@ function updateMonthsPreview(){
 }
 
 function addCustomStore(){
-  var name=g('cs-name'),addr=g('cs-addr'),atype=g('cs-atype'),floor=g('cs-floor'),od=g('cs-opendate');
+  var name=g('cs-name'),addr=g('cs-addr'),floor=g('cs-floor'),od=g('cs-opendate');
   var area=n('cs-area'),rentM=n('cs-rent'),recentM=n('cs-recent'),avg3M=n('cs-avg3'),avg6M=n('cs-avg6');
   var months=calcEffectiveMonths(od);
-  if(!name||!addr||!atype||!floor||!area||!od){alert('점포명·주소·상권유형·층수·면적·오픈일자는 필수입니다.');return;}
+  if(!name||!addr||!floor||!area||!od){alert('점포명·주소·층수·면적·오픈일자는 필수입니다.');return;}
   // 영업개월수 기준 자동 규칙: 3개월 이하는 전월매출만, 3~6개월은 3개월평균까지, 6개월 이상만 6개월평균 허용
   var avg3=months>3?(avg3M||null):null;
   var avg6=months>=6?(avg6M||null):null;
@@ -985,10 +1044,10 @@ function addCustomStore(){
   geocoder.addressSearch(addr,function(res,status){
     if(status!==kakao.maps.services.Status.OK||!res[0]){hideLoad();alert('주소를 찾을 수 없습니다. 도로명주소로 다시 입력해주세요.');return;}
     var lat=parseFloat(res[0].y),lng=parseFloat(res[0].x);
-    showLoad('반경 500m 상권데이터 수집 중...');
+    showLoad('반경 300~500m 상권데이터 분석 중...');
     collectStoreStats(lat,lng,function(stats){
       hideLoad();
-      var store={name:name,atype:atype,floor:floor,area:area,
+      var store={name:name,atype:stats.atype,atypeReason:stats.atypeReason,floor:floor,area:area,
         rent:rentM?Math.round(rentM*10000):null,
         recent:recentM?Math.round(recentM*10000):null,
         avg3:avg3?Math.round(avg3*10000):null,
@@ -1001,9 +1060,8 @@ function addCustomStore(){
       renderStores(true);
       renderCompare(true);
       ['cs-name','cs-addr','cs-area','cs-rent','cs-recent','cs-avg3','cs-avg6','cs-months','cs-opendate'].forEach(function(id){document.getElementById(id).value='';});
-      document.getElementById('cs-atype').selectedIndex=0;
       document.getElementById('cs-floor').selectedIndex=0;
-      alert(name+' 매장이 추가되었습니다.\n카페 '+stats.cafe+'개 · 저가형카페 '+stats.lowcafe+'개 · 편의점 '+stats.conv+'개 · 지하철 '+(stats.subway==null?'없음':stats.subway+'m'));
+      alert(name+' 매장이 추가되었습니다.\n상권유형: '+stats.atype+' ('+stats.atypeReason+')\n카페 '+stats.cafe+'개 · 저가형카페 '+stats.lowcafe+'개 · 편의점 '+stats.conv+'개 · 지하철 '+(stats.subway==null?'없음':stats.subway+'m'));
     });
   });
 }
@@ -1112,7 +1170,9 @@ function importSalesDashboard(){
 
 function exportStores(){
   var lines=STORES.map(function(s){
-    return"  {name:'"+s.name.replace(/'/g,"")+"',atype:'"+s.atype+"',floor:'"+s.floor+"',area:"+s.area+
+    return"  {name:'"+s.name.replace(/'/g,"")+"',atype:'"+s.atype+"'"+
+      (s.atypeReason?",atypeReason:'"+s.atypeReason.replace(/'/g,"").replace(/\n/g,' ')+"'":"")+
+      ",floor:'"+s.floor+"',area:"+s.area+
       (s.rent!=null?",rent:"+s.rent:"")+
       (s.avg!=null?",avg:"+s.avg:"")+
       (s.avg3!=null?",avg3:"+s.avg3:"")+

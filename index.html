@@ -163,6 +163,15 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
     <div><label class="lbl">특이사항</label><textarea id="i-extra" placeholder="예: 2026년 복합쇼핑몰 개장 예정"></textarea></div>
   </div>
 
+  <div class="st">경쟁 매장 실매출 정보 <span style="font-size:10px;font-weight:400;color:#64748b">— 선택 입력, 확인된 수치만</span></div>
+  <div class="card" style="border-left:3px solid #d97706">
+    <div style="font-size:11px;color:#64748b;margin-bottom:10px">가맹계약·공개자료 등으로 실매출을 파악한 경우에만 입력하세요. 추정치는 입력하지 않는 것이 정확도에 유리합니다. 입력 시 예상매출·경쟁강도 산출에 보정 반영됩니다.</div>
+    <div class="g2" style="gap:8px">
+      <div><label class="lbl">인근 편의점 월매출 (만원)</label><input id="i-convsales" type="number" placeholder="예: 6500"></div>
+      <div><label class="lbl">경쟁 카페·저가커피 대표점 월매출 (만원)</label><input id="i-compsales" type="number" placeholder="예: 2800"></div>
+    </div>
+  </div>
+
   <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
     <button class="btn" onclick="resetAll()">초기화</button>
     <button class="btn btn-g" onclick="runAnalysis()">📊 분석 결과 보기 →</button>
@@ -259,16 +268,6 @@ const STORES = [
 var map=null, geocoder=null, ps=null;
 var currentRadius=500, currentLat=0, currentLng=0;
 var searchCircle=null, cafeMarkers=[], cafeOverlays=[];
-var ovMap={}; // 전역 오버레이 관리
-
-function closeOv(id){
-  if(ovMap[id]) ovMap[id].setMap(null);
-}
-function toggleOv(id){
-  if(!ovMap[id]) return;
-  if(ovMap[id].getMap()) ovMap[id].setMap(null);
-  else ovMap[id].setMap(map);
-}
 
 function goTab(id,btn){
   document.querySelectorAll('.pnl').forEach(function(p){p.classList.remove('on');});
@@ -354,14 +353,54 @@ function searchNearby(lat,lng){
   var LOW=['메가MGC','메가엠지씨','메가커피','컴포즈','더벤티','빽다방','백다방','우지','바나프레소','텐퍼센트','10%','카페봄봄','댄싱컵','하이요','하삼동'];
   var latlng=new kakao.maps.LatLng(lat,lng);
 
-  var _ovIdx=0;
   function makeLabel(name,bg,mb){
-    var id='ov_'+(++_ovIdx);
-    var html='<div style="text-align:center;margin-bottom:'+mb+'px">';
-    html+='<div style="background:'+bg+';color:#fff;padding:3px 9px;border-radius:5px;font-size:10px;font-weight:700;white-space:nowrap;box-shadow:0 2px 5px rgba(0,0,0,.25);display:inline-flex;align-items:center;gap:5px;cursor:pointer" onclick="event.stopPropagation();closeOv(\''+id+'\')">';
-    html+=name+' <span style="font-size:11px">✕</span></div>';
-    html+='<div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid '+bg+';margin:0 auto"></div></div>';
-    return {id:id, content:html};
+    var wrap=document.createElement('div');
+    wrap.style.textAlign='center';
+    wrap.style.marginBottom=mb+'px';
+    var pill=document.createElement('div');
+    pill.style.cssText='background:'+bg+';color:#fff;padding:3px 9px;border-radius:5px;font-size:10px;font-weight:700;white-space:nowrap;box-shadow:0 2px 5px rgba(0,0,0,.25);display:inline-flex;align-items:center;gap:5px;cursor:pointer;user-select:none';
+    var nameSpan=document.createElement('span');
+    nameSpan.textContent=name;
+    var xSpan=document.createElement('span');
+    xSpan.textContent='✕';
+    xSpan.style.fontSize='11px';
+    pill.appendChild(nameSpan);
+    pill.appendChild(xSpan);
+    var arrow=document.createElement('div');
+    arrow.style.cssText='width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid '+bg+';margin:0 auto';
+    wrap.appendChild(pill);
+    wrap.appendChild(arrow);
+    return {element:wrap, pill:pill};
+  }
+
+  var foundIds={};
+  var DESSERT_RX=/카페|베이커리|제과|디저트|도넛|마카롱|아이스크림|빙수|와플|타르트|케이크|브라우니|생크림|크로플|약과|한과/;
+
+  function addCafeMarker(p,isLow){
+    foundIds[p.id]=true;
+    var markerImg=new kakao.maps.MarkerImage(
+      isLow?'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png':'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png',
+      isLow?new kakao.maps.Size(28,40):new kakao.maps.Size(18,26)
+    );
+    var marker=new kakao.maps.Marker({map:map,position:new kakao.maps.LatLng(p.y,p.x),image:markerImg,title:p.place_name});
+    cafeMarkers.push(marker);
+    var bg=isLow?'#ea580c':'#1a5c35';
+    var mb=isLow?44:30;
+    var lbl=makeLabel(p.place_name,bg,mb);
+    var ov=new kakao.maps.CustomOverlay({
+      map:isLow?map:null,
+      position:new kakao.maps.LatLng(p.y,p.x),
+      content:lbl.element,
+      yAnchor:1,zIndex:isLow?10:5,clickable:true
+    });
+    cafeOverlays.push(ov);
+    lbl.pill.addEventListener('click',function(e){
+      e.stopPropagation();
+      ov.setMap(null);
+    });
+    kakao.maps.event.addListener(marker,'click',function(){
+      if(ov.getMap()) ov.setMap(null); else ov.setMap(map);
+    });
   }
 
   ps.categorySearch('CE7',function(data,status){
@@ -370,33 +409,28 @@ function searchNearby(lat,lng){
       data.forEach(function(p){
         var isLow=LOW.some(function(b){return p.place_name.includes(b);});
         if(isLow) lowCafe++;
-        var markerImg=new kakao.maps.MarkerImage(
-          isLow?'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png':'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png',
-          isLow?new kakao.maps.Size(28,40):new kakao.maps.Size(18,26)
-        );
-        var marker=new kakao.maps.Marker({map:map,position:new kakao.maps.LatLng(p.y,p.x),image:markerImg,title:p.place_name});
-        cafeMarkers.push(marker);
-        var bg=isLow?'#ea580c':'#1a5c35';
-        var mb=isLow?44:30;
-        var lbl=makeLabel(p.place_name,bg,mb);
-        var ov=new kakao.maps.CustomOverlay({
-          map:isLow?map:null,
-          position:new kakao.maps.LatLng(p.y,p.x),
-          content:lbl.content,
-          yAnchor:1,zIndex:isLow?10:5,clickable:true
-        });
-        ovMap[lbl.id]=ov;
-        cafeOverlays.push(ov);
-        kakao.maps.event.addListener(marker,'click',function(){
-          if(ov.getMap()) ov.setMap(null); else ov.setMap(map);
-        });
+        addCafeMarker(p,isLow);
       });
     }
-    document.getElementById('r-cafe').value=cafe;
-    document.getElementById('r-cafe-disp').textContent=cafe+'개';
-    document.getElementById('r-lowcafe').value=lowCafe;
-    document.getElementById('r-lowcafe-disp').textContent=lowCafe+'개';
-    check();
+    // 음식점(FD6) 카테고리로 잘못 분류된 디저트·베이커리형 카페 보강 검색
+    ps.categorySearch('FD6',function(data2,status2){
+      if(status2===kakao.maps.services.Status.OK){
+        data2.forEach(function(p){
+          if(foundIds[p.id])return;
+          var text=(p.place_name||'')+' '+(p.category_name||'');
+          if(!DESSERT_RX.test(text))return;
+          var isLow=LOW.some(function(b){return p.place_name.includes(b);});
+          if(isLow) lowCafe++;
+          cafe++;
+          addCafeMarker(p,isLow);
+        });
+      }
+      document.getElementById('r-cafe').value=cafe;
+      document.getElementById('r-cafe-disp').textContent=cafe+'개';
+      document.getElementById('r-lowcafe').value=lowCafe;
+      document.getElementById('r-lowcafe-disp').textContent=lowCafe+'개';
+      check();
+    },{location:latlng,radius:currentRadius,size:15});
   },{location:latlng,radius:currentRadius,size:15});
 
   ps.categorySearch('SW8',function(data,status){
@@ -423,11 +457,14 @@ function searchNearby(lat,lng){
         var convLbl=makeLabel(p.place_name,'#7c3aed',30);
         var convOv=new kakao.maps.CustomOverlay({
           map:map,position:convPos,
-          content:convLbl.content,
+          content:convLbl.element,
           yAnchor:1,zIndex:3,clickable:true
         });
-        ovMap[convLbl.id]=convOv;
         cafeOverlays.push(convOv);
+        convLbl.pill.addEventListener('click',function(e){
+          e.stopPropagation();
+          convOv.setMap(null);
+        });
         kakao.maps.event.addListener(convMarker,'click',function(){
           if(convOv.getMap()) convOv.setMap(null); else convOv.setMap(map);
         });
@@ -473,7 +510,7 @@ function searchNearby(lat,lng){
 }
 
 function resetAll(){
-  ['i-addr','i-area','i-rent','i-deposit','i-premium','i-remain','i-pop','i-female','i-young','i-extra','i-survival','i-peak'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  ['i-addr','i-area','i-rent','i-deposit','i-premium','i-remain','i-pop','i-female','i-young','i-extra','i-survival','i-peak','i-convsales','i-compsales'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
   var ig=document.getElementById('i-grade');if(ig)ig.selectedIndex=0;
   document.getElementById('i-atype').selectedIndex=0;
   document.getElementById('i-floor').selectedIndex=0;
@@ -520,7 +557,11 @@ function locationFactor(D){
   else if((D.cafe||0)<=5){f+=0.03;notes.push('카페 희소(+3%)');}
   if((D.lowcafe||0)>=5){f-=0.06;notes.push('저가커피 과밀(-6%)');}
   else if((D.lowcafe||0)>=3){f-=0.03;notes.push('저가커피 경쟁(-3%)');}
-  f=Math.max(0.75,Math.min(1.25,f));
+  if(D.convSales>=8000){f+=0.03;notes.push('편의점 매출 우수(+3%)');}
+  else if(D.convSales>0&&D.convSales<3000){f-=0.03;notes.push('편의점 매출 저조(-3%)');}
+  if(D.compSales>=4000){f+=0.03;notes.push('경쟁매장 매출 강세·카테고리 수요 검증(+3%)');}
+  else if(D.compSales>0&&D.compSales<1500){f-=0.02;notes.push('경쟁매장 매출 저조(-2%)');}
+  f=Math.max(0.72,Math.min(1.28,f));
   return{factor:f,notes:notes};
 }
 
@@ -530,17 +571,21 @@ function calcScore(D){
   else if(D.pop>=8000)traffic=65;else if(D.pop>=3000)traffic=48;
   else if(D.pop>0)traffic=30;
   var gradeBonus={A:10,B:5,C:0,D:-8,E:-15};
-  traffic=Math.min(100,Math.max(0,traffic+(gradeBonus[D.grade]||0)));
+  traffic=traffic+(gradeBonus[D.grade]||0);
+  if(D.convSales>=8000)traffic+=8;else if(D.convSales>=5000)traffic+=4;else if(D.convSales>0&&D.convSales<3000)traffic-=5;
+  traffic=Math.min(100,Math.max(0,traffic));
   var comp=80;
   comp-=Math.min(35,(D.cafe||0)*1.5);
   comp-=Math.min(20,(D.lowcafe||0)*6);
-  comp=Math.max(10,Math.round(comp));
+  if(D.compSales>=4000)comp-=10;else if(D.compSales>=2000)comp-=5;else if(D.compSales>0&&D.compSales<1500)comp+=5;
+  comp=Math.max(10,Math.min(100,Math.round(comp)));
   var target=50;
   if(D.female>0)target+=(D.female-50)*0.8;
   if(D.young>0)target+=(D.young-50)*0.6;
   var ab={'역세권':12,'대학가':8,'오피스·관공서':6,'병원상권':4,'일반상권':0};
   target+=(ab[D.atype]||0);
   if(D.floor==='2층')target-=8;else if(D.floor==='지하')target-=6;
+  if(D.compSales>=2000)target+=3;
   target=Math.max(15,Math.min(100,Math.round(target)));
   var sim=findSimilar(D.atype,D.floor,D.area);
   var simAvg=sim.length?Math.round(sim.reduce(function(a,s){return a+s.avg;},0)/sim.length):0;
@@ -571,7 +616,8 @@ function runAnalysis(){
     rent:n('i-rent'),deposit:n('i-deposit'),premium:n('i-premium'),remain:g('i-remain'),
     pop:n('i-pop'),female:n('i-female'),young:n('i-young'),
     cafe:n('r-cafe'),lowcafe:n('r-lowcafe'),subway:g('r-subway'),
-    anchor:g('r-anchor'),extra:g('i-extra'),grade:g('i-grade'),survival:n('i-survival')};
+    anchor:g('r-anchor'),extra:g('i-extra'),grade:g('i-grade'),survival:n('i-survival'),
+    convSales:n('i-convsales'),compSales:n('i-compsales')};
   if(!D.addr&&D.pop<=0){alert('주소를 검색하거나 유동인구를 입력해주세요.');return;}
   if(!D.atype||D.atype===''){
     var addr=D.addr.toLowerCase();
@@ -636,11 +682,15 @@ function runAnalysis(){
   if(D.anchor)strs.push('주요 집객시설 인근 — 자연 유입 기대');
   if(rentRatio>0&&rentRatio<=12)strs.push('임차료 비율 '+rentRatio+'% — 우수한 수익 구조');
   if(sc.sim.length)strs.push('유사 기존점 '+sc.sim.length+'개 실매출 데이터 기반 예측');
+  if(D.convSales>=5000)strs.push('인근 편의점 월매출 '+D.convSales.toLocaleString()+'만원 — 구매력·유동인구 양호');
+  if(D.compSales>=4000)strs.push('경쟁 카페 월매출 '+D.compSales.toLocaleString()+'만원 — 해당 입지 디저트·커피 수요 검증됨');
   if(!strs.length)strs.push('주소 검색 및 유동인구 입력 시 상세 분석 가능');
   if((D.cafe||0)>=20)rsks.push('반경 카페 '+D.cafe+'개 — 높은 경쟁 강도');
   if(rentRatio>20)rsks.push('임차료 비율 '+rentRatio+'% — 수익성 압박');
   if(D.floor==='2층'||D.floor==='지하')rsks.push(D.floor+' 위치 — 가시성 불리');
   if((D.lowcafe||0)>=3)rsks.push('저가커피 '+D.lowcafe+'개 — 직접 가격 경쟁');
+  if(D.compSales>=4000)rsks.push('경쟁 카페 월매출 '+D.compSales.toLocaleString()+'만원 — 동일 카테고리 강력 경쟁자 존재');
+  if(D.convSales>0&&D.convSales<3000)rsks.push('인근 편의점 월매출 '+D.convSales.toLocaleString()+'만원 — 유동인구·구매력 저조 가능성');
   if(!rsks.length)rsks.push('현재 입력 데이터상 주요 위험 요인 없음');
 
   document.getElementById('r-str').innerHTML=strs.map(function(s){return li('✓','#16a34a',s);}).join('');

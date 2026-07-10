@@ -481,36 +481,46 @@ function searchNearby(lat,lng){
     check();
   },{location:latlng,radius:currentRadius,size:3});
 
-  ps.categorySearch('CS2',function(data,status){
-    if(status===kakao.maps.services.Status.OK){
-      convCount=data.length;
-      data.forEach(function(p){
-        var convPos=new kakao.maps.LatLng(p.y,p.x);
-        var convMarker=new kakao.maps.Marker({map:map,position:convPos,
-          image:new kakao.maps.MarkerImage('https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_purple.png',new kakao.maps.Size(20,28)),
-          zIndex:8
-        });
-        cafeMarkers.push(convMarker);
-        var convLbl=makeLabel(p.place_name,'#7c3aed',30);
-        var convOv=new kakao.maps.CustomOverlay({
-          map:map,position:convPos,
-          content:convLbl.element,
-          yAnchor:1,zIndex:12,clickable:true
-        });
-        cafeOverlays.push(convOv);
-        convLbl.pill.addEventListener('click',function(e){
-          e.stopPropagation();
-          convOv.setMap(null);
-        });
-        kakao.maps.event.addListener(convMarker,'click',function(){
-          if(convOv.getMap()) convOv.setMap(null); else convOv.setMap(map);
-        });
-      });
-    }
-    document.getElementById('r-conv').value=convCount;
-    document.getElementById('r-conv-disp').textContent=convCount+'개';
-    check();
-  },{location:latlng,radius:currentRadius,size:15});
+  var foundConvIds={};
+  function addConvMarker(p){
+    foundConvIds[p.id]=true;
+    var convPos=new kakao.maps.LatLng(p.y,p.x);
+    var convMarker=new kakao.maps.Marker({map:map,position:convPos,
+      image:new kakao.maps.MarkerImage('https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_purple.png',new kakao.maps.Size(20,28)),
+      zIndex:8
+    });
+    cafeMarkers.push(convMarker);
+    var convLbl=makeLabel(p.place_name,'#7c3aed',30);
+    var convOv=new kakao.maps.CustomOverlay({
+      map:map,position:convPos,
+      content:convLbl.element,
+      yAnchor:1,zIndex:12,clickable:true
+    });
+    cafeOverlays.push(convOv);
+    convLbl.pill.addEventListener('click',function(e){
+      e.stopPropagation();
+      convOv.setMap(null);
+    });
+    kakao.maps.event.addListener(convMarker,'click',function(){
+      if(convOv.getMap()) convOv.setMap(null); else convOv.setMap(map);
+    });
+  }
+
+  pagedSearch('CS2',3,function(p){
+    convCount++;
+    addConvMarker(p);
+  },function(){
+    // 카테고리 코드 미분류 편의점 보강: "편의점" 텍스트 직접 검색
+    pagedKeywordSearch('편의점',2,function(p){
+      if(foundConvIds[p.id])return;
+      convCount++;
+      addConvMarker(p);
+    },function(){
+      document.getElementById('r-conv').value=convCount;
+      document.getElementById('r-conv-disp').textContent=convCount+'개';
+      check();
+    });
+  });
 
   ps.categorySearch('MT1',function(data,status){
     if(status===kakao.maps.services.Status.OK) data.slice(0,2).forEach(function(p){anchors.push('마트/백화점: '+p.place_name+'('+p.distance+'m)');});

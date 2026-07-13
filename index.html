@@ -117,6 +117,13 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
         <div class="legend-item"><div class="dot" style="background:#7c3aed"></div><span>편의점</span></div>
       </div>
     </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:8px">
+      <button class="btn" id="btn-roadview" onclick="toggleRoadview()" disabled>🚶 로드뷰 보기</button>
+    </div>
+    <div id="roadview-wrap" style="display:none;margin-top:8px">
+      <div id="roadview" style="width:100%;height:360px;border-radius:10px;overflow:hidden;background:#e2e8f0"></div>
+      <div id="roadview-status" style="font-size:11px;color:#64748b;margin-top:6px"></div>
+    </div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px">
       <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:7px 10px;text-align:center">
         <div id="r-cafe-label" style="font-size:9px;color:#64748b;font-weight:700;margin-bottom:2px">반경500m 카페</div>
@@ -325,7 +332,7 @@ const STORES = [
   {name:'부천법원점',atype:'오피스·관공서',atypeReason:'인천지방법원 부천지원 129m 이내',floor:'1층',area:14,recent:9120086,avg3:8720980,avg6:8008652,months:15,cafe:30,lowcafe:9,conv:25,subway:483},
 ];
 
-var map=null, geocoder=null, ps=null;
+var map=null, geocoder=null, ps=null, rvClient=null, rv=null;
 var currentRadius=500, currentLat=0, currentLng=0;
 var searchCircle=null, cafeMarkers=[], cafeOverlays=[];
 var allLabels=[]; // 말풍선 겹침 방지 레이아웃 관리용
@@ -412,9 +419,37 @@ function initMap(){
   map=new kakao.maps.Map(container,{center:new kakao.maps.LatLng(37.5665,126.9780),level:5});
   geocoder=new kakao.maps.services.Geocoder();
   ps=new kakao.maps.services.Places();
+  rvClient=new kakao.maps.RoadviewClient();
   kakao.maps.event.addListener(map,'zoom_changed',function(){setTimeout(layoutLabels,50);});
   kakao.maps.event.addListener(map,'dragend',function(){setTimeout(layoutLabels,50);});
   loadCustomStores();
+}
+
+function toggleRoadview(){
+  var wrap=document.getElementById('roadview-wrap');
+  var btn=document.getElementById('btn-roadview');
+  var isOpen=wrap.style.display!=='none';
+  if(isOpen){
+    wrap.style.display='none';
+    btn.textContent='🚶 로드뷰 보기';
+    return;
+  }
+  if(!currentLat||!currentLng){alert('먼저 주소를 검색해주세요.');return;}
+  wrap.style.display='block';
+  btn.textContent='🚶 로드뷰 닫기';
+  var statusEl=document.getElementById('roadview-status');
+  statusEl.textContent='주변 로드뷰 검색 중...';
+  var pos=new kakao.maps.LatLng(currentLat,currentLng);
+  rvClient.getNearestPanoId(pos,50,function(panoId){
+    if(panoId==null){
+      statusEl.textContent='이 위치 반경 50m 내에는 로드뷰 촬영 이미지가 없습니다. (신도시·이면도로 등 일부 지역은 로드뷰 미지원)';
+      document.getElementById('roadview').innerHTML='';
+      return;
+    }
+    if(!rv) rv=new kakao.maps.Roadview(document.getElementById('roadview'));
+    rv.setPanoId(panoId,pos);
+    statusEl.textContent='실제 카카오 로드뷰 촬영 이미지입니다 (촬영 시점이 현재와 다를 수 있습니다). 마우스로 드래그하면 방향 전환, 화면의 화살표로 이동 가능합니다.';
+  });
 }
 
 function searchAddr(){
@@ -435,6 +470,9 @@ function searchAddr(){
       showLoad('반경 '+currentRadius+'m 탐색 중...');
       searchNearby(lat,lng);
       saveAddrHistory(addr);
+      document.getElementById('btn-roadview').disabled=false;
+      document.getElementById('roadview-wrap').style.display='none';
+      document.getElementById('btn-roadview').textContent='🚶 로드뷰 보기';
     } else {hideLoad();alert('주소를 찾을 수 없습니다.');}
   });
 }

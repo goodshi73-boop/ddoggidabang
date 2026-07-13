@@ -118,9 +118,13 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
       </div>
     </div>
     <div style="display:flex;justify-content:flex-end;margin-top:8px">
-      <button class="btn" id="btn-roadview" onclick="toggleRoadview()" disabled>🚶 로드뷰 보기</button>
+      <button id="btn-roadview" onclick="toggleRoadview()" disabled style="background:#2563eb;color:#fff;border:none;border-radius:7px;padding:9px 18px;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 2px 6px rgba(37,99,235,.3)">🚶 로드뷰로 실제 거리 보기</button>
     </div>
     <div id="roadview-wrap" style="display:none;margin-top:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:11px;font-weight:700;color:#2563eb">🚶 로드뷰</span>
+        <button onclick="closeRoadview()" style="background:none;border:1px solid #dde3ec;border-radius:5px;padding:3px 12px;font-size:11px;cursor:pointer;color:#64748b">✕ 닫기</button>
+      </div>
       <div id="roadview" style="width:100%;height:360px;border-radius:10px;overflow:hidden;background:#e2e8f0"></div>
       <div id="roadview-status" style="font-size:11px;color:#64748b;margin-top:6px"></div>
     </div>
@@ -427,14 +431,20 @@ function initMap(){
 
 function toggleRoadview(){
   var wrap=document.getElementById('roadview-wrap');
-  var btn=document.getElementById('btn-roadview');
   var isOpen=wrap.style.display!=='none';
-  if(isOpen){
-    wrap.style.display='none';
-    btn.textContent='🚶 로드뷰 보기';
-    return;
-  }
+  if(isOpen){closeRoadview();return;}
+  openRoadview();
+}
+
+function closeRoadview(){
+  document.getElementById('roadview-wrap').style.display='none';
+  document.getElementById('btn-roadview').textContent='🚶 로드뷰로 실제 거리 보기';
+}
+
+function openRoadview(){
   if(!currentLat||!currentLng){alert('먼저 주소를 검색해주세요.');return;}
+  var wrap=document.getElementById('roadview-wrap');
+  var btn=document.getElementById('btn-roadview');
   wrap.style.display='block';
   btn.textContent='🚶 로드뷰 닫기';
   var statusEl=document.getElementById('roadview-status');
@@ -472,7 +482,7 @@ function searchAddr(){
       saveAddrHistory(addr);
       document.getElementById('btn-roadview').disabled=false;
       document.getElementById('roadview-wrap').style.display='none';
-      document.getElementById('btn-roadview').textContent='🚶 로드뷰 보기';
+      document.getElementById('btn-roadview').textContent='🚶 로드뷰로 실제 거리 보기';
     } else {hideLoad();alert('주소를 찾을 수 없습니다.');}
   });
 }

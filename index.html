@@ -168,11 +168,14 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
         <input id="r-bus" type="number" readonly style="display:none">
       </div>
     </div>
-    <div style="font-size:10px;color:#94a3b8;margin-top:6px;line-height:1.6">카카오맵으로 반경 500m 내(버스정류장은 300m) 실측 수집한 값입니다. 카페·저가형카페 수는 경쟁강도 점수와 예상매출 보정(±%)에, 지하철거리·버스정류장은 유동인구 점수·예상매출 보정에 각각 반영됩니다. 지하철이 없는 지방 소도시 매장은 버스정류장 개수가 유동인구를 가늠하는 보완 지표로 쓰입니다.</div>
+    <div style="font-size:10px;color:#94a3b8;margin-top:6px;line-height:1.6">카카오맵으로 반경 500m 내(버스정류장은 300m, 대형마트·백화점·멀티플렉스는 최대 1,000m) 실측 수집한 값입니다. 카페·저가형카페 수는 경쟁강도 점수와 예상매출 보정(±%)에, 지하철거리·버스정류장은 유동인구 점수·예상매출 보정에 각각 반영됩니다. 지하철이 없는 지방 소도시 매장은 버스정류장 개수가 유동인구를 가늠하는 보완 지표로 쓰입니다. 대형마트·백화점·멀티플렉스·공영주차장은 "주변 집객시설" 목록과 지도 마커로 표시되며, 거리에 따라 예상매출에 최대 +6%까지 가산됩니다.</div>
     <div style="margin-top:8px;background:#f8fafc;border:1px solid #dde3ec;border-radius:8px;padding:10px 12px">
       <div style="font-size:10px;color:#64748b;font-weight:700;margin-bottom:6px">주변 집객시설</div>
       <div id="r-anchor-disp" style="font-size:12px;color:#334155;line-height:1.8">주소 검색 후 자동 표시됩니다...</div>
       <textarea id="r-anchor" readonly style="display:none"></textarea>
+      <input id="r-malldist" type="text" readonly style="display:none">
+      <input id="r-multiplexdist" type="text" readonly style="display:none">
+      <input id="r-parkingdist" type="text" readonly style="display:none">
       <div style="font-size:10px;color:#94a3b8;margin-top:6px">병원·마트/백화점·학교 등 반경 내 유동인구 유발시설입니다. 개수만큼 예상매출 보정에 소폭(+%) 반영됩니다.</div>
     </div>
   </div>
@@ -591,6 +594,7 @@ function searchAddr(){
 function searchNearby(lat,lng){
   var cafe=0,lowCafe=0,convCount=0,subwayDist='미확인',done=0;
   var anchors=[];
+  var malls=[],multiplex=null,pubParking=null;
   var LOW=['메가MGC','메가엠지씨','메가커피','컴포즈','더벤티','빽다방','백다방','우지','바나프레소','텐퍼센트','10%','카페봄봄','댄싱컵','하이요','하삼동'];
   var latlng=new kakao.maps.LatLng(lat,lng);
 
@@ -771,10 +775,58 @@ function searchNearby(lat,lng){
     });
   });
 
+  function addAnchorMarker(lat,lng,color,text){
+    var pos=new kakao.maps.LatLng(lat,lng);
+    var marker=new kakao.maps.Marker({map:map,position:pos,zIndex:15,
+      image:new kakao.maps.MarkerImage('data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="26" height="34" viewBox="0 0 26 34"><path d="M13 0C5.8 0 0 5.8 0 13c0 9.7 13 21 13 21s13-11.3 13-21C26 5.8 20.2 0 13 0z" fill="'+color+'"/><circle cx="13" cy="13" r="5.5" fill="#fff"/></svg>'),new kakao.maps.Size(26,34))
+    });
+    cafeMarkers.push(marker);
+    var lbl=makeLabel(text,color,30);
+    var ov=new kakao.maps.CustomOverlay({map:map,position:pos,content:lbl.element,yAnchor:1,zIndex:15,clickable:true});
+    cafeOverlays.push(ov);
+    lbl.pill.addEventListener('click',function(e){e.stopPropagation();ov.setMap(null);setTimeout(layoutLabels,0);});
+    kakao.maps.event.addListener(marker,'click',function(){if(ov.getMap())ov.setMap(null);else ov.setMap(map);setTimeout(layoutLabels,0);});
+    allLabels.push({ov:ov,wrap:lbl.element,latlng:pos,baseMb:30});
+  }
+
   ps.categorySearch('MT1',function(data,status){
-    if(status===kakao.maps.services.Status.OK) data.slice(0,2).forEach(function(p){anchors.push('마트/백화점: '+p.place_name+'('+p.distance+'m)');});
+    if(status===kakao.maps.services.Status.OK){
+      data.slice(0,2).forEach(function(p){
+        var d=Math.round(p.distance);
+        anchors.push('마트/백화점: '+p.place_name+'('+d+'m)');
+        addAnchorMarker(parseFloat(p.y),parseFloat(p.x),'#be185d',p.place_name+' ('+d+'m)');
+      });
+      malls=data.map(function(p){return{name:p.place_name,dist:Math.round(p.distance)};});
+    }
     check();
-  },{location:latlng,radius:currentRadius,size:3});
+  },{location:latlng,radius:Math.max(currentRadius,1000),size:5});
+
+  var multiplexRx=/시네마|영화관|CGV|메가박스|롯데시네마/;
+  ps.categorySearch('CT1',function(data,status){
+    if(status===kakao.maps.services.Status.OK){
+      var mx=data.filter(function(p){return multiplexRx.test(p.place_name)||multiplexRx.test(p.category_name||'');})[0];
+      if(mx){
+        var d=Math.round(mx.distance);
+        anchors.push('멀티플렉스: '+mx.place_name+'('+d+'m)');
+        addAnchorMarker(parseFloat(mx.y),parseFloat(mx.x),'#7c3aed','🎬 '+mx.place_name+' ('+d+'m)');
+        multiplex={name:mx.place_name,dist:d};
+      }
+    }
+    check();
+  },{location:latlng,radius:Math.max(currentRadius,1000),size:15});
+
+  ps.categorySearch('PK6',function(data,status){
+    if(status===kakao.maps.services.Status.OK){
+      var pub=data.filter(function(p){return /공영/.test(p.place_name);})[0];
+      if(pub){
+        var d=Math.round(pub.distance);
+        anchors.push('공영주차장: '+pub.place_name+'('+d+'m)');
+        addAnchorMarker(parseFloat(pub.y),parseFloat(pub.x),'#0891b2','🅿️ '+pub.place_name+' ('+d+'m)');
+        pubParking={name:pub.place_name,dist:d};
+      }
+    }
+    check();
+  },{location:latlng,radius:currentRadius,size:15});
 
   ps.categorySearch('HP8',function(data,status){
     if(status===kakao.maps.services.Status.OK&&data.length>0){
@@ -799,9 +851,12 @@ function searchNearby(lat,lng){
 
   function check(){
     done++;
-    if(done>=7){
+    if(done>=9){
       document.getElementById('r-anchor').value=anchors.join('\n')||'주요 집객시설 없음';
       document.getElementById('r-anchor-disp').innerHTML=anchors.length?anchors.map(function(a){return'<div style="display:flex;gap:6px;align-items:center"><span style="color:#1a5c35">▶</span><span>'+a+'</span></div>';}).join(''):'주요 집객시설 없음';
+      document.getElementById('r-malldist').value=malls.length?malls[0].dist:'';
+      document.getElementById('r-multiplexdist').value=multiplex?multiplex.dist:'';
+      document.getElementById('r-parkingdist').value=pubParking?pubParking.dist:'';
       var lbl=document.getElementById('r-cafe-label');
       if(lbl) lbl.textContent='반경'+currentRadius+'m 카페';
       hideLoad();
@@ -876,8 +931,17 @@ function locationFactor(D){
   }
   if((D.bus||0)>=5){f+=0.03;notes.push('버스정류장 밀집(+3%)');}
   else if(sd==null&&(D.bus||0)>=2){f+=0.02;notes.push('버스정류장 인근, 지하철 부재 보완(+2%)');}
-  var anchorLines=(D.anchor||'').split('\n').filter(function(l){return l&&l!=='주요 집객시설 없음'&&l.indexOf('지하철')!==0;});
+  var anchorLines=(D.anchor||'').split('\n').filter(function(l){return l&&l!=='주요 집객시설 없음'&&!/^(지하철|마트\/백화점|멀티플렉스|공영주차장)/.test(l);});
   if(anchorLines.length){var ab=Math.min(0.10,anchorLines.length*0.025);f+=ab;notes.push('집객시설 '+anchorLines.length+'곳(+'+Math.round(ab*100)+'%)');}
+  if(D.mallDist!=null){
+    if(D.mallDist<=500){f+=0.06;notes.push('대형마트·백화점 인접(+6%)');}
+    else if(D.mallDist<=1000){f+=0.03;notes.push('대형마트·백화점 도보권(+3%)');}
+  }
+  if(D.multiplexDist!=null){
+    if(D.multiplexDist<=500){f+=0.04;notes.push('멀티플렉스 인접(+4%)');}
+    else if(D.multiplexDist<=1000){f+=0.02;notes.push('멀티플렉스 도보권(+2%)');}
+  }
+  if(D.parkingDist!=null&&D.parkingDist<=300){f+=0.03;notes.push('공영주차장 인접, 차량고객 접근성(+3%)');}
   if((D.cafe||0)>=25){f-=0.08;notes.push('카페 과밀(-8%)');}
   else if((D.cafe||0)>=15){f-=0.04;notes.push('카페 밀집(-4%)');}
   else if((D.cafe||0)<=5){f+=0.03;notes.push('카페 희소(+3%)');}
@@ -944,6 +1008,7 @@ function runAnalysis(){
     rent:n('i-rent'),deposit:n('i-deposit'),premium:n('i-premium'),remain:g('i-remain'),
     pop:n('i-pop'),female:n('i-female'),young:n('i-young'),
     cafe:n('r-cafe'),lowcafe:n('r-lowcafe'),subway:g('r-subway'),bus:n('r-bus'),
+    mallDist:n('r-malldist')||null,multiplexDist:n('r-multiplexdist')||null,parkingDist:n('r-parkingdist')||null,
     anchor:g('r-anchor'),extra:g('i-extra'),grade:g('i-grade'),survival:n('i-survival'),
     convSales:n('i-convsales'),compSales:n('i-compsales')};
   if(!D.addr&&D.pop<=0){alert('주소를 검색하거나 유동인구를 입력해주세요.');return;}
@@ -1012,6 +1077,9 @@ function runAnalysis(){
   if(D.pop>=10000)strs.push('일 유동인구 '+D.pop.toLocaleString()+'명 — 충분한 집객 기반');
   if(D.floor==='1층')strs.push('1층 위치 — 가시성·접근성 최우수');
   if(D.anchor)strs.push('주요 집객시설 인근 — 자연 유입 기대');
+  if(D.mallDist!=null&&D.mallDist<=1000)strs.push('대형마트·백화점 '+D.mallDist+'m 이내 — 쇼핑 동선 연계 유입 기대');
+  if(D.multiplexDist!=null&&D.multiplexDist<=1000)strs.push('멀티플렉스 '+D.multiplexDist+'m 이내 — 영화 관람객 대기·후속 소비 유입 기대');
+  if(D.parkingDist!=null&&D.parkingDist<=300)strs.push('공영주차장 '+D.parkingDist+'m 이내 — 차량 방문 고객 접근성 우수');
   if(rentRatio>0&&rentRatio<=12)strs.push('임차료 비율 '+rentRatio+'% — 우수한 수익 구조');
   if(sc.sim.length)strs.push('유사 기존점 '+sc.sim.length+'개 실매출 데이터 기반 예측');
   if(D.convSales>=5000)strs.push('인근 편의점 월매출 '+D.convSales.toLocaleString()+'만원 — 구매력·유동인구 양호');

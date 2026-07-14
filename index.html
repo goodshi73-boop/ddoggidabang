@@ -77,12 +77,11 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
 </div>
 <div class="tabs no-print">
   <button class="tb on" onclick="goTab('p-new',this)">🔍 신규 입지 분석</button>
+  <button class="tb" id="tab-general-btn" onclick="goTab('p-general',this)">📐 일반 vs 유사도 분석</button>
   <button class="tb" onclick="goTab('p-sitecompare',this)">⚖️ 상권 비교함</button>
   <button class="tb" onclick="goTab('p-stores',this)">📍 기존 점포 현황</button>
   <button class="tb" onclick="goTab('p-compare',this)">📊 유사점 비교</button>
-  <button class="tb" onclick="goTab('p-guide',this)">📋 수집 가이드</button>
   <button class="tb" onclick="goTab('p-whitespace',this)">🗾 저가형카페 분포</button>
-  <button class="tb" id="tab-general-btn" onclick="goTab('p-general',this)">📐 일반 vs 유사도 분석</button>
 </div>
 <div class="main">
 
@@ -324,22 +323,6 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
     <b>활용법</b>: 점수가 80점 이상이면 상권환경이 매우 유사한 매장이라 매출 격차의 원인(임차료·운영방식·경쟁강도 등 개별 요인)을 비교해볼 가치가 있고, 50점 미만이면 참고 정도로만 보시면 됩니다.
   </div>
   <div id="compare-wrap"></div>
-</div>
-
-<div id="p-guide" class="pnl">
-  <div class="st">데이터 수집 경로</div>
-  <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:11px 14px;margin-bottom:8px">
-    <div style="font-size:11px;font-weight:700;color:#16a34a;margin-bottom:6px">카카오맵 자동 수집</div>
-    <div style="font-size:11px;color:#334155;line-height:1.8">반경 내 카페·저가형카페·편의점 수 · 지하철역 거리 · 집객시설</div>
-  </div>
-  <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:11px 14px;margin-bottom:8px">
-    <div style="font-size:11px;font-weight:700;color:#1d4ed8;margin-bottom:6px">유동인구 — 소상공인365 (무료)</div>
-    <div style="font-size:11px;color:#334155;line-height:1.8"><a href="https://bigdata.sbiz.or.kr" target="_blank" style="color:#1d4ed8;font-weight:600">bigdata.sbiz.or.kr</a> → 상권분석 → 주소 검색</div>
-  </div>
-  <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:11px 14px">
-    <div style="font-size:11px;font-weight:700;color:#1d4ed8;margin-bottom:6px">권리·등기 — 인터넷 등기소 (건당 700원)</div>
-    <div style="font-size:11px;color:#334155;line-height:1.8"><a href="https://www.iros.go.kr" target="_blank" style="color:#1d4ed8;font-weight:600">iros.go.kr</a> → 등기열람 → 건물+토지</div>
-  </div>
 </div>
 
 <div id="p-whitespace" class="pnl">

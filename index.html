@@ -224,8 +224,10 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
     <div id="method-explain" class="no-print" style="margin-bottom:10px"></div>
     <div class="pred-hero" id="pred-hero"></div>
     <div class="g4" id="kpi-grid" style="margin-bottom:12px"></div>
-    <div class="st">📍 유사 기존 점포 실매출 비교</div>
-    <div id="similar-stores"></div>
+    <div id="similar-stores-section">
+      <div class="st">📍 유사 기존 점포 실매출 비교</div>
+      <div id="similar-stores"></div>
+    </div>
     <div class="g2" style="margin-bottom:10px">
       <div><div style="font-size:11px;font-weight:700;color:#16a34a;margin-bottom:6px">✅ 강점</div><div class="card" id="r-str" style="padding:10px 12px"></div></div>
       <div><div style="font-size:11px;font-weight:700;color:#dc2626;margin-bottom:6px">⚠️ 위험</div><div class="card" id="r-risk" style="padding:10px 12px"></div></div>
@@ -1083,15 +1085,21 @@ function renderMethodButtons(){
   var bestSimScore=sc.sim.length?sc.sim[0].score:0;
   var recommendMethod=(sc.simAvg>0&&bestSimScore>=40)?'sim':'general';
   var simDisabled=!(sc.simAvg>0);
+  var colors={general:'#64748b',sim:'#1a5c35',recommend:'#2563eb'};
   function btn(method,label,extra){
     var active=curMethod===method;
-    return '<button onclick="selectMethod(\''+method+'\')" '+(method==='sim'&&simDisabled?'disabled':'')+' style="padding:6px 12px;border-radius:7px;font-size:11px;font-weight:700;cursor:'+(method==='sim'&&simDisabled?'not-allowed':'pointer')+';border:1px solid '+(active?'#1a5c35':'#dde3ec')+';background:'+(active?'#1a5c35':'#fff')+';color:'+(active?'#fff':simDisabled&&method==='sim'?'#cbd5e1':'#334155')+'">'+label+(method===recommendMethod?' ★추천':'')+'</button>';
+    var c=colors[method];
+    var disabled=method==='sim'&&simDisabled;
+    return '<button onclick="selectMethod(\''+method+'\')" '+(disabled?'disabled':'')+' style="padding:12px 18px;border-radius:10px;font-size:14px;font-weight:800;cursor:'+(disabled?'not-allowed':'pointer')+';border:2.5px solid '+(disabled?'#e2e8f0':c)+';background:'+(active?c:'#fff')+';color:'+(active?'#fff':disabled?'#cbd5e1':c)+';box-shadow:'+(active?'0 3px 10px '+c+'55':'none')+';transform:'+(active?'translateY(-1px)':'none')+';transition:all .15s">'+label+(method===recommendMethod?' <span style="font-size:10px">★추천</span>':'')+'</button>';
   }
   document.getElementById('method-selector').innerHTML=
-    '<span style="font-size:11px;color:#64748b;margin-right:4px;align-self:center">예상매출 산출방식:</span>'+
+    '<div style="width:100%;background:#f8fafc;border:1px solid #dde3ec;border-radius:12px;padding:12px 14px">'+
+    '<div style="font-size:13px;font-weight:800;color:#1e293b;margin-bottom:8px">👇 예상매출 산출방식을 선택하세요</div>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
     btn('general','📐 일반기준')+
-    btn('sim','🏪 유사도기준'+(sc.sim.length?'('+sc.sim.length+'곳,'+bestSimScore+'점)':''))+
-    btn('recommend','🎯 종합추천');
+    btn('sim','🏪 유사도기준'+(sc.sim.length?'('+sc.sim.length+'곳·'+bestSimScore+'점)':''))+
+    btn('recommend','🎯 종합추천')+
+    '</div></div>';
 }
 
 function selectMethod(method){
@@ -1106,6 +1114,7 @@ function renderByMethod(method){
   var recommendMethod=(sc.simAvg>0&&bestSimScore>=40)?'sim':'general';
   var effectiveMethod=method==='recommend'?recommendMethod:method;
   var useSim=effectiveMethod==='sim'&&sc.simAvg>0;
+  document.getElementById('similar-stores-section').style.display=effectiveMethod==='general'?'none':'block';
 
   var explainHtml;
   if(method==='general'){

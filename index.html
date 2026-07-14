@@ -67,6 +67,7 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
 </div>
 <div class="tabs">
   <button class="tb on" onclick="goTab('p-new',this)">🔍 신규 입지 분석</button>
+  <button class="tb" onclick="goTab('p-sitecompare',this)">⚖️ 상권 비교함</button>
   <button class="tb" onclick="goTab('p-stores',this)">📍 기존 점포 현황</button>
   <button class="tb" onclick="goTab('p-compare',this)">📊 유사점 비교</button>
   <button class="tb" onclick="goTab('p-guide',this)">📋 수집 가이드</button>
@@ -190,6 +191,9 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
   </div>
 
   <div id="result-wrap" style="display:none;margin-top:16px">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+      <button class="btn btn-g" onclick="saveToCompare()">⭐ 이 입지 비교함에 저장</button>
+    </div>
     <div class="pred-hero" id="pred-hero"></div>
     <div class="g4" id="kpi-grid" style="margin-bottom:12px"></div>
     <div class="st">📍 유사 기존 점포 실매출 비교</div>
@@ -270,6 +274,19 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
 </div>
 
 
+<div id="p-sitecompare" class="pnl">
+  <div class="st">⚖️ 상권 비교함</div>
+  <div class="abox blue" style="margin-bottom:12px">
+    "신규 입지 분석"에서 주소를 분석한 뒤 <b>"⭐ 이 입지 비교함에 저장"</b> 버튼을 누르면 여기에 쌓입니다. 2~3곳 정도 저장해서 나란히 비교해보세요. 각 항목에서 가장 좋은 값은 <span style="color:#16a34a;font-weight:700">초록색으로 강조</span> 표시됩니다. 비교가 끝나면 "초기화"로 전부 지우고 새로 시작할 수 있습니다.
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <span style="font-size:12px;color:#64748b"><span id="sitecompare-count">0</span>개 입지 저장됨 (최대 5개)</span>
+    <button class="btn" onclick="resetSiteCompare()">🗑 전체 초기화</button>
+  </div>
+  <div id="sitecompare-wrap"></div>
+</div>
+
+
 <div id="p-compare" class="pnl">
   <div class="st">매장별 유사매장 매칭</div>
   <div class="abox blue" style="margin-bottom:12px">
@@ -337,6 +354,7 @@ const STORES = [
 ];
 
 var map=null, geocoder=null, ps=null, rvClient=null, rv=null;
+var lastAnalysis=null, SITE_COMPARE=[];
 var currentRadius=500, currentLat=0, currentLng=0;
 var searchCircle=null, cafeMarkers=[], cafeOverlays=[];
 var allLabels=[]; // 말풍선 겹침 방지 레이아웃 관리용
@@ -348,6 +366,7 @@ function goTab(id,btn){
   if(btn) btn.classList.add('on');
   if(id==='p-stores') renderStores();
   if(id==='p-compare') renderCompare();
+  if(id==='p-sitecompare') renderSiteCompare();
 }
 function g(id){var el=document.getElementById(id);return el?el.value:'';}
 function n(id){return parseFloat(g(id))||0;}
@@ -427,6 +446,7 @@ function initMap(){
   kakao.maps.event.addListener(map,'zoom_changed',function(){setTimeout(layoutLabels,50);});
   kakao.maps.event.addListener(map,'dragend',function(){setTimeout(layoutLabels,50);});
   loadCustomStores();
+  loadSiteCompareStorage();
 }
 
 function toggleRoadview(){
@@ -929,6 +949,90 @@ function runAnalysis(){
   document.getElementById('r-meta').innerHTML='작성자: 송호인 부장 · 전략기획부 · '+dt+' · 대외비 | '+(D.addr||'미입력')+' · '+(D.atype||'')+' · '+(D.area||'?')+'평 '+D.floor;
   document.getElementById('result-wrap').style.display='block';
   document.getElementById('result-wrap').scrollIntoView({behavior:'smooth'});
+
+  lastAnalysis={D:D,sc:sc,pred:pred,rentRatio:rentRatio,profit:profit,loc:loc};
+}
+
+function saveToCompare(){
+  if(!lastAnalysis){alert('먼저 분석 결과를 확인해주세요.');return;}
+  if(SITE_COMPARE.length>=5){alert('비교함은 최대 5개까지 저장 가능합니다. 먼저 초기화하거나 일부를 삭제해주세요.');return;}
+  var a=lastAnalysis;
+  SITE_COMPARE.push({
+    addr:a.D.addr||'(주소 미입력)',atype:a.D.atype,floor:a.D.floor,area:a.D.area,
+    rent:a.D.rent,pred:a.pred,overall:a.sc.overall,traffic:a.sc.traffic,comp:a.sc.comp,
+    target:a.sc.target,rentRatio:a.rentRatio,profit:a.profit,
+    cafe:a.D.cafe,lowcafe:a.D.lowcafe,subway:a.D.subway,savedAt:new Date().toISOString()
+  });
+  saveSiteCompareStorage();
+  alert('비교함에 저장했습니다. ("⚖️ 상권 비교함" 탭에서 확인)');
+}
+
+function saveSiteCompareStorage(){
+  try{localStorage.setItem('ddoggidabang_site_compare',JSON.stringify(SITE_COMPARE));}catch(e){}
+}
+function loadSiteCompareStorage(){
+  try{
+    var raw=localStorage.getItem('ddoggidabang_site_compare');
+    if(raw) SITE_COMPARE=JSON.parse(raw);
+  }catch(e){}
+}
+
+function resetSiteCompare(){
+  if(!SITE_COMPARE.length)return;
+  if(!confirm('저장된 '+SITE_COMPARE.length+'개 입지를 전부 지우시겠습니까?'))return;
+  SITE_COMPARE=[];
+  saveSiteCompareStorage();
+  renderSiteCompare();
+}
+
+function removeSiteCompareItem(idx){
+  SITE_COMPARE.splice(idx,1);
+  saveSiteCompareStorage();
+  renderSiteCompare();
+}
+
+function renderSiteCompare(){
+  document.getElementById('sitecompare-count').textContent=SITE_COMPARE.length;
+  var wrap=document.getElementById('sitecompare-wrap');
+  if(!SITE_COMPARE.length){
+    wrap.innerHTML='<div class="abox">저장된 입지가 없습니다. "신규 입지 분석"에서 주소를 분석하고 "⭐ 이 입지 비교함에 저장" 버튼을 눌러주세요.</div>';
+    return;
+  }
+  // 항목별 최고값 판정 (예상매출·종합점수·유동인구·타겟부합은 높을수록 좋음, 임차료비율·경쟁강도는 낮을수록 좋음 — 단, comp는 점수이므로 높을수록 좋음에 유의)
+  var maxPred=Math.max.apply(null,SITE_COMPARE.map(function(s){return s.pred||0;}));
+  var maxOverall=Math.max.apply(null,SITE_COMPARE.map(function(s){return s.overall||0;}));
+  var maxTraffic=Math.max.apply(null,SITE_COMPARE.map(function(s){return s.traffic||0;}));
+  var maxComp=Math.max.apply(null,SITE_COMPARE.map(function(s){return s.comp||0;}));
+  var minRentRatio=Math.min.apply(null,SITE_COMPARE.filter(function(s){return s.rentRatio>0;}).map(function(s){return s.rentRatio;}).concat([Infinity]));
+  var maxProfit=Math.max.apply(null,SITE_COMPARE.map(function(s){return s.profit||0;}));
+
+  function cell(label,val,isBest,suffix){
+    return '<div style="text-align:center"><div style="font-size:9px;color:#94a3b8;margin-bottom:2px">'+label+'</div>'+
+      '<div style="font-size:14px;font-weight:700;color:'+(isBest?'#16a34a':'#334155')+'">'+val+(suffix||'')+(isBest?' 👑':'')+'</div></div>';
+  }
+
+  wrap.innerHTML='<div style="overflow-x:auto"><div style="display:flex;gap:10px;min-width:'+(SITE_COMPARE.length*220)+'px">'+
+    SITE_COMPARE.map(function(s,i){
+      return '<div class="card" style="flex:1;min-width:210px;position:relative">'+
+        '<button onclick="removeSiteCompareItem('+i+')" style="position:absolute;top:8px;right:8px;background:none;border:1px solid #dde3ec;border-radius:5px;padding:1px 8px;font-size:10px;cursor:pointer;color:#dc2626">✕</button>'+
+        '<div style="font-size:11px;font-weight:700;color:#1a5c35;margin-bottom:2px;padding-right:20px">'+(s.addr.length>22?s.addr.slice(0,22)+'...':s.addr)+'</div>'+
+        '<div style="font-size:10px;color:#64748b;margin-bottom:10px">'+s.atype+' · '+s.floor+' · '+(s.area||'?')+'평</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">'+
+          cell('예상매출',s.pred?Math.round(s.pred).toLocaleString():'-',s.pred===maxPred&&maxPred>0,'만')+
+          cell('종합점수',s.overall,s.overall===maxOverall,'점')+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">'+
+          cell('유동인구점수',s.traffic,s.traffic===maxTraffic,'')+
+          cell('경쟁환경점수',s.comp,s.comp===maxComp,'')+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+          cell('임차료비율',s.rentRatio||'-',s.rentRatio===minRentRatio&&s.rentRatio>0,'%')+
+          cell('예상순이익',s.profit?s.profit.toLocaleString():'-',s.profit===maxProfit&&maxProfit>0,'만')+
+        '</div>'+
+        '</div>';
+    }).join('')+
+    '</div></div>'+
+    '<div style="font-size:10px;color:#94a3b8;margin-top:10px">👑 표시는 저장된 입지들 중 해당 항목이 가장 좋은 곳입니다. 예상매출·종합점수·유동인구점수·경쟁환경점수·예상순이익은 높을수록, 임차료비율은 낮을수록 유리합니다.</div>';
 }
 
 function repSales(s){

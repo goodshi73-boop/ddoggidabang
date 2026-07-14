@@ -1172,7 +1172,8 @@ function renderByMethod(method){
   if(D.multiplexDist!=null&&D.multiplexDist<=1000)strs.push('멀티플렉스 '+D.multiplexDist+'m 이내 — 영화 관람객 대기·후속 소비 유입 기대');
   if(D.parkingDist!=null&&D.parkingDist<=300)strs.push('공영주차장 '+D.parkingDist+'m 이내 — 차량 방문 고객 접근성 우수');
   if(rentRatio>0&&rentRatio<=12)strs.push('임차료 비율 '+rentRatio+'% — 우수한 수익 구조');
-  if(sc.sim.length)strs.push('유사 기존점 '+sc.sim.length+'개 실매출 데이터 기반 예측');
+  if(useSim)strs.push('유사 기존점 '+sc.sim.length+'개 실매출 데이터 기반 예측');
+  else strs.push('업종평균 공식(유동인구×상권계수×객단가) 기반 예측 — 브랜드 실적 미반영');
   if(D.convSales>=5000)strs.push('인근 편의점 월매출 '+D.convSales.toLocaleString()+'만원 — 구매력·유동인구 양호');
   if(D.compSales>=4000)strs.push('경쟁 카페 월매출 '+D.compSales.toLocaleString()+'만원 — 해당 입지 디저트·커피 수요 검증됨');
   if(!strs.length)strs.push('주소 검색 및 유동인구 입력 시 상세 분석 가능');

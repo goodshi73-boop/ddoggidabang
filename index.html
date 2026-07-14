@@ -82,7 +82,7 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
   <button class="tb" onclick="goTab('p-compare',this)">📊 유사점 비교</button>
   <button class="tb" onclick="goTab('p-guide',this)">📋 수집 가이드</button>
   <button class="tb" onclick="goTab('p-whitespace',this)">🗾 저가형카페 분포</button>
-  <button class="tb" onclick="goTab('p-general',this)">📐 일반 vs 유사도 분석</button>
+  <button class="tb" id="tab-general-btn" onclick="goTab('p-general',this)">📐 일반 vs 유사도 분석</button>
 </div>
 <div class="main">
 
@@ -217,6 +217,8 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
       <button class="btn" onclick="printReport()">🖨 인쇄 / PDF로 저장</button>
       <button class="btn btn-g" onclick="saveToCompare()">⭐ 이 입지 비교함에 저장</button>
     </div>
+    <div id="method-selector" class="no-print" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"></div>
+    <div id="method-explain" class="no-print" style="margin-bottom:10px"></div>
     <div class="pred-hero" id="pred-hero"></div>
     <div class="g4" id="kpi-grid" style="margin-bottom:12px"></div>
     <div class="st">📍 유사 기존 점포 실매출 비교</div>
@@ -1011,11 +1013,12 @@ function calcScore(D){
   target=Math.max(15,Math.min(100,Math.round(target)));
   var realStores=STORES.filter(function(s){return repSales(s)!=null;});
   var sim=findSimilar(D,realStores);
-  var simAvg=sim.length?Math.round(sim.reduce(function(a,s){return a+repSales(s);},0)/sim.length):0;
+  var simAvg=sim.length?Math.round(sim.reduce(function(a,s){return a+repSales(s);},0)/sim.length/10000):0;
   var cost=65;
-  var base=simAvg||estimateBase(D);
-  if(D.rent>0&&base>0){
-    var r=D.rent/base*100;
+  var base=estimateBase(D);
+  var refRevenue=simAvg||base;
+  if(D.rent>0&&refRevenue>0){
+    var r=D.rent/refRevenue*100;
     if(r<=8)cost=95;else if(r<=12)cost=82;else if(r<=16)cost=68;else if(r<=22)cost=45;else cost=25;
   }
   if(D.floor==='2층'||D.floor==='지하')cost=Math.max(10,cost-8);
@@ -1033,6 +1036,8 @@ function getVerdict(s){if(s>=78)return{t:'출점 권고',bg:'#dcfce7',tc:'#16653
 function bar(l,v){var c=v>=70?'#1a5c35':v>=50?'#2E75B6':v>=35?'#d97706':'#dc2626';return'<div class="bar-row"><span class="bar-k">'+l+'</span><div class="bar-t"><div class="bar-f" style="width:'+v+'%;background:'+c+'"></div></div><span class="bar-v" style="color:'+c+'">'+v+'</span></div>';}
 function met(l,v,s,c){return'<div class="metric"><div class="m-l">'+l+'</div><div class="m-v" style="color:'+(c||'#1a5c35')+'">'+v+'</div>'+(s?'<div class="m-s">'+s+'</div>':'')+'</div>';}
 function li(ic,col,txt){return'<div class="li"><span class="ci" style="background:'+col+'22;color:'+col+'">'+ic+'</span><span>'+txt+'</span></div>';}
+
+var curCtx=null, curMethod='recommend';
 
 function runAnalysis(){
   var D={addr:g('i-addr'),atype:g('i-atype'),floor:g('i-floor'),area:n('i-area'),
@@ -1055,14 +1060,80 @@ function runAnalysis(){
   var grd=getGrade(sc.overall);
   var vrd=getVerdict(sc.overall);
   var loc=locationFactor(D);
-  var predBase=sc.simAvg||sc.base;
+
+  document.getElementById('similar-stores').innerHTML=sc.sim.length?sc.sim.map(function(s){
+    var extraTags=[s.atype,s.floor,s.area+'평'];
+    if(s.subway!=null)extraTags.push('역'+s.subway+'m');
+    if(s.cafe!=null)extraTags.push('카페'+s.cafe+'개');
+    if(s.lowcafe!=null)extraTags.push('저가형'+s.lowcafe+'개');
+    return'<div class="store-card"><div style="display:flex;justify-content:space-between;align-items:flex-start">'+
+      '<div><span style="font-weight:700">'+s.name+'</span><span class="sim-badge">유사도 '+s.score+'점</span></div>'+
+      '<div style="text-align:right"><div style="font-size:15px;font-weight:700;color:#1a5c35">'+Math.round(repSales(s)/10000).toLocaleString()+'만</div>'+
+      '<div style="font-size:10px;color:#64748b">'+(s.avg3!=null?'3개월평균':s.avg6!=null?'6개월평균':s.avg!=null?'평균매출':'전월매출')+' · 영업'+s.months+'개월</div></div></div>'+
+      '<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">'+
+      extraTags.map(function(t){return'<span style="background:#f1f5f9;padding:2px 7px;border-radius:99px;font-size:10px">'+t+'</span>';}).join('')+
+      '</div></div>';
+  }).join(''):'<div class="abox blue">유사 조건 기존점 데이터가 부족합니다.</div>';
+
+  curCtx={D:D,sc:sc,loc:loc,grd:grd,vrd:vrd};
+  var bestSimScore=sc.sim.length?sc.sim[0].score:0;
+  var recommendMethod=(sc.simAvg>0&&bestSimScore>=40)?'sim':'general';
+  curMethod=recommendMethod;
+  renderMethodButtons();
+  renderByMethod(recommendMethod);
+
+  document.getElementById('result-wrap').style.display='block';
+  document.getElementById('result-wrap').scrollIntoView({behavior:'smooth'});
+}
+
+function renderMethodButtons(){
+  var sc=curCtx.sc;
+  var bestSimScore=sc.sim.length?sc.sim[0].score:0;
+  var recommendMethod=(sc.simAvg>0&&bestSimScore>=40)?'sim':'general';
+  var simDisabled=!(sc.simAvg>0);
+  function btn(method,label,extra){
+    var active=curMethod===method;
+    return '<button onclick="selectMethod(\''+method+'\')" '+(method==='sim'&&simDisabled?'disabled':'')+' style="padding:6px 12px;border-radius:7px;font-size:11px;font-weight:700;cursor:'+(method==='sim'&&simDisabled?'not-allowed':'pointer')+';border:1px solid '+(active?'#1a5c35':'#dde3ec')+';background:'+(active?'#1a5c35':'#fff')+';color:'+(active?'#fff':simDisabled&&method==='sim'?'#cbd5e1':'#334155')+'">'+label+(method===recommendMethod?' ★추천':'')+'</button>';
+  }
+  document.getElementById('method-selector').innerHTML=
+    '<span style="font-size:11px;color:#64748b;margin-right:4px;align-self:center">예상매출 산출방식:</span>'+
+    btn('general','📐 일반기준')+
+    btn('sim','🏪 유사도기준'+(sc.sim.length?'('+sc.sim.length+'곳,'+bestSimScore+'점)':''))+
+    btn('recommend','🎯 종합추천');
+}
+
+function selectMethod(method){
+  curMethod=method;
+  renderMethodButtons();
+  renderByMethod(method);
+}
+
+function renderByMethod(method){
+  var D=curCtx.D, sc=curCtx.sc, loc=curCtx.loc, grd=curCtx.grd, vrd=curCtx.vrd;
+  var bestSimScore=sc.sim.length?sc.sim[0].score:0;
+  var recommendMethod=(sc.simAvg>0&&bestSimScore>=40)?'sim':'general';
+  var effectiveMethod=method==='recommend'?recommendMethod:method;
+  var useSim=effectiveMethod==='sim'&&sc.simAvg>0;
+
+  var explainHtml;
+  if(method==='general'){
+    explainHtml='<div class="abox blue" style="font-size:11px"><b>📐 지금 보는 값은 "일반기준"입니다.</b> 떠기다방이라는 브랜드를 모른다고 가정하고, "유동인구('+(D.pop?D.pop.toLocaleString()+'명':'미입력')+') × '+D.atype+' 업종 평당매출계수 × 객단가" 공식만으로 계산한 값입니다. 실제 떠기다방 매장 실적은 전혀 참고하지 않습니다. 일반적인 상권분석 툴(소상공인365 등)이 쓰는 방식과 유사합니다.</div>';
+  } else if(method==='sim'){
+    explainHtml='<div class="abox blue" style="font-size:11px"><b>🏪 지금 보는 값은 "유사도기준"입니다.</b> 실제 떠기다방 기존 매장 29곳 중 상권환경(지하철거리·카페밀집도·상권유형·층수·면적)이 가장 비슷한 '+(sc.sim.length||0)+'곳을 찾아 그 실제 매출 평균을 그대로 사용합니다. 최고 유사도 점수는 '+bestSimScore+'점입니다'+(bestSimScore<40?' — <span style="color:#dc2626;font-weight:700">40점 미만으로 유사도가 낮아 신뢰하기 어려운 값입니다. 참고만 하세요.</span>':bestSimScore<65?' — 다소 낮은 편이라 참고용으로만 활용하세요.':' — 신뢰도가 양호한 편입니다.')+'</div>';
+  } else {
+    explainHtml='<div class="abox blue" style="font-size:11px"><b>🎯 지금 보는 값은 "종합추천"입니다.</b> 유사매장의 최고 유사도 점수('+bestSimScore+'점)가 40점 이상이면 유사도기준을, 미만이면 일반기준을 자동으로 채택합니다. 이번 분석은 <b>'+(recommendMethod==='sim'?'유사도기준':'일반기준')+'</b>이 채택됐습니다. 근거가 부실한 유사매장 매치를 그대로 신뢰하지 않도록 만든 안전장치이며, 최종 판단 전에는 위의 다른 두 버튼도 눌러서 직접 비교해보시길 권합니다.</div>';
+  }
+  document.getElementById('method-explain').innerHTML=explainHtml;
+
+  var predBase=useSim?sc.simAvg:sc.base;
+  var methodLabel=useSim?(bestSimScore>=65?'유사도 기준 (신뢰도 높음)':'유사도 기준 (참고용, 유사도 다소 낮음)'):'일반기준 (업종평균 공식)';
   var pred=Math.round(predBase*loc.factor);
   var rentRatio=D.rent&&pred?Math.round(D.rent/pred*100):0;
   var fixedCost=D.rent+(D.area||15)*8;
   var profit=pred?Math.round(pred*(1-0.42)-fixedCost):0;
   var initInvest=7830+(D.premium||0)+(D.deposit||0);
   var breakEven=profit>0?Math.ceil(initInvest/profit):0;
-  var basisNote=(sc.sim.length?'유사 기존점 '+sc.sim.length+'개 실매출 평균':'입지 조건 추정')+
+  var basisNote='<b>['+(method==='recommend'?'종합추천 → ':'')+methodLabel+']</b> '+(useSim?'유사 기존점 '+sc.sim.length+'개(최고유사도 '+bestSimScore+'점) 실매출 평균':'업종평균 공식(유동인구×상권계수×객단가)'+(sc.sim.length?' — 유사매장 '+sc.sim.length+'곳 있으나 최고유사도 '+bestSimScore+'점으로 낮음':''))+
     (loc.notes.length?' · 입지보정 '+loc.notes.join(', '):'')+
     (loc.factor!==1?' · 종합 '+(loc.factor>1?'+':'')+Math.round((loc.factor-1)*100)+'%':'');
 
@@ -1089,20 +1160,6 @@ function runAnalysis(){
     met('임차료 비율',rentRatio?rentRatio+'%':'-','매출 대비',rc)+
     met('손익분기',breakEven?breakEven+'개월':'-','')+
     met('총 초기투자',initInvest.toLocaleString()+'만','원');
-
-  document.getElementById('similar-stores').innerHTML=sc.sim.length?sc.sim.map(function(s){
-    var extraTags=[s.atype,s.floor,s.area+'평'];
-    if(s.subway!=null)extraTags.push('역'+s.subway+'m');
-    if(s.cafe!=null)extraTags.push('카페'+s.cafe+'개');
-    if(s.lowcafe!=null)extraTags.push('저가형'+s.lowcafe+'개');
-    return'<div class="store-card"><div style="display:flex;justify-content:space-between;align-items:flex-start">'+
-      '<div><span style="font-weight:700">'+s.name+'</span><span class="sim-badge">유사도 '+s.score+'점</span></div>'+
-      '<div style="text-align:right"><div style="font-size:15px;font-weight:700;color:#1a5c35">'+Math.round(repSales(s)/10000).toLocaleString()+'만</div>'+
-      '<div style="font-size:10px;color:#64748b">'+(s.avg3!=null?'3개월평균':s.avg6!=null?'6개월평균':s.avg!=null?'평균매출':'전월매출')+' · 영업'+s.months+'개월</div></div></div>'+
-      '<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">'+
-      extraTags.map(function(t){return'<span style="background:#f1f5f9;padding:2px 7px;border-radius:99px;font-size:10px">'+t+'</span>';}).join('')+
-      '</div></div>';
-  }).join(''):'<div class="abox blue">유사 조건 기존점 데이터가 부족합니다.</div>';
 
   var strs=[],rsks=[];
   if(D.pop>=10000)strs.push('일 유동인구 '+D.pop.toLocaleString()+'명 — 충분한 집객 기반');
@@ -1142,11 +1199,9 @@ function runAnalysis(){
   document.getElementById('r-actions').innerHTML=acts.map(function(a,i){return'<div class="li"><span class="ci" style="background:#1a5c35;color:#fff">'+(i+1)+'</span><span>'+a+'</span></div>';}).join('');
 
   var dt=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
-  document.getElementById('r-meta').innerHTML='작성자: 송호인 부장 · 전략기획부 · '+dt+' · 대외비 | '+(D.addr||'미입력')+' · '+(D.atype||'')+' · '+(D.area||'?')+'평 '+D.floor;
-  document.getElementById('result-wrap').style.display='block';
-  document.getElementById('result-wrap').scrollIntoView({behavior:'smooth'});
+  document.getElementById('r-meta').innerHTML='작성자: 송호인 부장 · 전략기획부 · '+dt+' · 대외비 | '+(D.addr||'미입력')+' · '+(D.atype||'')+' · '+(D.area||'?')+'평 '+D.floor+' · 산출방식: '+methodLabel;
 
-  lastAnalysis={D:D,sc:sc,pred:pred,rentRatio:rentRatio,profit:profit,loc:loc};
+  lastAnalysis={D:D,sc:sc,pred:pred,rentRatio:rentRatio,profit:profit,loc:loc,method:effectiveMethod};
 }
 
 function printReport(){
@@ -1198,15 +1253,16 @@ function saveToCompare(){
   if(!lastAnalysis){alert('먼저 분석 결과를 확인해주세요.');return;}
   if(SITE_COMPARE.length>=5){alert('비교함은 최대 5개까지 저장 가능합니다. 먼저 초기화하거나 일부를 삭제해주세요.');return;}
   var a=lastAnalysis;
+  var methodLabel=a.method==='sim'?'유사도기준':'일반기준';
   SITE_COMPARE.push({
     addr:a.D.addr||'(주소 미입력)',atype:a.D.atype,floor:a.D.floor,area:a.D.area,
     rent:a.D.rent,pred:a.pred,overall:a.sc.overall,traffic:a.sc.traffic,comp:a.sc.comp,
     target:a.sc.target,rentRatio:a.rentRatio,profit:a.profit,
-    cafe:a.D.cafe,lowcafe:a.D.lowcafe,subway:a.D.subway,
+    cafe:a.D.cafe,lowcafe:a.D.lowcafe,subway:a.D.subway,method:a.method||'general',
     lat:currentLat,lng:currentLng,savedAt:new Date().toISOString()
   });
   saveSiteCompareStorage();
-  alert('비교함에 저장했습니다. ("⚖️ 상권 비교함" 탭에서 확인)');
+  alert('비교함에 저장했습니다. (지금 화면에 표시된 값 기준: '+methodLabel+')\n"⚖️ 상권 비교함" 탭에서 확인하세요.');
 }
 
 function saveSiteCompareStorage(){
@@ -1280,12 +1336,22 @@ function renderSiteCompare(){
       '<div style="font-size:14px;font-weight:700;color:'+(isBest?'#16a34a':'#334155')+'">'+val+(suffix||'')+(isBest?' 👑':'')+'</div></div>';
   }
 
-  wrap.innerHTML='<div style="overflow-x:auto"><div style="display:flex;gap:10px;min-width:'+(SITE_COMPARE.length*220)+'px">'+
+  var methodsUsed={};
+  SITE_COMPARE.forEach(function(s){methodsUsed[s.method||'general']=true;});
+  var mixed=Object.keys(methodsUsed).length>1;
+  var warnHtml=mixed?
+    '<div class="abox" style="border-color:#fed7aa;background:#fff7ed;color:#c2410c;margin-bottom:10px">'+
+      '<b>⚠️ 산출방식이 서로 다른 입지가 섞여 있습니다.</b> 아래 예상매출·순이익 값 중 일부는 <span style="color:#1a5c35;font-weight:700">🏪 유사도기준</span>, 일부는 <span style="color:#64748b;font-weight:700">📐 일반기준</span>으로 계산된 값입니다. 계산 방식이 다르면 직접 비교(👑 표시)가 왜곡될 수 있으니, 정확히 비교하려면 "신규 입지 분석"에서 <b>같은 방식(버튼)을 선택한 뒤 다시 저장</b>해서 비교해주세요.'+
+    '</div>':'';
+
+  wrap.innerHTML=warnHtml+'<div style="overflow-x:auto"><div style="display:flex;gap:10px;min-width:'+(SITE_COMPARE.length*220)+'px">'+
     SITE_COMPARE.map(function(s,i){
+      var methodTag=s.method==='sim'?'<span style="background:#ecfdf5;color:#1a5c35;padding:1px 6px;border-radius:99px;font-size:9px;font-weight:700">🏪 유사도기준</span>':'<span style="background:#f1f5f9;color:#64748b;padding:1px 6px;border-radius:99px;font-size:9px;font-weight:700">📐 일반기준</span>';
       return '<div class="card" style="flex:1;min-width:210px;position:relative">'+
         '<button onclick="removeSiteCompareItem('+i+')" style="position:absolute;top:8px;right:8px;background:none;border:1px solid #dde3ec;border-radius:5px;padding:1px 8px;font-size:10px;cursor:pointer;color:#dc2626">✕</button>'+
         '<div style="font-size:11px;font-weight:700;color:#1a5c35;margin-bottom:2px;padding-right:20px">'+(s.addr.length>22?s.addr.slice(0,22)+'...':s.addr)+'</div>'+
-        '<div style="font-size:10px;color:#64748b;margin-bottom:10px">'+s.atype+' · '+s.floor+' · '+(s.area||'?')+'평</div>'+
+        '<div style="font-size:10px;color:#64748b;margin-bottom:6px">'+s.atype+' · '+s.floor+' · '+(s.area||'?')+'평</div>'+
+        '<div style="margin-bottom:8px">'+methodTag+'</div>'+
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">'+
           cell('예상매출',s.pred?Math.round(s.pred).toLocaleString():'-',s.pred===maxPred&&maxPred>0,'만')+
           cell('종합점수',s.overall,s.overall===maxOverall,'점')+
@@ -1301,7 +1367,7 @@ function renderSiteCompare(){
         '</div>';
     }).join('')+
     '</div></div>'+
-    '<div style="font-size:10px;color:#94a3b8;margin-top:10px">👑 표시는 저장된 입지들 중 해당 항목이 가장 좋은 곳입니다. 예상매출·종합점수·유동인구점수·경쟁환경점수·예상순이익은 높을수록, 임차료비율은 낮을수록 유리합니다.</div>';
+    '<div style="font-size:10px;color:#94a3b8;margin-top:10px">👑 표시는 저장된 입지들 중 해당 항목이 가장 좋은 곳입니다. 예상매출·종합점수·유동인구점수·경쟁환경점수·예상순이익은 높을수록, 임차료비율은 낮을수록 유리합니다. 카드 위 뱃지로 각 입지가 어떤 방식(일반/유사도)으로 계산됐는지 확인하세요.</div>';
 }
 
 function repSales(s){

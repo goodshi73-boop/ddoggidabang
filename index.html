@@ -59,23 +59,34 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
 .itbl{width:100%;border-collapse:collapse;font-size:12px}
 .itbl tr{border-bottom:1px solid #f1f5f9}
 .itbl td{padding:6px 4px}
-@media(max-width:640px){.main{padding:12px}.g2,.g3,.g4{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.main{padding:12px}.g2,.g3,.g4{grid-template-columns:1fr 1fr}@media print{
+  .no-print,.tb:not(.on),.map-legend,#overlay,#btn-roadview,#roadview-wrap,.map-wrap #map{display:none!important}
+  body{background:#fff}
+  .main{padding:0}
+  .card{box-shadow:none;border:1px solid #ccc}
+  .pnl{display:none!important}
+  .pnl.on{display:block!important}
+  #result-wrap{display:block!important}
+  a[href]:after{content:''}
+}
 </style>
 </head>
 <body>
 <div class="hdr">
   <div><div class="hdr-t">🍡 떠기다방 상권분석 대시보드</div><div class="hdr-s">가맹점주 브리핑용 · 전략기획부 · 대외비</div></div>
 </div>
-<div class="tabs">
+<div class="tabs no-print">
   <button class="tb on" onclick="goTab('p-new',this)">🔍 신규 입지 분석</button>
   <button class="tb" onclick="goTab('p-sitecompare',this)">⚖️ 상권 비교함</button>
   <button class="tb" onclick="goTab('p-stores',this)">📍 기존 점포 현황</button>
   <button class="tb" onclick="goTab('p-compare',this)">📊 유사점 비교</button>
   <button class="tb" onclick="goTab('p-guide',this)">📋 수집 가이드</button>
+  <button class="tb" onclick="goTab('p-whitespace',this)">🗾 저가형카페 분포</button>
 </div>
 <div class="main">
 
 <div id="p-new" class="pnl on">
+<div class="no-print">
   <div class="st">신규 출점 예정 입지 정보</div>
   <div class="card">
     <div style="margin-bottom:10px">
@@ -130,7 +141,7 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
       <div id="roadview" style="width:100%;height:360px;border-radius:10px;overflow:hidden;background:#e2e8f0"></div>
       <div id="roadview-status" style="font-size:11px;color:#64748b;margin-top:6px"></div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px">
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px">
       <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:7px 10px;text-align:center">
         <div id="r-cafe-label" style="font-size:9px;color:#64748b;font-weight:700;margin-bottom:2px">반경500m 카페</div>
         <div id="r-cafe-disp" style="font-size:13px;font-weight:700;color:#1a5c35">-</div>
@@ -151,8 +162,13 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
         <div id="r-subway-disp" style="font-size:12px;font-weight:700;color:#2563eb">-</div>
         <input id="r-subway" type="text" readonly style="display:none">
       </div>
+      <div style="background:#f0fdfa;border:1px solid #99f6e4;border-radius:8px;padding:7px 10px;text-align:center">
+        <div style="font-size:9px;color:#64748b;font-weight:700;margin-bottom:2px">버스정류장(300m)</div>
+        <div id="r-bus-disp" style="font-size:12px;font-weight:700;color:#0d9488">-</div>
+        <input id="r-bus" type="number" readonly style="display:none">
+      </div>
     </div>
-    <div style="font-size:10px;color:#94a3b8;margin-top:6px;line-height:1.6">카카오맵으로 반경 500m 내 실측 수집한 값입니다. 카페·저가형카페 수는 경쟁강도 점수와 예상매출 보정(±%)에, 지하철거리는 유사매장 매칭·예상매출 보정에 각각 반영됩니다.</div>
+    <div style="font-size:10px;color:#94a3b8;margin-top:6px;line-height:1.6">카카오맵으로 반경 500m 내(버스정류장은 300m) 실측 수집한 값입니다. 카페·저가형카페 수는 경쟁강도 점수와 예상매출 보정(±%)에, 지하철거리·버스정류장은 유동인구 점수·예상매출 보정에 각각 반영됩니다. 지하철이 없는 지방 소도시 매장은 버스정류장 개수가 유동인구를 가늠하는 보완 지표로 쓰입니다.</div>
     <div style="margin-top:8px;background:#f8fafc;border:1px solid #dde3ec;border-radius:8px;padding:10px 12px">
       <div style="font-size:10px;color:#64748b;font-weight:700;margin-bottom:6px">주변 집객시설</div>
       <div id="r-anchor-disp" style="font-size:12px;color:#334155;line-height:1.8">주소 검색 후 자동 표시됩니다...</div>
@@ -190,9 +206,11 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
     <button class="btn" onclick="resetAll()">초기화</button>
     <button class="btn btn-g" onclick="runAnalysis()">📊 분석 결과 보기 →</button>
   </div>
+</div>
 
   <div id="result-wrap" style="display:none;margin-top:16px">
-    <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px;gap:8px" class="no-print">
+      <button class="btn" onclick="printReport()">🖨 인쇄 / PDF로 저장</button>
       <button class="btn btn-g" onclick="saveToCompare()">⭐ 이 입지 비교함에 저장</button>
     </div>
     <div class="pred-hero" id="pred-hero"></div>
@@ -282,7 +300,10 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
   </div>
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
     <span style="font-size:12px;color:#64748b"><span id="sitecompare-count">0</span>개 입지 저장됨 (최대 5개)</span>
-    <button class="btn" onclick="resetSiteCompare()">🗑 전체 초기화</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn" onclick="showCompareOnMap()">🗺 지도에서 비교</button>
+      <button class="btn" onclick="resetSiteCompare()">🗑 전체 초기화</button>
+    </div>
   </div>
   <div id="sitecompare-wrap"></div>
 </div>
@@ -313,6 +334,22 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
     <div style="font-size:11px;font-weight:700;color:#1d4ed8;margin-bottom:6px">권리·등기 — 인터넷 등기소 (건당 700원)</div>
     <div style="font-size:11px;color:#334155;line-height:1.8"><a href="https://www.iros.go.kr" target="_blank" style="color:#1d4ed8;font-weight:600">iros.go.kr</a> → 등기열람 → 건물+토지</div>
   </div>
+</div>
+
+<div id="p-whitespace" class="pnl">
+  <div class="st">🗾 저가형카페 분포 지도 (화이트스페이스 탐색)</div>
+  <div class="abox blue" style="margin-bottom:12px">
+    지도를 원하는 지역(시/군/구 단위 권장)으로 이동·확대한 뒤 <b>"현재 화면 기준 분포 보기"</b>를 누르면, 그 화면 범위 안의 저가형카페 브랜드 매장을 전부 찾아서 표시합니다. <b>마커가 몰린 곳은 이미 경쟁이 치열한 곳</b>이고, <b>마커가 비어있는 곳은 아직 저가형카페가 진출 안 한 공백지(화이트스페이스) 후보</b>입니다.<br><br>
+    <b>주의</b>: 이건 저가형카페 유무만 보여주는 것이라, 실제로 그 자리가 좋은 입지인지는 별도로 "신규 입지 분석"에서 유동인구·경쟁·상권유형까지 확인해야 합니다. 마커가 없다고 무조건 좋은 자리는 아니고, 애초에 상권 자체가 형성 안 된 곳일 수도 있습니다.
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center">
+    <button class="btn btn-g" onclick="scanWhitespace()">🔍 현재 화면 기준 분포 보기</button>
+    <span id="ws-status" style="font-size:11px;color:#64748b"></span>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div id="ws-map" style="width:100%;height:520px"></div>
+  </div>
+  <div style="font-size:10px;color:#94a3b8;margin-top:8px">브랜드 목록: 메가MGC커피·컴포즈커피·더벤티·빽다방·바나프레소·텐퍼센트·카페봄봄·댄싱컵·하이요·하삼동 등. 카카오맵 검색 결과 기준이라 상호명 표기가 다르거나 최근 개업/폐업이 반영 안 됐을 수 있습니다.</div>
 </div>
 
 </div>
@@ -355,6 +392,8 @@ const STORES = [
 ];
 
 var map=null, geocoder=null, ps=null, rvClient=null, rv=null;
+var wsMap=null, wsMarkers=[];
+var LOW_BRANDS=['메가MGC','메가엠지씨','메가커피','컴포즈','더벤티','빽다방','백다방','바나프레소','텐퍼센트','카페봄봄','댄싱컵','하이요','하삼동'];
 var lastAnalysis=null, SITE_COMPARE=[];
 var currentRadius=500, currentLat=0, currentLng=0;
 var searchCircle=null, cafeMarkers=[], cafeOverlays=[];
@@ -368,6 +407,7 @@ function goTab(id,btn){
   if(id==='p-stores') renderStores();
   if(id==='p-compare') renderCompare();
   if(id==='p-sitecompare') renderSiteCompare();
+  if(id==='p-whitespace') setTimeout(initWsMap,50);
 }
 function g(id){var el=document.getElementById(id);return el?el.value:'';}
 function n(id){return parseFloat(g(id))||0;}
@@ -435,6 +475,46 @@ function layoutLabels(){
     e.ov.setPosition(e.latlng);
     var top2=pt.y-(e.baseMb+extra)-20;
     placed.push({l:pt.x-w/2-4,r:pt.x+w/2+4,t:top2-14,b:top2+14});
+  });
+}
+
+function initWsMap(){
+  var container=document.getElementById('ws-map');
+  if(!wsMap){
+    wsMap=new kakao.maps.Map(container,{center:new kakao.maps.LatLng(37.5665,126.9780),level:8});
+  } else {
+    wsMap.relayout();
+  }
+}
+
+function scanWhitespace(){
+  if(!wsMap||!ps)return;
+  wsMarkers.forEach(function(m){m.setMap(null);});
+  wsMarkers=[];
+  var bounds=wsMap.getBounds();
+  var statusEl=document.getElementById('ws-status');
+  statusEl.textContent='검색 중...';
+  var total=LOW_BRANDS.length, done=0, foundIds={};
+  LOW_BRANDS.forEach(function(brand){
+    ps.keywordSearch(brand,function(data,status){
+      if(status===kakao.maps.services.Status.OK){
+        data.forEach(function(p){
+          if(foundIds[p.id])return;
+          var lat=parseFloat(p.y), lng=parseFloat(p.x);
+          if(!bounds.contain(new kakao.maps.LatLng(lat,lng)))return;
+          foundIds[p.id]=true;
+          var marker=new kakao.maps.Marker({map:wsMap,position:new kakao.maps.LatLng(lat,lng),
+            image:new kakao.maps.MarkerImage('https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png',new kakao.maps.Size(24,35)),
+            title:p.place_name
+          });
+          wsMarkers.push(marker);
+        });
+      }
+      done++;
+      if(done>=total){
+        statusEl.textContent=wsMarkers.length+'개 저가형카페 매장 표시 완료 (현재 화면 범위 기준)';
+      }
+    },{bounds:bounds,size:15});
   });
 }
 
@@ -634,6 +714,19 @@ function searchNearby(lat,lng){
     check();
   },{location:latlng,radius:currentRadius,size:3});
 
+  var busCount=0,busNearest=null;
+  pagedKeywordSearch('버스정류장',1,function(p){
+    var d=Math.round(p.distance);
+    if(d<=300){
+      busCount++;
+      if(busNearest==null||d<busNearest) busNearest=d;
+    }
+  },function(){
+    document.getElementById('r-bus').value=busCount;
+    document.getElementById('r-bus-disp').textContent=busCount+'개'+(busNearest!=null?' (최단 '+busNearest+'m)':'');
+    check();
+  });
+
   var foundConvIds={};
   function addConvMarker(p){
     foundConvIds[p.id]=true;
@@ -706,7 +799,7 @@ function searchNearby(lat,lng){
 
   function check(){
     done++;
-    if(done>=6){
+    if(done>=7){
       document.getElementById('r-anchor').value=anchors.join('\n')||'주요 집객시설 없음';
       document.getElementById('r-anchor-disp').innerHTML=anchors.length?anchors.map(function(a){return'<div style="display:flex;gap:6px;align-items:center"><span style="color:#1a5c35">▶</span><span>'+a+'</span></div>';}).join(''):'주요 집객시설 없음';
       var lbl=document.getElementById('r-cafe-label');
@@ -781,6 +874,8 @@ function locationFactor(D){
   } else {
     f-=0.03;notes.push('반경 내 지하철역 없음(-3%)');
   }
+  if((D.bus||0)>=5){f+=0.03;notes.push('버스정류장 밀집(+3%)');}
+  else if(sd==null&&(D.bus||0)>=2){f+=0.02;notes.push('버스정류장 인근, 지하철 부재 보완(+2%)');}
   var anchorLines=(D.anchor||'').split('\n').filter(function(l){return l&&l!=='주요 집객시설 없음'&&l.indexOf('지하철')!==0;});
   if(anchorLines.length){var ab=Math.min(0.10,anchorLines.length*0.025);f+=ab;notes.push('집객시설 '+anchorLines.length+'곳(+'+Math.round(ab*100)+'%)');}
   if((D.cafe||0)>=25){f-=0.08;notes.push('카페 과밀(-8%)');}
@@ -804,6 +899,7 @@ function calcScore(D){
   var gradeBonus={A:10,B:5,C:0,D:-8,E:-15};
   traffic=traffic+(gradeBonus[D.grade]||0);
   if(D.convSales>=8000)traffic+=8;else if(D.convSales>=5000)traffic+=4;else if(D.convSales>0&&D.convSales<3000)traffic-=5;
+  if((D.bus||0)>=5)traffic+=4;else if((D.bus||0)>=2)traffic+=2;
   traffic=Math.min(100,Math.max(0,traffic));
   var comp=80;
   comp-=Math.min(35,(D.cafe||0)*1.5);
@@ -847,7 +943,7 @@ function runAnalysis(){
   var D={addr:g('i-addr'),atype:g('i-atype'),floor:g('i-floor'),area:n('i-area'),
     rent:n('i-rent'),deposit:n('i-deposit'),premium:n('i-premium'),remain:g('i-remain'),
     pop:n('i-pop'),female:n('i-female'),young:n('i-young'),
-    cafe:n('r-cafe'),lowcafe:n('r-lowcafe'),subway:g('r-subway'),
+    cafe:n('r-cafe'),lowcafe:n('r-lowcafe'),subway:g('r-subway'),bus:n('r-bus'),
     anchor:g('r-anchor'),extra:g('i-extra'),grade:g('i-grade'),survival:n('i-survival'),
     convSales:n('i-convsales'),compSales:n('i-compsales')};
   if(!D.addr&&D.pop<=0){alert('주소를 검색하거나 유동인구를 입력해주세요.');return;}
@@ -954,6 +1050,11 @@ function runAnalysis(){
   lastAnalysis={D:D,sc:sc,pred:pred,rentRatio:rentRatio,profit:profit,loc:loc};
 }
 
+function printReport(){
+  if(!lastAnalysis){alert('먼저 분석 결과를 확인해주세요.');return;}
+  window.print();
+}
+
 function saveToCompare(){
   if(!lastAnalysis){alert('먼저 분석 결과를 확인해주세요.');return;}
   if(SITE_COMPARE.length>=5){alert('비교함은 최대 5개까지 저장 가능합니다. 먼저 초기화하거나 일부를 삭제해주세요.');return;}
@@ -962,7 +1063,8 @@ function saveToCompare(){
     addr:a.D.addr||'(주소 미입력)',atype:a.D.atype,floor:a.D.floor,area:a.D.area,
     rent:a.D.rent,pred:a.pred,overall:a.sc.overall,traffic:a.sc.traffic,comp:a.sc.comp,
     target:a.sc.target,rentRatio:a.rentRatio,profit:a.profit,
-    cafe:a.D.cafe,lowcafe:a.D.lowcafe,subway:a.D.subway,savedAt:new Date().toISOString()
+    cafe:a.D.cafe,lowcafe:a.D.lowcafe,subway:a.D.subway,
+    lat:currentLat,lng:currentLng,savedAt:new Date().toISOString()
   });
   saveSiteCompareStorage();
   alert('비교함에 저장했습니다. ("⚖️ 상권 비교함" 탭에서 확인)');
@@ -990,6 +1092,33 @@ function removeSiteCompareItem(idx){
   SITE_COMPARE.splice(idx,1);
   saveSiteCompareStorage();
   renderSiteCompare();
+}
+
+var compareMapMarkers=[];
+function showCompareOnMap(){
+  var withCoords=SITE_COMPARE.filter(function(s){return s.lat!=null&&s.lng!=null;});
+  if(!withCoords.length){alert('좌표 정보가 있는 저장 입지가 없습니다. (주소 검색 없이 유동인구만 입력해 분석·저장한 경우 좌표가 없을 수 있습니다)');return;}
+  goTab('p-new',document.querySelector('.tb'));
+  setTimeout(function(){
+    if(!map)return;
+    map.relayout();
+    compareMapMarkers.forEach(function(m){m.marker.setMap(null);m.overlay.setMap(null);});
+    compareMapMarkers=[];
+    var bounds=new kakao.maps.LatLngBounds();
+    withCoords.forEach(function(s,i){
+      var pos=new kakao.maps.LatLng(s.lat,s.lng);
+      bounds.extend(pos);
+      var marker=new kakao.maps.Marker({map:map,position:pos,zIndex:20,
+        image:new kakao.maps.MarkerImage(
+          'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="32" height="42" viewBox="0 0 32 42"><path d="M16 0C7.2 0 0 7.2 0 16c0 12 16 26 16 26s16-14 16-26C32 7.2 24.8 0 16 0z" fill="#1a5c35"/><circle cx="16" cy="16" r="10" fill="#fff"/><text x="16" y="21" font-size="13" font-weight="700" text-anchor="middle" fill="#1a5c35">'+(i+1)+'</text></svg>'),
+          new kakao.maps.Size(32,42))
+      });
+      var label='<div style="background:#1a5c35;color:#fff;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;white-space:nowrap;box-shadow:0 2px 5px rgba(0,0,0,.25)">'+(i+1)+'. '+(s.addr.length>18?s.addr.slice(0,18)+'...':s.addr)+' · '+(s.pred?Math.round(s.pred).toLocaleString()+'만':'-')+'</div>';
+      var overlay=new kakao.maps.CustomOverlay({map:map,position:pos,content:label,yAnchor:2.4,zIndex:20});
+      compareMapMarkers.push({marker:marker,overlay:overlay});
+    });
+    map.setBounds(bounds);
+  },100);
 }
 
 function renderSiteCompare(){

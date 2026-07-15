@@ -80,7 +80,6 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
   <button class="tb" id="tab-general-btn" onclick="goTab('p-general',this)">📐 일반 vs 유사도 분석</button>
   <button class="tb" onclick="goTab('p-sitecompare',this)">⚖️ 상권 비교함</button>
   <button class="tb" onclick="goTab('p-stores',this)">📍 기존 점포 현황</button>
-  <button class="tb" onclick="goTab('p-compare',this)">📊 유사점 비교</button>
   <button class="tb" onclick="goTab('p-whitespace',this)">🗾 저가형카페 분포</button>
 </div>
 <div class="main">
@@ -321,18 +320,6 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
   <div id="sitecompare-wrap"></div>
 </div>
 
-
-<div id="p-compare" class="pnl">
-  <div class="st">매장별 유사매장 매칭</div>
-  <div class="abox blue" style="margin-bottom:12px">
-    <b>이 화면이 보여주는 것</b>: 각 매장을 실제 상권환경이 가장 비슷한 다른 매장들과 짝지어, 매출을 나란히 비교합니다. 단순히 "역세권끼리, 대학가끼리" 묶는 게 아니라, 아래 6가지 항목을 종합 채점(100점 만점)해서 점수가 높은 상위 3곳을 골라줍니다.<br><br>
-    <b>채점 기준</b>: 상권유형 일치(10점) · 층수 일치(10점) · 면적 차이(최대 12점) · 지하철역 거리 차이(최대 8점) · 카페 밀집도 차이(최대 15점) · 저가형카페 밀집도 차이(최대 15점) · <b>대형마트·백화점·몰 근접도 차이(최대 12점)</b> · <b>먹자상권(반경 내 음식점 총량) 차이(최대 18점)</b> — "역세권"이라는 라벨이나 지하철역까지의 단순 거리는 강남역 같은 초대형 상권과 한산한 역을 구분 못 합니다. 대형시설·먹자상권 규모까지 반영해서 상권의 실제 급(級)을 구분합니다.<br>
-    <b>데이터 출처</b>: 상권유형·층수·면적은 수기 입력값, 지하철거리·카페수·저가형카페수는 카카오맵에서 반경 500m 자동 수집한 실측값입니다.<br>
-    <b>활용법</b>: 점수가 80점 이상이면 상권환경이 매우 유사한 매장이라 매출 격차의 원인(임차료·운영방식·경쟁강도 등 개별 요인)을 비교해볼 가치가 있고, 50점 미만이면 참고 정도로만 보시면 됩니다.
-  </div>
-  <div id="compare-wrap"></div>
-</div>
-
 <div id="p-whitespace" class="pnl">
   <div class="st">🗾 저가형카페 분포 지도 (화이트스페이스 탐색)</div>
   <div class="abox blue" style="margin-bottom:12px">
@@ -413,7 +400,6 @@ function goTab(id,btn){
   document.getElementById(id).classList.add('on');
   if(btn) btn.classList.add('on');
   if(id==='p-stores') renderStores();
-  if(id==='p-compare') renderCompare();
   if(id==='p-sitecompare') renderSiteCompare();
   if(id==='p-whitespace') setTimeout(initWsMap,50);
   if(id==='p-general') renderGeneralAnalysis();
@@ -1714,7 +1700,6 @@ function addCustomStore(){
       STORES.push(store);
       saveCustomStores();
       renderStores(true);
-      renderCompare(true);
       ['cs-name','cs-addr','cs-area','cs-rent','cs-recent','cs-avg3','cs-avg6','cs-months','cs-opendate'].forEach(function(id){document.getElementById(id).value='';});
       document.getElementById('cs-floor').selectedIndex=0;
       alert(name+' 매장이 추가되었습니다.\n상권유형: '+stats.atype+' ('+stats.atypeReason+')\n카페 '+stats.cafe+'개 · 저가형카페 '+stats.lowcafe+'개 · 편의점 '+stats.conv+'개 · 지하철 '+(stats.subway==null?'없음':stats.subway+'m'));
@@ -1727,7 +1712,6 @@ function deleteCustomStore(idx){
   STORES.splice(idx,1);
   saveCustomStores();
   renderStores(true);
-  renderCompare(true);
 }
 
 function saveCustomStores(){
@@ -1814,7 +1798,6 @@ function importSalesDashboard(){
     });
     saveSalesOverrides(overrides);
     renderStores(true);
-    renderCompare(true);
     var html='<div class="abox blue">매칭 성공 '+matched.length+'개 매장 갱신 완료: '+matched.join(', ')+'</div>';
     if(unmatched.length){
       html+='<div class="abox" style="border-color:#fed7aa;background:#fff7ed;color:#c2410c;margin-top:6px">매칭 안 됨 (신규 가맹점으로 추정, "신규 매장 추가"에서 등록해주세요): '+unmatched.join(', ')+'</div>';
@@ -1848,74 +1831,6 @@ function exportStores(){
 function closeExportBox(){
   document.getElementById('cs-export-wrap').style.display='none';
   document.getElementById('cs-export').value='';
-}
-
-function compareReasons(a,b){
-  var r=[];
-  if(a.atype===b.atype) r.push('상권유형 동일('+a.atype+')');
-  if(a.floor===b.floor) r.push('층수 동일('+a.floor+')');
-  var ad=Math.abs(a.area-b.area);
-  if(ad<=5) r.push('면적 유사('+a.area+'평 vs '+b.area+'평)');
-  if(a.subway!=null&&b.subway!=null){
-    var sd=Math.abs(a.subway-b.subway);
-    if(sd<=300) r.push('지하철거리 유사('+a.subway+'m vs '+b.subway+'m)');
-  } else if(a.subway==null&&b.subway==null){
-    r.push('둘 다 역세권 아님');
-  }
-  if(a.cafe!=null&&b.cafe!=null){
-    var cd=Math.abs(a.cafe-b.cafe);
-    if(cd<=8) r.push('카페수 유사('+a.cafe+'개 vs '+b.cafe+'개)');
-  }
-  if(a.lowcafe!=null&&b.lowcafe!=null){
-    var ld=Math.abs(a.lowcafe-b.lowcafe);
-    if(ld<=3) r.push('저가형카페수 유사('+a.lowcafe+'개 vs '+b.lowcafe+'개)');
-  }
-  if(a.mallDist!=null&&b.mallDist!=null){
-    var md=Math.abs(a.mallDist-b.mallDist);
-    if(md<=700) r.push('대형마트/몰 거리 유사('+a.mallDist+'m vs '+b.mallDist+'m)');
-  } else if(a.mallDist==null&&b.mallDist==null){
-    r.push('둘 다 대형시설 없음');
-  }
-  if(a.restaurantCount!=null&&b.restaurantCount!=null){
-    var rd=Math.abs(a.restaurantCount-b.restaurantCount);
-    if(rd<=25) r.push('먹자상권 규모 유사(음식점 '+a.restaurantCount+'개 vs '+b.restaurantCount+'개)');
-  }
-  return r;
-}
-
-function renderCompare(force){
-  var el=document.getElementById('compare-wrap');
-  if(el.children.length&&!force)return;
-  var realStores=STORES.filter(function(s){return repSales(s)!=null;});
-  if(!realStores.length){el.innerHTML='<div class="abox">실매출 데이터가 있는 매장이 없습니다. "매출 데이터 자동 반영"으로 매출을 먼저 등록해주세요.</div>';return;}
-  el.innerHTML=realStores.slice().sort(function(a,b){return repSales(b)-repSales(a);}).map(function(s){
-    var candidates=realStores.filter(function(o){return o.name!==s.name;});
-    var sim=findSimilar(s,candidates).slice(0,3);
-    var mySales=repSales(s);
-    var simHtml=sim.length?sim.map(function(o){
-      var reasons=compareReasons(s,o);
-      var oSales=repSales(o);
-      var diff=oSales-mySales;
-      var diffTxt=diff===0?'동일':(diff>0?'+':'')+Math.round(diff/10000).toLocaleString()+'만';
-      var diffColor=diff>0?'#16a34a':diff<0?'#dc2626':'#64748b';
-      return'<div style="background:#f8fafc;border:1px solid #dde3ec;border-radius:8px;padding:8px 10px;margin-top:6px">'+
-        '<div style="display:flex;justify-content:space-between;align-items:center">'+
-          '<span style="font-weight:700">'+o.name+'</span>'+
-          '<span class="sim-badge">유사도 '+o.score+'점</span>'+
-        '</div>'+
-        '<div style="font-size:11px;color:#64748b;margin-top:3px">'+(reasons.length?reasons.join(' · '):'일부 항목만 근접, 전반적 유사도는 낮음')+'</div>'+
-        '<div style="font-size:11px;margin-top:3px">매출 '+Math.round(oSales/10000).toLocaleString()+'만 <span style="color:'+diffColor+';font-weight:700">('+diffTxt+')</span></div>'+
-      '</div>';
-    }).join(''):'<div style="font-size:11px;color:#94a3b8;margin-top:6px">비교 가능한 유사매장이 없습니다 (실매출 데이터 있는 다른 매장 부족).</div>';
-    return'<div class="card" style="margin-bottom:10px">'+
-      '<div style="display:flex;justify-content:space-between;align-items:center">'+
-        '<span style="font-weight:700;font-size:14px">'+s.name+'</span>'+
-        '<span style="text-align:right"><span style="font-weight:700;color:#1a5c35">'+Math.round(mySales/10000).toLocaleString()+'만</span>'+
-        '<span style="font-size:10px;color:#64748b"> · '+s.atype+' · '+s.floor+' · '+s.area+'평</span></span>'+
-      '</div>'+
-      simHtml+
-    '</div>';
-  }).join('');
 }
 
 loadAddrHistory();

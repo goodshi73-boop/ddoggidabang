@@ -570,7 +570,7 @@ function findSimilar(atype,floor,area,pop,grade){
     // 상권등급 유사도
     if(grade&&s.grade&&grade===s.grade) sc+=5;
     return Object.assign({},s,{score:sc});
-  }).sort(function(a,b){return b.score-a.score;}).slice(0,5);
+  }).filter(function(s){return s.score>=50;}).sort(function(a,b){return b.score-a.score;}).slice(0,5);
 }
 
 function estimateBase(D){
@@ -682,7 +682,7 @@ function runAnalysis(){
       '<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">'+
       [s.atype,s.floor,s.area+'평'].map(function(t){return'<span style="background:#f1f5f9;padding:2px 7px;border-radius:99px;font-size:10px">'+t+'</span>';}).join('')+
       '</div></div>';
-  }).join(''):'<div class="abox blue">유사 조건 기존점 데이터가 부족합니다.</div>';
+  }).join(''):'<div class="abox blue">유사도 50점 이상인 기존 점포가 없습니다. 유동인구·상권등급을 입력하면 정확도가 높아집니다.</div>';
 
   var strs=[],rsks=[];
   if(D.pop>=10000)strs.push('일 유동인구 '+D.pop.toLocaleString()+'명 — 충분한 집객 기반');

@@ -577,10 +577,9 @@ function findSimilar(atype,floor,area,pop,grade,region){
 }
 
 function predictSales(sim){
-  if(!sim||!sim.length) return 0;
-  // 유사도 80점 이상일 때만 해당 점포 매출 사용
-  if(sim[0].score>=80) return sim[0].avg;
-  return 0; // 80점 미만이면 추정식 사용
+  // 유사 점포 매출은 예측값으로 사용하지 않음 (참고용만)
+  // 예측 매출은 항상 estimateBase()로 계산
+  return 0;
 }
 
 function estimateBase(D){
@@ -694,15 +693,15 @@ function runAnalysis(){
 
   document.getElementById('similar-stores').innerHTML=sc.sim.length?sc.sim.map(function(s){
     var isHigh=s.score>=80;
-    var badgeBg=isHigh?'#1a5c35':'#94a3b8';
-    var note=isHigh?'':'<span style="font-size:10px;color:#94a3b8;margin-left:6px">참고용 (유사도 낮음)</span>';
-    var salesColor=isHigh?'#1a5c35':'#94a3b8';
+    var badgeBg=s.score>=80?'#2563eb':'#94a3b8';
+    var note=s.score>=80?'<span style="font-size:10px;color:#2563eb;margin-left:6px">유사 입지</span>':'<span style="font-size:10px;color:#94a3b8;margin-left:6px">참고용</span>';
+    var salesColor='#1a202c';
     return'<div class="store-card"><div style="display:flex;justify-content:space-between;align-items:flex-start">'+
       '<div><span style="font-weight:700">'+s.name+'</span>'+
       '<span style="background:'+badgeBg+';color:#fff;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700;margin-left:6px">유사도 '+s.score+'점</span>'+
       note+'</div>'+
       '<div style="text-align:right"><div style="font-size:15px;font-weight:700;color:'+salesColor+'">'+Math.round(s.avg/10000).toLocaleString()+'만</div>'+
-      '<div style="font-size:10px;color:#64748b">월평균('+s.months+'개월)'+(isHigh?' · 예측 기준':'')+'</div></div></div>'+
+      '<div style="font-size:10px;color:#64748b">월평균('+s.months+'개월) · 참고</div></div></div>'+
       '<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">'+
       [s.atype,s.floor,s.area+'평',s.pop?s.pop.toLocaleString()+'명':''].filter(Boolean).map(function(t){return'<span style="background:#f1f5f9;padding:2px 7px;border-radius:99px;font-size:10px">'+t+'</span>';}).join('')+
       '</div></div>';

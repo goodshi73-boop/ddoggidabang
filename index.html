@@ -225,35 +225,35 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
 
 <script>
 const STORES = [
-  {name:'신도림점',atype:'역세권',floor:'1층',area:20,avg:32680000,recent:59350000,months:2},
-  {name:'구미점',atype:'오피스·관공서',floor:'1층',area:70,avg:26320000,recent:29160000,months:13},
-  {name:'증미역점',atype:'역세권',floor:'1층',area:15,avg:24080000,recent:24080000,months:1},
-  {name:'수원역로데오점',atype:'역세권',floor:'1층',area:20,avg:23460000,recent:24980000,months:16},
-  {name:'수원성균관대점',atype:'대학가',floor:'1층',area:22,avg:22340000,recent:23720000,months:3},
-  {name:'서초법원점',atype:'오피스·관공서',floor:'1층',area:18,avg:20630000,recent:23970000,months:18},
-  {name:'굴포천역점',atype:'역세권',floor:'1층',area:15,avg:17930000,recent:23530000,months:15},
-  {name:'김포통진마송점',atype:'일반상권',floor:'1층',area:33,avg:16580000,recent:21080000,months:3},
-  {name:'검암점',atype:'일반상권',floor:'1층',area:16,avg:16510000,recent:14890000,months:2},
-  {name:'한밭대점',atype:'대학가',floor:'1층',area:33,avg:16330000,recent:16290000,months:9},
-  {name:'고양법원점',atype:'오피스·관공서',floor:'1층',area:14,avg:15650000,recent:16370000,months:17},
-  {name:'완주봉동점',atype:'일반상권',floor:'1층',area:42,avg:15430000,recent:16790000,months:6},
-  {name:'포항문덕점',atype:'일반상권',floor:'1층',area:20,avg:14250000,recent:13840000,months:14},
-  {name:'의정부금오점',atype:'일반상권',floor:'1층',area:14,avg:13860000,recent:12280000,months:13},
-  {name:'강남구청점',atype:'역세권',floor:'지하',area:7,avg:13510000,recent:14560000,months:18},
-  {name:'안양시청점',atype:'오피스·관공서',floor:'2층',area:10,avg:12720000,recent:15910000,months:16},
-  {name:'상주북천교점',atype:'일반상권',floor:'1층',area:18,avg:12630000,recent:13520000,months:11},
-  {name:'부호역점',atype:'역세권',floor:'1층',area:18,avg:12370000,recent:12650000,months:8},
-  {name:'아산선문대점',atype:'대학가',floor:'1층',area:18,avg:11610000,recent:13080000,months:10},
-  {name:'울산법원점',atype:'오피스·관공서',floor:'2층',area:25,avg:11040000,recent:11600000,months:14},
-  {name:'강원대병원점',atype:'병원상권',floor:'1층',area:35,avg:11010000,recent:12050000,months:11},
-  {name:'남동인더스파크공단역점',atype:'역세권',floor:'1층',area:20,avg:10790000,recent:12130000,months:2},
-  {name:'구미인동점',atype:'일반상권',floor:'1층',area:40,avg:10580000,recent:9100000,months:8},
-  {name:'안산대학교점',atype:'대학가',floor:'1층',area:16,avg:9190000,recent:18380000,months:2},
-  {name:'춘천시청점',atype:'오피스·관공서',floor:'1층',area:20,avg:9060000,recent:11550000,months:4},
-  {name:'울산장검점',atype:'일반상권',floor:'지하',area:15,avg:8960000,recent:10010000,months:6},
-  {name:'대구시청점',atype:'오피스·관공서',floor:'1층',area:65,avg:8930000,recent:4620000,months:5},
-  {name:'천안병천순대거리점',atype:'일반상권',floor:'1층',area:25,avg:8660000,recent:7170000,months:2},
-  {name:'부천법원점',atype:'오피스·관공서',floor:'1층',area:14,avg:8460000,recent:9250000,months:15},
+  {name:'신도림점',atype:'역세권',floor:'1층',area:20,avg:32680000,recent:59350000,months:2,rent:10000,deposit:500,pop:30870,female:46,young:31,grade:'A',survival:27,peak:'12~13시, 13~14시, 18~19시',addr:'서울 구로구 새말로 93',region:'서울'},
+  {name:'구미점',atype:'오피스·관공서',floor:'1층',area:70,avg:26320000,recent:29160000,months:13,rent:2000,deposit:220,pop:9042,female:45,young:20,grade:'B',survival:30,peak:'12~13시, 13~14시',addr:'경북 구미시 송정대로 48',region:'경북'},
+  {name:'증미역점',atype:'역세권',floor:'1층',area:15,avg:24080000,recent:24080000,months:1,rent:5000,deposit:300,pop:15249,female:43,young:26,grade:'A',survival:26,peak:'12~13시, 13~14시, 18~19시',addr:'서울시 강서구 양천로 564',region:'서울'},
+  {name:'수원역로데오점',atype:'역세권',floor:'1층',area:20,avg:23460000,recent:24980000,months:16,rent:5000,deposit:300,pop:70253,female:46,young:34,grade:'A',survival:28,peak:'12~13시, 13~14시',addr:'경기도 수원시 팔달구 매산로1가 11-12',region:'경기'},
+  {name:'수원성균관대점',atype:'대학가',floor:'1층',area:22,avg:22340000,recent:23720000,months:3,rent:3000,deposit:140,pop:21745,female:41,young:28,grade:'B',survival:28,peak:'12~13시, 13~14시',addr:'경기도 수원시 장안구 서부로 2106번길 14',region:'경기'},
+  {name:'서초법원점',atype:'오피스·관공서',floor:'1층',area:18,avg:20630000,recent:23970000,months:18,rent:10000,deposit:600,pop:48241,female:44,young:31,grade:'A',survival:30,peak:'9~10시, 12~14시',addr:'서울특별시 서초구 서초중앙로 147',region:'서울'},
+  {name:'굴포천역점',atype:'역세권',floor:'1층',area:15,avg:17930000,recent:23530000,months:15,rent:3000,deposit:200,pop:27066,female:45,young:23,grade:'B',survival:30,peak:'12~13시, 13~14시',addr:'인천 부평구 길주로 623',region:'인천'},
+  {name:'김포통진마송점',atype:'일반상권',floor:'1층',area:33,avg:16580000,recent:21080000,months:3,rent:3000,deposit:160,pop:24356,female:32,young:16,grade:'B',survival:29,peak:'12~13시, 13~14시',addr:'경기도 김포시 통진읍 서암리 714-36',region:'경기'},
+  {name:'검암점',atype:'일반상권',floor:'1층',area:16,avg:16510000,recent:14890000,months:2,rent:1000,deposit:140,pop:8686,female:41,young:23,grade:'B',survival:29,peak:'12~13시, 13~14시',addr:'인천시 서구 검암동 507-7',region:'인천'},
+  {name:'한밭대점',atype:'대학가',floor:'1층',area:33,avg:16330000,recent:16290000,months:9,rent:2000,deposit:120,pop:13833,female:43,young:26,grade:'B',survival:33,peak:'12~13시, 13~14시',addr:'대전 유성구 학하서로121번길 71-26',region:'대전'},
+  {name:'고양법원점',atype:'오피스·관공서',floor:'1층',area:14,avg:15650000,recent:16370000,months:17,rent:6000,deposit:340,pop:24707,female:48,young:21,grade:'A',survival:30,peak:'12~13시, 13~14시',addr:'경기 고양시 일산동구 장백로 194',region:'경기'},
+  {name:'완주봉동점',atype:'일반상권',floor:'1층',area:42,avg:15430000,recent:16790000,months:6,rent:3000,deposit:120,pop:4999,female:44,young:11,grade:'B',survival:30,peak:'12~13시, 13~14시',addr:'전북 완주군 봉동읍 봉동로 151',region:'전북'},
+  {name:'포항문덕점',atype:'일반상권',floor:'1층',area:20,avg:14250000,recent:13840000,months:14,rent:2500,deposit:200,pop:6318,female:42,young:19,grade:'B',survival:31,peak:'12~13시, 13~14시',addr:'경북 포항시 남구 오천읍 원동로 32',region:'경북'},
+  {name:'의정부금오점',atype:'일반상권',floor:'1층',area:14,avg:13860000,recent:12280000,months:13,rent:2500,deposit:130,pop:26987,female:46,young:18,grade:'B',survival:29,peak:'12~13시, 13~14시',addr:'경기도 의정부시 부용로 105',region:'경기'},
+  {name:'강남구청점',atype:'역세권',floor:'지하',area:7,avg:13510000,recent:14560000,months:18,rent:3000,deposit:220,pop:60589,female:46,young:34,grade:'A',survival:31,peak:'12~13시, 13~14시',addr:'서울 강남구 학동로 343',region:'서울'},
+  {name:'안양시청점',atype:'오피스·관공서',floor:'2층',area:10,avg:12720000,recent:15910000,months:16,rent:2000,deposit:140,pop:15639,female:43,young:24,grade:'B',survival:32,peak:'12~13시, 13~14시',addr:'경기 안양시 동안구 시민대로 230',region:'경기'},
+  {name:'상주북천교점',atype:'일반상권',floor:'1층',area:18,avg:12630000,recent:13520000,months:11,rent:1000,deposit:80,pop:4888,female:41,young:15,grade:'B',survival:33,peak:'12~13시, 13~14시',addr:'경북 상주시 경상대로 3144',region:'경북'},
+  {name:'부호역점',atype:'역세권',floor:'1층',area:18,avg:12370000,recent:12650000,months:8,rent:1000,deposit:50,pop:1904,female:45,young:24,grade:'B',survival:38,peak:'12~13시, 13~14시',addr:'경북 경산시 하양읍 대경로105길 10',region:'경북'},
+  {name:'아산선문대점',atype:'대학가',floor:'1층',area:18,avg:11610000,recent:13080000,months:10,rent:3000,deposit:120,pop:1966,female:39,young:23,grade:'B',survival:29,peak:'12~13시, 13~14시',addr:'충남 아산시 탕정면 탕정면로 114-1',region:'충남'},
+  {name:'울산법원점',atype:'오피스·관공서',floor:'2층',area:25,avg:11040000,recent:11600000,months:14,rent:3000,deposit:100,pop:25571,female:45,young:19,grade:'B',survival:28,peak:'12~13시, 13~14시',addr:'울산 남구 법대로 94-1',region:'울산'},
+  {name:'강원대병원점',atype:'병원상권',floor:'1층',area:35,avg:11010000,recent:12050000,months:11,rent:3000,deposit:200,pop:8378,female:45,young:25,grade:'B',survival:32,peak:'12~13시, 13~14시',addr:'강원도 춘천시 성심로 100',region:'강원'},
+  {name:'남동인더스파크공단역점',atype:'역세권',floor:'1층',area:20,avg:10790000,recent:12130000,months:2,rent:2000,deposit:150,pop:19447,female:31,young:21,grade:'B',survival:30,peak:'12~13시, 13~14시',addr:'인천시 남동구 은청로 16-17',region:'인천'},
+  {name:'구미인동점',atype:'일반상권',floor:'1층',area:40,avg:10580000,recent:9100000,months:8,rent:3000,deposit:100,pop:4548,female:39,young:26,grade:'B',survival:30,peak:'12~13시, 13~14시',addr:'경북 구미시 인동26길 14-2',region:'경북'},
+  {name:'안산대학교점',atype:'대학가',floor:'1층',area:16,avg:9190000,recent:18380000,months:2,rent:1000,deposit:90,pop:1687,female:41,young:27,grade:'B',survival:32,peak:'12~13시, 13~14시',addr:'안산시 상록구 안산대학로 158',region:'경기'},
+  {name:'춘천시청점',atype:'오피스·관공서',floor:'1층',area:20,avg:9060000,recent:11550000,months:4,rent:3000,deposit:200,pop:23999,female:46,young:23,grade:'B',survival:32,peak:'12~13시, 13~14시',addr:'강원도 춘천시 시청길 10번길 4-2',region:'강원'},
+  {name:'울산장검점',atype:'일반상권',floor:'지하',area:15,avg:8960000,recent:10010000,months:6,rent:3000,deposit:150,pop:2880,female:44,young:21,grade:'B',survival:35,peak:'12~13시, 13~14시',addr:'울산 울주 범서 장검1길 57',region:'울산'},
+  {name:'대구시청점',atype:'오피스·관공서',floor:'1층',area:65,avg:8930000,recent:4620000,months:5,rent:3000,deposit:270,pop:9724,female:45,young:25,grade:'B',survival:31,peak:'12~13시, 13~14시',addr:'대구 중구 국채보상로 659',region:'대구'},
+  {name:'천안병천순대거리점',atype:'일반상권',floor:'1층',area:25,avg:8660000,recent:7170000,months:2,rent:1000,deposit:50,pop:19646,female:31,young:16,grade:'C',survival:32,peak:'12~13시, 13~14시',addr:'충남 천안시 동남구 병천면 병천리 167-3',region:'충남'},
+  {name:'부천법원점',atype:'오피스·관공서',floor:'1층',area:14,avg:8460000,recent:9250000,months:15,rent:2000,deposit:150,pop:19667,female:43,young:23,grade:'B',survival:29,peak:'12~13시, 13~14시',addr:'경기 부천시 원미구 상일로 130',region:'경기'},
 ];
 
 var map=null, geocoder=null, ps=null;
@@ -491,13 +491,20 @@ function resetAll(){
   document.getElementById('result-wrap').style.display='none';
 }
 
-function findSimilar(atype,floor,area){
-  return STORES.map(function(s){
+function findSimilar(atype,floor,area,pop,grade){
+  return STORES.filter(function(s){return s.avg>0&&s.months>=1;}).map(function(s){
     var sc=0;
     if(s.atype===atype) sc+=40;
     if(s.floor===floor) sc+=20;
     var ad=Math.abs(s.area-(area||15));
-    if(ad<=5)sc+=30;else if(ad<=15)sc+=18;else if(ad<=25)sc+=8;
+    if(ad<=5)sc+=20;else if(ad<=15)sc+=12;else if(ad<=25)sc+=5;
+    // 유동인구 유사도
+    if(pop>0&&s.pop>0){
+      var pd=Math.abs(s.pop-pop)/Math.max(s.pop,pop);
+      if(pd<=0.2)sc+=15;else if(pd<=0.4)sc+=8;else if(pd<=0.6)sc+=3;
+    }
+    // 상권등급 유사도
+    if(grade&&s.grade&&grade===s.grade) sc+=5;
     return Object.assign({},s,{score:sc});
   }).sort(function(a,b){return b.score-a.score;}).slice(0,5);
 }
@@ -529,7 +536,7 @@ function calcScore(D){
   target+=(ab[D.atype]||0);
   if(D.floor==='2층')target-=8;else if(D.floor==='지하')target-=6;
   target=Math.max(15,Math.min(100,Math.round(target)));
-  var sim=findSimilar(D.atype,D.floor,D.area);
+  var sim=findSimilar(D.atype,D.floor,D.area,D.pop,D.grade);
   var simAvg=sim.length?Math.round(sim.reduce(function(a,s){return a+s.avg;},0)/sim.length):0;
   var cost=65;
   var base=simAvg||estimateBase(D);

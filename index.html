@@ -186,10 +186,20 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
 
 <div id="p-stores" class="pnl">
   <div class="st">떠기다방 기존 점포 현황 (29개점)</div>
+  <div class="card" style="background:#f0fdf4;border-color:#bbf7d0;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+    <div style="font-size:12px;color:#14532d">카카오맵으로 기존 점포 반경 500m 카페수·편의점수를 자동 수집합니다</div>
+    <button class="btn btn-g" onclick="collectAllStores()" id="btn-collect">🗺 전체 점포 상권 자동수집</button>
+  </div>
+  <div id="collect-progress" style="display:none;margin-bottom:10px">
+    <div style="background:#f1f5f9;border-radius:8px;height:8px;overflow:hidden">
+      <div id="collect-bar" style="background:#1a5c35;height:100%;width:0%;transition:width .3s"></div>
+    </div>
+    <div id="collect-status" style="font-size:11px;color:#64748b;margin-top:4px;text-align:center"></div>
+  </div>
   <div class="card" style="overflow-x:auto">
     <table class="itbl" style="min-width:650px">
       <thead><tr style="background:#f8fafc;font-size:11px;font-weight:700;color:#64748b">
-        <td style="padding:8px 6px">점포명</td><td>상권유형</td><td>층수</td><td>면적</td><td>월평균매출</td><td>최근월매출</td><td>영업개월</td>
+        <td style="padding:8px 6px">점포명</td><td>상권유형</td><td>층수</td><td>면적</td><td>유동인구</td><td>상권등급</td><td>카페수</td><td>편의점수</td><td>월평균매출</td><td>최근월매출</td><td>영업개월</td>
       </tr></thead>
       <tbody id="store-tbody"></tbody>
     </table>
@@ -260,6 +270,60 @@ var map=null, geocoder=null, ps=null;
 var currentRadius=500, currentLat=0, currentLng=0;
 var searchCircle=null, cafeMarkers=[], cafeOverlays=[];
 var ovMap={}; // 전역 오버레이 관리
+
+function collectAllStores(){
+  if(!map||!ps||!geocoder){alert('지도가 아직 로드 중입니다. 잠시 후 다시 시도해주세요.');return;}
+  var btn=document.getElementById('btn-collect');
+  btn.disabled=true;
+  btn.textContent='수집 중...';
+  document.getElementById('collect-progress').style.display='block';
+  var total=STORES.length;
+  var done=0;
+
+  function updateProgress(name){
+    done++;
+    var pct=Math.round(done/total*100);
+    document.getElementById('collect-bar').style.width=pct+'%';
+    document.getElementById('collect-status').textContent=done+'/'+total+' — '+name+' 완료 ('+pct+'%)';
+    if(done>=total){
+      btn.disabled=false;
+      btn.textContent='🗺 전체 점포 상권 자동수집';
+      document.getElementById('collect-status').textContent='✅ 전체 수집 완료! ('+total+'개 점포)';
+      renderStores();
+    }
+  }
+
+  function collectStore(s, delay){
+    setTimeout(function(){
+      geocoder.addressSearch(s.addr, function(result, status){
+        if(status===kakao.maps.services.Status.OK){
+          var lat=parseFloat(result[0].y), lng=parseFloat(result[0].x);
+          var latlng=new kakao.maps.LatLng(lat,lng);
+          var cafeDone=false, convDone=false;
+
+          ps.categorySearch('CE7', function(data, status2){
+            s.cafe500 = (status2===kakao.maps.services.Status.OK) ? data.length : 0;
+            cafeDone=true;
+            if(cafeDone&&convDone) updateProgress(s.name);
+          },{location:latlng, radius:500, size:15});
+
+          ps.categorySearch('CS2', function(data, status2){
+            s.conv500 = (status2===kakao.maps.services.Status.OK) ? data.length : 0;
+            convDone=true;
+            if(cafeDone&&convDone) updateProgress(s.name);
+          },{location:latlng, radius:500, size:15});
+        } else {
+          s.cafe500=null; s.conv500=null;
+          updateProgress(s.name);
+        }
+      });
+    }, delay);
+  }
+
+  STORES.forEach(function(s, i){
+    collectStore(s, i * 400);
+  });
+}
 
 function closeOv(id){
   if(ovMap[id]) ovMap[id].setMap(null);
@@ -658,11 +722,18 @@ function runAnalysis(){
 
 function renderStores(){
   var t=document.getElementById('store-tbody');
-  if(t.children.length)return;
   t.innerHTML=STORES.map(function(s){
-    return'<tr><td style="font-weight:600;padding:7px 4px">'+s.name+'</td>'+
+    var cafeDisp=s.cafe500!=null?s.cafe500+'개':'-';
+    var convDisp=s.conv500!=null?s.conv500+'개':'-';
+    var popDisp=s.pop?s.pop.toLocaleString()+'명':'-';
+    return'<tr id="store-row-'+s.name.replace(/\s/g,'')+'">' +
+      '<td style="font-weight:600;padding:7px 4px;white-space:nowrap">'+s.name+'</td>'+
       '<td><span style="background:#f0fdf4;color:#166534;padding:2px 7px;border-radius:99px;font-size:10px">'+s.atype+'</span></td>'+
       '<td>'+s.floor+'</td><td>'+s.area+'평</td>'+
+      '<td style="color:#64748b;font-size:11px">'+popDisp+'</td>'+
+      '<td style="text-align:center"><span style="background:'+(s.grade==='A'?'#dcfce7':s.grade==='B'?'#dbeafe':s.grade==='C'?'#fef3c7':'#fee2e2')+';color:'+(s.grade==='A'?'#166534':s.grade==='B'?'#1e40af':s.grade==='C'?'#92400e':'#991b1b')+';padding:1px 7px;border-radius:99px;font-size:10px;font-weight:700">'+( s.grade||'-')+'</span></td>'+
+      '<td id="cafe-'+s.name.replace(/\s/g,'')+'" style="text-align:center;color:#1a5c35;font-weight:600">'+cafeDisp+'</td>'+
+      '<td id="conv-'+s.name.replace(/\s/g,'')+'" style="text-align:center;color:#7c3aed;font-weight:600">'+convDisp+'</td>'+
       '<td style="font-weight:700;color:'+(s.avg>=20000000?'#1a5c35':s.avg>=12000000?'#2563eb':'#64748b')+'">'+Math.round(s.avg/10000).toLocaleString()+'만</td>'+
       '<td style="color:'+(s.recent>=s.avg?'#16a34a':'#64748b')+'">'+Math.round(s.recent/10000).toLocaleString()+'만</td>'+
       '<td style="color:#64748b">'+s.months+'개월</td></tr>';

@@ -555,22 +555,32 @@ function resetAll(){
   document.getElementById('result-wrap').style.display='none';
 }
 
-function findSimilar(atype,floor,area,pop,grade){
-  return STORES.filter(function(s){return s.avg>0&&s.months>=1;}).map(function(s){
+function findSimilar(atype,floor,area,pop,grade,region){
+  var metro=['서울','경기','인천'];
+  var isMetro=metro.indexOf(region||'')>=0;
+  var scored=STORES.filter(function(s){return s.avg>0&&s.months>=1;}).map(function(s){
     var sc=0;
-    if(s.atype===atype) sc+=40;
-    if(s.floor===floor) sc+=20;
+    if(s.atype===atype) sc+=35;
+    if(s.floor===floor) sc+=15;
     var ad=Math.abs(s.area-(area||15));
-    if(ad<=5)sc+=20;else if(ad<=15)sc+=12;else if(ad<=25)sc+=5;
-    // 유동인구 유사도
+    if(ad<=3)sc+=20;else if(ad<=8)sc+=14;else if(ad<=15)sc+=7;else if(ad<=25)sc+=3;
     if(pop>0&&s.pop>0){
       var pd=Math.abs(s.pop-pop)/Math.max(s.pop,pop);
-      if(pd<=0.2)sc+=15;else if(pd<=0.4)sc+=8;else if(pd<=0.6)sc+=3;
+      if(pd<=0.15)sc+=20;else if(pd<=0.30)sc+=14;else if(pd<=0.50)sc+=7;else if(pd<=0.70)sc+=3;
     }
-    // 상권등급 유사도
     if(grade&&s.grade&&grade===s.grade) sc+=5;
+    if(isMetro===(metro.indexOf(s.region||'')>=0)) sc+=5;
     return Object.assign({},s,{score:sc});
-  }).filter(function(s){return s.score>=50;}).sort(function(a,b){return b.score-a.score;}).slice(0,5);
+  }).sort(function(a,b){return b.score-a.score;});
+  // 무조건 1위 1개 반환 (유사도 점수와 함께)
+  return scored.length ? [scored[0]] : [];
+}
+
+function predictSales(sim){
+  if(!sim||!sim.length) return 0;
+  // 유사도 80점 이상일 때만 해당 점포 매출 사용
+  if(sim[0].score>=80) return sim[0].avg;
+  return 0; // 80점 미만이면 추정식 사용
 }
 
 function estimateBase(D){
@@ -600,8 +610,8 @@ function calcScore(D){
   target+=(ab[D.atype]||0);
   if(D.floor==='2층')target-=8;else if(D.floor==='지하')target-=6;
   target=Math.max(15,Math.min(100,Math.round(target)));
-  var sim=findSimilar(D.atype,D.floor,D.area,D.pop,D.grade);
-  var simAvg=sim.length?Math.round(sim.reduce(function(a,s){return a+s.avg;},0)/sim.length):0;
+  var sim=findSimilar(D.atype,D.floor,D.area,D.pop,D.grade,D.region);
+  var simAvg=predictSales(sim);
   var cost=65;
   var base=simAvg||estimateBase(D);
   if(D.rent>0&&base>0){
@@ -629,7 +639,7 @@ function runAnalysis(){
     rent:n('i-rent'),deposit:n('i-deposit'),premium:n('i-premium'),remain:g('i-remain'),
     pop:n('i-pop'),female:n('i-female'),young:n('i-young'),
     cafe:n('r-cafe'),lowcafe:n('r-lowcafe'),subway:g('r-subway'),
-    anchor:g('r-anchor'),extra:g('i-extra'),grade:g('i-grade'),survival:n('i-survival')};
+    anchor:g('r-anchor'),extra:g('i-extra'),grade:g('i-grade'),survival:n('i-survival'),region:g('i-region')||''};
   if(!D.addr&&D.pop<=0){alert('주소를 검색하거나 유동인구를 입력해주세요.');return;}
   if(!D.atype||D.atype===''){
     var addr=D.addr.toLowerCase();
@@ -638,6 +648,14 @@ function runAnalysis(){
     else if(addr.includes('법원')||addr.includes('시청')||addr.includes('구청'))D.atype='오피스·관공서';
     else if(addr.includes('병원'))D.atype='병원상권';
     else D.atype='일반상권';
+  }
+  // 주소에서 지역 자동 판별
+  if(!D.region){
+    var a=D.addr;
+    if(a.includes('서울'))D.region='서울';
+    else if(a.includes('경기')||a.includes('수원')||a.includes('성남')||a.includes('안양')||a.includes('고양')||a.includes('부천')||a.includes('의정부')||a.includes('안산')||a.includes('김포'))D.region='경기';
+    else if(a.includes('인천'))D.region='인천';
+    else D.region='기타';
   }
   var sc=calcScore(D);
   var grd=getGrade(sc.overall);
@@ -675,14 +693,20 @@ function runAnalysis(){
     met('총 초기투자',initInvest.toLocaleString()+'만','원');
 
   document.getElementById('similar-stores').innerHTML=sc.sim.length?sc.sim.map(function(s){
+    var isHigh=s.score>=80;
+    var badgeBg=isHigh?'#1a5c35':'#94a3b8';
+    var note=isHigh?'':'<span style="font-size:10px;color:#94a3b8;margin-left:6px">참고용 (유사도 낮음)</span>';
+    var salesColor=isHigh?'#1a5c35':'#94a3b8';
     return'<div class="store-card"><div style="display:flex;justify-content:space-between;align-items:flex-start">'+
-      '<div><span style="font-weight:700">'+s.name+'</span><span class="sim-badge">유사도 '+s.score+'점</span></div>'+
-      '<div style="text-align:right"><div style="font-size:15px;font-weight:700;color:#1a5c35">'+Math.round(s.avg/10000).toLocaleString()+'만</div>'+
-      '<div style="font-size:10px;color:#64748b">월평균('+s.months+'개월)</div></div></div>'+
+      '<div><span style="font-weight:700">'+s.name+'</span>'+
+      '<span style="background:'+badgeBg+';color:#fff;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700;margin-left:6px">유사도 '+s.score+'점</span>'+
+      note+'</div>'+
+      '<div style="text-align:right"><div style="font-size:15px;font-weight:700;color:'+salesColor+'">'+Math.round(s.avg/10000).toLocaleString()+'만</div>'+
+      '<div style="font-size:10px;color:#64748b">월평균('+s.months+'개월)'+(isHigh?' · 예측 기준':'')+'</div></div></div>'+
       '<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">'+
-      [s.atype,s.floor,s.area+'평'].map(function(t){return'<span style="background:#f1f5f9;padding:2px 7px;border-radius:99px;font-size:10px">'+t+'</span>';}).join('')+
+      [s.atype,s.floor,s.area+'평',s.pop?s.pop.toLocaleString()+'명':''].filter(Boolean).map(function(t){return'<span style="background:#f1f5f9;padding:2px 7px;border-radius:99px;font-size:10px">'+t+'</span>';}).join('')+
       '</div></div>';
-  }).join(''):'<div class="abox blue">유사도 50점 이상인 기존 점포가 없습니다. 유동인구·상권등급을 입력하면 정확도가 높아집니다.</div>';
+  }).join(''):'<div class="abox blue">입력 조건과 유사한 기존 점포가 없습니다.<br>유동인구·상권등급을 입력하면 매칭 정확도가 높아집니다.</div>';
 
   var strs=[],rsks=[];
   if(D.pop>=10000)strs.push('일 유동인구 '+D.pop.toLocaleString()+'명 — 충분한 집객 기반');

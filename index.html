@@ -768,7 +768,7 @@ function searchNearby(lat,lng){
     foundConvIds[p.id]=true;
     var convPos=new kakao.maps.LatLng(p.y,p.x);
     var convMarker=new kakao.maps.Marker({map:map,position:convPos,
-      image:new kakao.maps.MarkerImage('https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_purple.png',new kakao.maps.Size(20,28)),
+      image:new kakao.maps.MarkerImage('data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="20" height="28" viewBox="0 0 20 28"><path d="M10 0C4.5 0 0 4.5 0 10c0 7.5 10 18 10 18s10-10.5 10-18C20 4.5 15.5 0 10 0z" fill="#7c3aed"/><circle cx="10" cy="10" r="4" fill="#fff"/></svg>'),new kakao.maps.Size(20,28)),
       zIndex:8
     });
     cafeMarkers.push(convMarker);

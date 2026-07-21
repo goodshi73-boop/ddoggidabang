@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>버스정류장·교차로 데이터 수집기</title>
+<style>
+  body{font-family:'Malgun Gothic',sans-serif;background:#f5f7fa;margin:0;padding:20px;color:#1e293b}
+  h1{font-size:18px;color:#1F3864;margin-bottom:4px}
+  .sub{font-size:12px;color:#64748b;margin-bottom:16px}
+  .status{background:#fff;border:1px solid #dde3ec;border-radius:8px;padding:12px 16px;margin-bottom:14px;font-size:13px}
+  .status b{color:#1a5c35}
+  table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);font-size:12px}
+  th,td{padding:7px 9px;text-align:left;border-bottom:1px solid #eef1f5}
+  th{background:#1F3864;color:#fff;font-weight:700}
+  tr:nth-child(even){background:#fafbfc}
+  button{background:#1a5c35;color:#fff;border:none;border-radius:6px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;margin-right:8px;margin-top:10px}
+  button:hover{background:#164a2b}
+  #out{width:100%;height:220px;margin-top:14px;font-family:monospace;font-size:11px;padding:10px;border:1px solid #dde3ec;border-radius:8px}
+</style>
+</head>
+<body>
+<h1>🚌 버스정류장·교차로 데이터 수집기</h1>
+<div class="sub">29개 매장 반경 150m 내 버스정류장 개수와, 200m 내 교차로(사거리) 인접 여부를 수집합니다. (횡단보도 자체는 카카오맵 API로 확인이 안 되는 정보라 "OO사거리/교차로" 명칭 검색으로 대체합니다)</div>
+<div class="status" id="status">대기 중...</div>
+<button id="btnCopy" style="display:none">결과 복사 (STORES 병합용)</button>
+<table>
+<thead><tr><th>점포명</th><th>주소</th><th>버스정류장(150m)</th><th>교차로 인접</th></tr></thead>
+<tbody id="tbody"></tbody>
+</table>
+<textarea id="out" placeholder="결과가 여기 표시됩니다..." readonly></textarea>
+
+<script>
+var STORES_ADDR = [{"storesName": "신도림점", "addr": "서울 구로구 새말로 93 신도림 태영타운"}, {"storesName": "구미점", "addr": "경북 구미시 송정대로 48"}, {"storesName": "증미역점", "addr": "서울시 강서구 양천로 564"}, {"storesName": "수원역로데오점", "addr": "경기도 수원시 팔달구 덕영대로 905"}, {"storesName": "수원성균관대점", "addr": "경기도 수원시 장안구 서부로 2106번길 14"}, {"storesName": "서초법원점", "addr": "서울특별시 서초구 서초중앙로 147"}, {"storesName": "굴포천역점", "addr": "인천 부평구 길주로 623"}, {"storesName": "김포통진마송점", "addr": "경기도 김포시 통진읍 조강로36번길"}, {"storesName": "검암점", "addr": "인천 서구 검암로30번길"}, {"storesName": "한밭대점", "addr": "대전 유성구 학하서로121번길 71-26"}, {"storesName": "고양법원점", "addr": "경기 고양시 일산동구 장백로 194"}, {"storesName": "완주봉동점", "addr": "전북 완주군 봉동읍 봉동로 151"}, {"storesName": "포항문덕점", "addr": "경북 포항시 남구 오천읍 원동로 32"}, {"storesName": "의정부금오점", "addr": "경기도 의정부시 부용로 105"}, {"storesName": "강남구청점", "addr": "서울 강남구 학동로 343"}, {"storesName": "안양시청점", "addr": "경기 안양시 동안구 시민대로 230"}, {"storesName": "상주북천교점", "addr": "경북 상주시 경상대로 3144"}, {"storesName": "부호역점", "addr": "경북 경산시 하양읍 대경로105길 10"}, {"storesName": "아산선문대점", "addr": "충남 아산시 탕정면 탕정면로 114-1"}, {"storesName": "울산법원점", "addr": "울산 남구 법대로 94-1"}, {"storesName": "강원대병원점", "addr": "강원도 춘천시 성심로 100"}, {"storesName": "남동인더스파크공단역점", "addr": "인천시 남동구 은청로 16-17"}, {"storesName": "구미인동점", "addr": "경북 구미시 인동26길 14-2"}, {"storesName": "안산대학교점", "addr": "안산시 상록구 안산대학로 158"}, {"storesName": "춘천시청점", "addr": "강원도 춘천시 시청길 10번길 4-2"}, {"storesName": "울산장검점", "addr": "울산 울주군 범서읍 장검1길 57"}, {"storesName": "대구시청점", "addr": "대구 중구 국채보상로 659"}, {"storesName": "천안병천순대거리점", "addr": "충남 천안시 동남구 병천면 아우내순대길"}, {"storesName": "부천법원점", "addr": "경기 부천시 원미구 상일로 130"}];
+var results = [];
+var doneCount = 0;
+var geocoder=null, ps=null;
+
+function render(){
+  var tbody = document.getElementById('tbody');
+  tbody.innerHTML = STORES_ADDR.map(function(s,i){
+    var r = results[i];
+    if(!r) return '<tr><td>'+s.storesName+'</td><td>'+s.addr+'</td><td colspan="2">수집 중...</td></tr>';
+    if(!r.ok) return '<tr><td>'+s.storesName+'</td><td>'+s.addr+'</td><td colspan="2" style="color:#dc2626">수집 실패</td></tr>';
+    return '<tr><td>'+s.storesName+'</td><td>'+s.addr+'</td><td>'+r.bus+'개</td><td>'+(r.intersection!=null?r.intersection+'m':'없음')+'</td></tr>';
+  }).join('');
+  document.getElementById('status').innerHTML = '<b>'+doneCount+' / '+STORES_ADDR.length+'</b> 건 수집 완료';
+  if(doneCount>=STORES_ADDR.length){
+    document.getElementById('status').innerHTML += ' — 완료!';
+    document.getElementById('btnCopy').style.display='inline-block';
+  }
+}
+
+function pagedKeyword(loc,keyword,maxPages,radius,onEach,onDone){
+  var pc=0;
+  ps.keywordSearch(keyword,function(data,status,pagination){
+    if(status===kakao.maps.services.Status.OK){data.forEach(onEach);}
+    pc++;
+    if(status===kakao.maps.services.Status.OK&&pagination&&pagination.hasNextPage&&pc<maxPages){pagination.nextPage();}
+    else{onDone();}
+  },{location:loc,radius:radius,size:15});
+}
+
+function collectOne(i,cb){
+  var s = STORES_ADDR[i];
+  geocoder.addressSearch(s.addr, function(res,status){
+    if(status!==kakao.maps.services.Status.OK || !res[0]){
+      results[i]={ok:false}; doneCount++; render(); cb(); return;
+    }
+    var loc = new kakao.maps.LatLng(parseFloat(res[0].y), parseFloat(res[0].x));
+    var busCount=0, intersectionDist=null;
+    var tasks=2, done=0;
+    function checkDone(){
+      done++;
+      if(done>=tasks){
+        results[i]={ok:true,bus:busCount,intersection:intersectionDist};
+        doneCount++; render(); cb();
+      }
+    }
+    pagedKeyword(loc,'버스정류장',1,150,function(p){
+      if(Math.round(p.distance)<=150) busCount++;
+    },checkDone);
+    pagedKeyword(loc,'사거리',1,200,function(p){
+      var d=Math.round(p.distance);
+      if(d<=200&&(intersectionDist==null||d<intersectionDist)) intersectionDist=d;
+    },function(){
+      if(intersectionDist!=null){checkDone();return;}
+      pagedKeyword(loc,'교차로',1,200,function(p){
+        var d=Math.round(p.distance);
+        if(d<=200&&(intersectionDist==null||d<intersectionDist)) intersectionDist=d;
+      },checkDone);
+    });
+  });
+}
+
+function run(){
+  var idx=0;
+  function next(){
+    if(idx>=STORES_ADDR.length)return;
+    var cur=idx; idx++;
+    collectOne(cur,function(){ setTimeout(next,150); });
+  }
+  next();
+}
+
+function initKakao(){
+  geocoder = new kakao.maps.services.Geocoder();
+  ps = new kakao.maps.services.Places();
+  document.getElementById('status').textContent = '수집 시작...';
+  render();
+  run();
+}
+
+document.getElementById('btnCopy').onclick=function(){
+  var lines = STORES_ADDR.map(function(s,i){
+    var r = results[i]||{};
+    if(!r.ok) return "  // "+s.storesName+" 수집 실패";
+    return "  '"+s.storesName+"': {bus:"+r.bus+",intersection:"+(r.intersection==null?'null':r.intersection)+"},";
+  }).join('\n');
+  var text = '{\n'+lines+'\n}';
+  document.getElementById('out').value = text;
+  document.getElementById('out').select();
+  document.execCommand('copy');
+  alert('복사되었습니다.');
+};
+</script>
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=475ab6f89af7dc6ded8449065d23061c&libraries=services&autoload=false"></script>
+<script>kakao.maps.load(initKakao);</script>
+</body>
+</html>

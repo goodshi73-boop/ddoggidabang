@@ -87,9 +87,8 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
 <div class="no-print">
   <div class="st">신규 출점 예정 입지 정보</div>
   <div class="abox blue" style="margin-bottom:10px;font-size:11px">
-    <b>📐 예상매출 반영 우선순위 (100점 만점)</b><br>
-    <b>수동입력 (81점)</b>: ①유동인구 30 › ②편의점매출 18 › ③저가형매장매출 14 › ④거주인구 6 › ⑤여성비율 6 › ⑥20~30대비율 4 › ⑦피크시간대 3<br>
-    <b>지도데이터 (19점)</b>: ⑧지하철거리 7 › ⑨대형마트·백화점 5 › ⑩멀티플렉스 3 › ⑪공영주차장 2 › ⑫카페밀집도 2<br>
+    <b>📐 예상매출 계산 방식 (29개 매장 실데이터 회귀분석 기반)</b><br>
+    기준값 = <b>유동인구·카페수·지하철거리·대형마트거리·면적</b> 5개 변수를 29개 매장 실매출과 회귀분석해서 산출 (설명력 R²=0.166, 표본이 적어 완벽하진 않으며 매장이 늘어나면 재분석 예정). 여기에 <b>편의점매출 18 › 저가형매장매출 14 › 거주인구 6 › 여성비율 6 › 20~30대비율 4 › 피크시간대 3 › 멀티플렉스 3 › 공영주차장 2 › 교차로 3</b> 등 나머지 항목을 보조 보정(%)으로 추가 반영합니다.<br>
     이 후보지 자신의 데이터로만 계산하며, 기존 가맹점의 실제 매출은 끌어오지 않습니다.<br>
     <b>🏪 유사도 매칭 기준 (참고 비교용 매장 선정, 100점 만점)</b>: ①유동인구 35 › ②지하철·교차로 접근성 30 › ③카페 경쟁수 20 › ④상권유형 10 › ⑤면적 5. 80점 넘는 기존 매장이 있으면 결과 화면에 실제 매출과 함께 참고용으로 표시됩니다(예상매출 계산에는 미반영).
   </div>
@@ -360,35 +359,35 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
 
 <script>
 const STORES = [
-  {name:'신도림점',atype:'오피스·관공서',atypeReason:'서울구로경찰서 임시청사 133m 이내',floor:'1층',area:20,recent:59254691,avg3:null,avg6:null,months:2,cafe:30,lowcafe:6,conv:21,subway:355,mallDist:134,multiplexDist:301,parkingDist:235,restaurantCount:null,mPop:30870,mFemale:46,mYoung:31,grade:'A',survival:27,mPeak:'12~13시, 13~14시, 18~19시'},
-  {name:'구미점',atype:'오피스·관공서',atypeReason:'구미시청 229m 이내',floor:'1층',area:70,recent:28799502,avg3:25870369,avg6:24013507,months:13,cafe:30,lowcafe:3,conv:15,subway:null,mallDist:369,multiplexDist:null,parkingDist:184,restaurantCount:null,mPop:9042,mFemale:45,mYoung:20,grade:'B',survival:30,mPeak:'12~13시, 13~14시'},
-  {name:'증미역점',atype:'역세권',atypeReason:'증미역 9호선 131m 이내',floor:'1층',area:15,recent:24046449,avg3:null,avg6:null,months:1,cafe:30,lowcafe:5,conv:26,subway:131,mallDist:594,multiplexDist:479,parkingDist:386,restaurantCount:null,mPop:15249,mFemale:43,mYoung:26,grade:'A',survival:26,mPeak:'12~13시, 13~14시, 18~19시'},
-  {name:'수원역로데오점',atype:'역세권',atypeReason:'수원역 1호선 248m 이내',floor:'1층',area:20,recent:24611998,avg3:24917031,avg6:22506800,months:16,cafe:30,lowcafe:2,conv:30,subway:248,mallDist:631,multiplexDist:526,parkingDist:389,restaurantCount:null,mPop:70253,mFemale:46,mYoung:34,grade:'A',survival:28,mPeak:'12~13시, 13~14시'},
-  {name:'수원성균관대점',atype:'오피스·관공서',atypeReason:'율천동행정복지센터 87m 이내',floor:'1층',area:22,recent:23557845,avg3:null,avg6:null,months:3,cafe:30,lowcafe:4,conv:21,subway:388,mallDist:956,multiplexDist:null,parkingDist:129,restaurantCount:null,mPop:21745,mFemale:41,mYoung:28,grade:'B',survival:28,mPeak:'12~13시, 13~14시'},
-  {name:'서초법원점',atype:'역세권',atypeReason:'교대역 3호선 247m 이내',floor:'1층',area:18,recent:23593294,avg3:22806047,avg6:20853914,months:18,cafe:30,lowcafe:2,conv:23,subway:247,mallDist:799,multiplexDist:null,parkingDist:424,restaurantCount:null,mPop:48241,mFemale:44,mYoung:31,grade:'A',survival:30,mPeak:'9~10시, 12~14시'},
-  {name:'굴포천역점',atype:'역세권',atypeReason:'굴포천역 7호선 111m 이내',floor:'1층',area:15,recent:23174414,avg3:22301159,avg6:19198427,months:15,cafe:30,lowcafe:5,conv:24,subway:111,mallDist:40,multiplexDist:893,parkingDist:null,restaurantCount:null,mPop:27066,mFemale:45,mYoung:23,grade:'B',survival:30,mPeak:'12~13시, 13~14시'},
-  {name:'김포통진마송점',atype:'일반상권',atypeReason:'지하철역 300m·대학교 500m·관공서 300m·종합병원 300m 이내 모두 해당없음',floor:'1층',area:33,recent:21007162,avg3:null,avg6:null,months:3,cafe:30,lowcafe:5,conv:13,subway:null,mallDist:347,multiplexDist:null,parkingDist:null,restaurantCount:null,mPop:24356,mFemale:32,mYoung:16,grade:'B',survival:29,mPeak:'12~13시, 13~14시'},
+  {name:'신도림점',atype:'오피스·관공서',atypeReason:'서울구로경찰서 임시청사 133m 이내',floor:'1층',area:20,recent:59254691,avg3:null,avg6:null,months:2,cafe:45,lowcafe:8,conv:21,subway:355,mallDist:134,multiplexDist:301,parkingDist:235,restaurantCount:null,mPop:30870,mFemale:46,mYoung:31,grade:'A',survival:27,mPeak:'12~13시, 13~14시, 18~19시'},
+  {name:'구미점',atype:'오피스·관공서',atypeReason:'구미시청 229m 이내',floor:'1층',area:70,recent:28799502,avg3:25870369,avg6:24013507,months:13,cafe:33,lowcafe:3,conv:14,subway:null,mallDist:369,multiplexDist:null,parkingDist:184,restaurantCount:null,mPop:9042,mFemale:45,mYoung:20,grade:'B',survival:30,mPeak:'12~13시, 13~14시'},
+  {name:'증미역점',atype:'역세권',atypeReason:'증미역 9호선 131m 이내',floor:'1층',area:15,recent:24046449,avg3:null,avg6:null,months:1,cafe:45,lowcafe:8,conv:26,subway:131,mallDist:594,multiplexDist:479,parkingDist:386,restaurantCount:null,mPop:15249,mFemale:43,mYoung:26,grade:'A',survival:26,mPeak:'12~13시, 13~14시, 18~19시'},
+  {name:'수원역로데오점',atype:'역세권',atypeReason:'수원역 1호선 248m 이내',floor:'1층',area:20,recent:24611998,avg3:24917031,avg6:22506800,months:16,cafe:45,lowcafe:5,conv:34,subway:248,mallDist:631,multiplexDist:526,parkingDist:389,restaurantCount:null,mPop:70253,mFemale:46,mYoung:34,grade:'A',survival:28,mPeak:'12~13시, 13~14시'},
+  {name:'수원성균관대점',atype:'오피스·관공서',atypeReason:'율천동행정복지센터 87m 이내',floor:'1층',area:22,recent:23557845,avg3:null,avg6:null,months:3,cafe:45,lowcafe:6,conv:21,subway:388,mallDist:956,multiplexDist:null,parkingDist:129,restaurantCount:null,mPop:21745,mFemale:41,mYoung:28,grade:'B',survival:28,mPeak:'12~13시, 13~14시'},
+  {name:'서초법원점',atype:'역세권',atypeReason:'교대역 3호선 247m 이내',floor:'1층',area:18,recent:23593294,avg3:22806047,avg6:20853914,months:18,cafe:45,lowcafe:5,conv:23,subway:247,mallDist:799,multiplexDist:null,parkingDist:424,restaurantCount:null,mPop:48241,mFemale:44,mYoung:31,grade:'A',survival:30,mPeak:'9~10시, 12~14시'},
+  {name:'굴포천역점',atype:'역세권',atypeReason:'굴포천역 7호선 111m 이내',floor:'1층',area:15,recent:23174414,avg3:22301159,avg6:19198427,months:15,cafe:45,lowcafe:8,conv:24,subway:111,mallDist:40,multiplexDist:893,parkingDist:null,restaurantCount:null,mPop:27066,mFemale:45,mYoung:23,grade:'B',survival:30,mPeak:'12~13시, 13~14시'},
+  {name:'김포통진마송점',atype:'일반상권',atypeReason:'지하철역 300m·대학교 500m·관공서 300m·종합병원 300m 이내 모두 해당없음',floor:'1층',area:33,recent:21007162,avg3:null,avg6:null,months:3,cafe:35,lowcafe:5,conv:13,subway:null,mallDist:347,multiplexDist:null,parkingDist:null,restaurantCount:null,mPop:24356,mFemale:32,mYoung:16,grade:'B',survival:29,mPeak:'12~13시, 13~14시'},
   {name:'검암점',atype:'일반상권',atypeReason:'지하철역 300m·대학교 500m·관공서 300m·종합병원 300m 이내 모두 해당없음',floor:'1층',area:16,recent:14831363,avg3:null,avg6:null,months:2,cafe:14,lowcafe:3,conv:6,subway:null,mallDist:null,multiplexDist:null,parkingDist:179,restaurantCount:null,mPop:8686,mFemale:41,mYoung:23,grade:'B',survival:29,mPeak:'12~13시, 13~14시'},
-  {name:'한밭대점',atype:'대학가',atypeReason:'국립한밭대학교 유성덕명캠퍼스 372m 이내',floor:'1층',area:33,recent:16057487,avg3:17148968,avg6:15553723,months:9,cafe:27,lowcafe:3,conv:8,subway:null,mallDist:91,multiplexDist:null,parkingDist:95,restaurantCount:null,mPop:13833,mFemale:43,mYoung:26,grade:'B',survival:33,mPeak:'12~13시, 13~14시'},
-  {name:'고양법원점',atype:'역세권',atypeReason:'마두역 3호선 84m 이내',floor:'1층',area:14,recent:16096682,avg3:15570589,avg6:14120974,months:17,cafe:30,lowcafe:5,conv:21,subway:84,mallDist:629,multiplexDist:484,parkingDist:null,restaurantCount:null,mPop:24707,mFemale:48,mYoung:21,grade:'A',survival:30,mPeak:'12~13시, 13~14시'},
+  {name:'한밭대점',atype:'대학가',atypeReason:'국립한밭대학교 유성덕명캠퍼스 372m 이내',floor:'1층',area:33,recent:16057487,avg3:17148968,avg6:15553723,months:9,cafe:28,lowcafe:3,conv:8,subway:null,mallDist:91,multiplexDist:null,parkingDist:95,restaurantCount:null,mPop:13833,mFemale:43,mYoung:26,grade:'B',survival:33,mPeak:'12~13시, 13~14시'},
+  {name:'고양법원점',atype:'역세권',atypeReason:'마두역 3호선 84m 이내',floor:'1층',area:14,recent:16096682,avg3:15570589,avg6:14120974,months:17,cafe:45,lowcafe:7,conv:21,subway:84,mallDist:629,multiplexDist:484,parkingDist:null,restaurantCount:null,mPop:24707,mFemale:48,mYoung:21,grade:'A',survival:30,mPeak:'12~13시, 13~14시'},
   {name:'완주봉동점',atype:'오피스·관공서',atypeReason:'봉동파출소 101m 이내',floor:'1층',area:42,recent:16679340,avg3:16693141,avg6:15376453,months:6,cafe:11,lowcafe:2,conv:4,subway:null,mallDist:124,multiplexDist:null,parkingDist:null,restaurantCount:null,mPop:4999,mFemale:44,mYoung:11,grade:'B',survival:30,mPeak:'12~13시, 13~14시'},
-  {name:'포항문덕점',atype:'일반상권',atypeReason:'지하철역 300m·대학교 500m·관공서 300m·종합병원 300m 이내 모두 해당없음',floor:'1층',area:20,recent:13661456,avg3:13021164,avg6:11302405,months:14,cafe:30,lowcafe:5,conv:21,subway:null,mallDist:123,multiplexDist:968,parkingDist:null,restaurantCount:null,mPop:6318,mFemale:42,mYoung:19,grade:'B',survival:31,mPeak:'12~13시, 13~14시'},
-  {name:'의정부금오점',atype:'역세권',atypeReason:'경기도청북부청사역 의정부경전철 207m 이내',floor:'1층',area:14,recent:11996669,avg3:12561049,avg6:12694072,months:13,cafe:30,lowcafe:7,conv:14,subway:207,mallDist:176,multiplexDist:null,parkingDist:190,restaurantCount:null,mPop:26987,mFemale:46,mYoung:18,grade:'B',survival:29,mPeak:'12~13시, 13~14시'},
-  {name:'강남구청점',atype:'역세권',atypeReason:'강남구청역 7호선 67m 이내',floor:'지하',area:7,recent:14248471,avg3:13740449,avg6:12873663,months:18,cafe:30,lowcafe:1,conv:25,subway:67,mallDist:356,multiplexDist:684,parkingDist:163,restaurantCount:null,mPop:60589,mFemale:46,mYoung:34,grade:'A',survival:31,mPeak:'12~13시, 13~14시'},
-  {name:'안양시청점',atype:'오피스·관공서',atypeReason:'안양시청 218m 이내',floor:'2층',area:10,recent:15477020,avg3:14184422,avg6:12817920,months:16,cafe:30,lowcafe:0,conv:24,subway:null,mallDist:695,multiplexDist:515,parkingDist:334,restaurantCount:null,mPop:15639,mFemale:43,mYoung:24,grade:'B',survival:32,mPeak:'12~13시, 13~14시'},
+  {name:'포항문덕점',atype:'일반상권',atypeReason:'지하철역 300m·대학교 500m·관공서 300m·종합병원 300m 이내 모두 해당없음',floor:'1층',area:20,recent:13661456,avg3:13021164,avg6:11302405,months:14,cafe:45,lowcafe:5,conv:21,subway:null,mallDist:123,multiplexDist:968,parkingDist:null,restaurantCount:null,mPop:6318,mFemale:42,mYoung:19,grade:'B',survival:31,mPeak:'12~13시, 13~14시'},
+  {name:'의정부금오점',atype:'역세권',atypeReason:'경기도청북부청사역 의정부경전철 207m 이내',floor:'1층',area:14,recent:11996669,avg3:12561049,avg6:12694072,months:13,cafe:36,lowcafe:7,conv:14,subway:207,mallDist:176,multiplexDist:null,parkingDist:190,restaurantCount:null,mPop:26987,mFemale:46,mYoung:18,grade:'B',survival:29,mPeak:'12~13시, 13~14시'},
+  {name:'강남구청점',atype:'역세권',atypeReason:'강남구청역 7호선 67m 이내',floor:'지하',area:7,recent:14248471,avg3:13740449,avg6:12873663,months:18,cafe:45,lowcafe:3,conv:25,subway:67,mallDist:356,multiplexDist:684,parkingDist:163,restaurantCount:null,mPop:60589,mFemale:46,mYoung:34,grade:'A',survival:31,mPeak:'12~13시, 13~14시'},
+  {name:'안양시청점',atype:'오피스·관공서',atypeReason:'안양시청 218m 이내',floor:'2층',area:10,recent:15477020,avg3:14184422,avg6:12817920,months:16,cafe:45,lowcafe:1,conv:24,subway:null,mallDist:695,multiplexDist:515,parkingDist:334,restaurantCount:null,mPop:15639,mFemale:43,mYoung:24,grade:'B',survival:32,mPeak:'12~13시, 13~14시'},
   {name:'상주북천교점',atype:'오피스·관공서',atypeReason:'대구지방법원 상주지원 135m 이내',floor:'1층',area:18,recent:13384270,avg3:13084672,avg6:12061492,months:11,cafe:7,lowcafe:1,conv:0,subway:null,mallDist:102,multiplexDist:null,parkingDist:467,restaurantCount:13,mPop:4888,mFemale:41,mYoung:15,grade:'B',survival:33,mPeak:'12~13시, 13~14시'},
   {name:'부호역점',atype:'역세권',atypeReason:'부호역 대구1호선 144m 이내',floor:'1층',area:18,recent:12485962,avg3:13902859,avg6:11484689,months:8,cafe:5,lowcafe:1,conv:4,subway:144,mallDist:null,multiplexDist:null,parkingDist:null,restaurantCount:14,mPop:1904,mFemale:45,mYoung:24,grade:'B',survival:38,mPeak:'12~13시, 13~14시'},
   {name:'아산선문대점',atype:'일반상권',atypeReason:'지하철역 300m·대학교 500m·관공서 300m·종합병원 300m 이내 모두 해당없음',floor:'1층',area:18,recent:12911464,avg3:13859359,avg6:11060364,months:10,cafe:8,lowcafe:3,conv:6,subway:null,mallDist:838,multiplexDist:null,parkingDist:null,restaurantCount:21,mPop:1966,mFemale:39,mYoung:23,grade:'B',survival:29,mPeak:'12~13시, 13~14시'},
   {name:'울산법원점',atype:'일반상권',atypeReason:'지하철역 300m·대학교 500m·관공서 300m·종합병원 300m 이내 모두 해당없음',floor:'2층',area:25,recent:11409505,avg3:14282740,avg6:12312354,months:14,cafe:27,lowcafe:4,conv:8,subway:null,mallDist:981,multiplexDist:null,parkingDist:220,restaurantCount:null,mPop:25571,mFemale:45,mYoung:19,grade:'B',survival:28,mPeak:'12~13시, 13~14시'},
-  {name:'강원대병원점',atype:'오피스·관공서',atypeReason:'효자3동행정복지센터 200m 이내',floor:'1층',area:35,recent:11946183,avg3:11905331,avg6:10487706,months:11,cafe:30,lowcafe:4,conv:20,subway:null,mallDist:null,multiplexDist:560,parkingDist:453,restaurantCount:null,mPop:8378,mFemale:45,mYoung:25,grade:'B',survival:32,mPeak:'12~13시, 13~14시'},
+  {name:'강원대병원점',atype:'오피스·관공서',atypeReason:'효자3동행정복지센터 200m 이내',floor:'1층',area:35,recent:11946183,avg3:11905331,avg6:10487706,months:11,cafe:45,lowcafe:5,conv:20,subway:null,mallDist:null,multiplexDist:560,parkingDist:453,restaurantCount:null,mPop:8378,mFemale:45,mYoung:25,grade:'B',survival:32,mPeak:'12~13시, 13~14시'},
   {name:'남동인더스파크공단역점',atype:'역세권',atypeReason:'남동인더스파크역 수인분당선 193m 이내',floor:'1층',area:20,recent:12054632,avg3:null,avg6:null,months:2,cafe:20,lowcafe:5,conv:7,subway:193,mallDist:927,multiplexDist:985,parkingDist:300,restaurantCount:null,mPop:19447,mFemale:31,mYoung:21,grade:'B',survival:30,mPeak:'12~13시, 13~14시'},
-  {name:'구미인동점',atype:'오피스·관공서',atypeReason:'진평파출소 251m 이내',floor:'1층',area:40,recent:8979098,avg3:10180897,avg6:10269812,months:8,cafe:30,lowcafe:6,conv:30,subway:null,mallDist:437,multiplexDist:null,parkingDist:null,restaurantCount:null,mPop:4548,mFemale:39,mYoung:26,grade:'B',survival:30,mPeak:'12~13시, 13~14시'},
+  {name:'구미인동점',atype:'오피스·관공서',atypeReason:'진평파출소 251m 이내',floor:'1층',area:40,recent:8979098,avg3:10180897,avg6:10269812,months:8,cafe:45,lowcafe:8,conv:34,subway:null,mallDist:437,multiplexDist:null,parkingDist:null,restaurantCount:null,mPop:4548,mFemale:39,mYoung:26,grade:'B',survival:30,mPeak:'12~13시, 13~14시'},
   {name:'안산대학교점',atype:'일반상권',atypeReason:'지하철역 300m·대학교 500m·관공서 300m·종합병원 300m 이내 모두 해당없음',floor:'1층',area:16,recent:18338042,avg3:null,avg6:null,months:2,cafe:12,lowcafe:2,conv:11,subway:null,mallDist:null,multiplexDist:null,parkingDist:450,restaurantCount:null,mPop:1687,mFemale:41,mYoung:27,grade:'B',survival:32,mPeak:'12~13시, 13~14시'},
-  {name:'춘천시청점',atype:'오피스·관공서',atypeReason:'춘천시청 168m 이내',floor:'1층',area:20,recent:11444252,avg3:11643657,avg6:null,months:4,cafe:30,lowcafe:2,conv:15,subway:null,mallDist:578,multiplexDist:263,parkingDist:265,restaurantCount:null,mPop:23999,mFemale:46,mYoung:23,grade:'B',survival:32,mPeak:'12~13시, 13~14시'},
+  {name:'춘천시청점',atype:'오피스·관공서',atypeReason:'춘천시청 168m 이내',floor:'1층',area:20,recent:11444252,avg3:11643657,avg6:null,months:4,cafe:45,lowcafe:3,conv:15,subway:null,mallDist:578,multiplexDist:263,parkingDist:265,restaurantCount:null,mPop:23999,mFemale:46,mYoung:23,grade:'B',survival:32,mPeak:'12~13시, 13~14시'},
   {name:'울산장검점',atype:'일반상권',atypeReason:'지하철역 300m·대학교 500m·관공서 300m·종합병원 300m 이내 모두 해당없음',floor:'지하',area:15,recent:9930175,avg3:10026356,avg6:8915010,months:6,cafe:25,lowcafe:3,conv:12,subway:null,mallDist:701,multiplexDist:null,parkingDist:null,restaurantCount:null,mPop:2880,mFemale:44,mYoung:21,grade:'B',survival:35,mPeak:'12~13시, 13~14시'},
-  {name:'대구시청점',atype:'오피스·관공서',atypeReason:'대구광역시청 동인청사 216m 이내',floor:'1층',area:65,recent:4584094,avg3:8249057,avg6:null,months:5,cafe:30,lowcafe:0,conv:30,subway:null,mallDist:null,multiplexDist:696,parkingDist:253,restaurantCount:null,mPop:9724,mFemale:45,mYoung:25,grade:'B',survival:31,mPeak:'12~13시, 13~14시'},
+  {name:'대구시청점',atype:'오피스·관공서',atypeReason:'대구광역시청 동인청사 216m 이내',floor:'1층',area:65,recent:4584094,avg3:8249057,avg6:null,months:5,cafe:45,lowcafe:0,conv:30,subway:null,mallDist:null,multiplexDist:696,parkingDist:253,restaurantCount:null,mPop:9724,mFemale:45,mYoung:25,grade:'B',survival:31,mPeak:'12~13시, 13~14시'},
   {name:'천안병천순대거리점',atype:'오피스·관공서',atypeReason:'병천동면파출소 271m 이내',floor:'1층',area:25,recent:7159640,avg3:null,avg6:null,months:2,cafe:14,lowcafe:4,conv:4,subway:null,mallDist:258,multiplexDist:null,parkingDist:195,restaurantCount:null,mPop:19646,mFemale:31,mYoung:16,grade:'C',survival:32,mPeak:'12~13시, 13~14시'},
-  {name:'부천법원점',atype:'오피스·관공서',atypeReason:'인천지방법원 부천지원 129m 이내',floor:'1층',area:14,recent:9120086,avg3:8720980,avg6:8008652,months:15,cafe:30,lowcafe:9,conv:25,subway:483,mallDist:314,multiplexDist:null,parkingDist:63,restaurantCount:null,mPop:19667,mFemale:43,mYoung:23,grade:'B',survival:29,mPeak:'12~13시, 13~14시'},
+  {name:'부천법원점',atype:'오피스·관공서',atypeReason:'인천지방법원 부천지원 129m 이내',floor:'1층',area:14,recent:9120086,avg3:8720980,avg6:8008652,months:15,cafe:45,lowcafe:9,conv:26,subway:483,mallDist:314,multiplexDist:null,parkingDist:63,restaurantCount:null,mPop:19667,mFemale:43,mYoung:23,grade:'B',survival:29,mPeak:'12~13시, 13~14시'},
 ];
 
 var map=null, geocoder=null, ps=null, rvClient=null, rv=null;
@@ -997,23 +996,28 @@ function findSimilar(D,candidates){
 }
 
 function estimateBase(D){
-  var ar={'역세권':0.0095,'오피스·관공서':0.009,'대학가':0.0075,'병원상권':0.008,'일반상권':0.007};
-  var rate=ar[D.atype]||0.008;
-  var pop=D.pop||8000;
-  var b=pop*rate*2500/10000*30;
+  // 29개 매장 실데이터(유동인구·카페수·지하철거리·대형마트거리·면적)로 다변량 회귀분석한 공식.
+  // R²=0.166로 완벽하진 않지만(표본 29개 한계), 기존 단순 공식(유동인구×업종계수×객단가)의 평균오차 74%p를 34%p로 낮췄습니다.
+  // 표본이 늘어나면(신규 매장 추가) 재분석해서 계수를 다시 맞춰야 합니다.
+  var pop=D.pop||0;
+  var cafe=D.cafe||0;
+  var subway=(typeof D.subway==='number')?D.subway:(parseInt((D.subway||'').replace(/[^0-9]/g,''))||1000);
+  var mall=D.mallDist!=null?D.mallDist:2000;
+  var area=D.area||15;
+  var pn=(pop-19065)/16590.99;
+  var cn=(cafe-32.76)/14.62;
+  var sn=(subway-677.86)/391.67;
+  var mn=(mall-731.03)/639.84;
+  var an=(area-24.07)/14.44;
+  var b=1706.59+116.10*pn+46.14*cn-263.51*sn-148.92*mn+160.41*an;
   if(D.floor==='2층')b*=0.72;else if(D.floor==='지하')b*=0.78;
-  return Math.round(b);
+  return Math.round(Math.max(0,b));
 }
 
 function manualFactor(D){
-  // ①~③은 원배점 그대로(62점 고정), ④~⑦은 절반으로 축소(19점) — 남은 19점은 지도데이터(mapFactor)에 할당
-  // ①유동인구30 ②편의점매출18 ③저가형매장매출14 ④거주인구6 ⑤여성비율6 ⑥20-30대비율4 ⑦피크시간대3 = 81점
+  // ①유동인구는 이제 estimateBase(회귀식) 자체에 이미 반영되어 있어 여기서는 제외합니다(이중계산 방지).
+  // ②편의점매출18 ③저가형매장매출14 ④거주인구6 ⑤여성비율6 ⑥20-30대비율4 ⑦피크시간대3 = 51점
   var f=1.0, notes=[];
-  if(D.pop>=30000){f+=0.30;notes.push('①유동인구 매우우수(+30%)');}
-  else if(D.pop>=15000){f+=0.25;notes.push('①유동인구 우수(+25%)');}
-  else if(D.pop>=8000){f+=0.19;notes.push('①유동인구 양호(+19%)');}
-  else if(D.pop>=3000){f+=0.12;notes.push('①유동인구 보통(+12%)');}
-  else if(D.pop>0){f+=0.06;notes.push('①유동인구 낮음(+6%)');}
   if(D.convSales>=8000){f+=0.18;notes.push('②편의점매출 매우우수(+18%)');}
   else if(D.convSales>=5000){f+=0.12;notes.push('②편의점매출 양호(+12%)');}
   else if(D.convSales>=3000){f+=0.06;notes.push('②편의점매출 보통(+6%)');}
@@ -1048,39 +1052,25 @@ function mapFactor(D){
   // 지도 실측 데이터(19점) — 유사도기준·일반기준 공통으로 사용
   // ⑧지하철거리7 ⑨대형마트·백화점5 ⑩멀티플렉스3 ⑪공영주차장2 ⑫카페밀집도2 = 19점 (카페·저가형카페는 경쟁강도라 감점도 가능)
   var f=1.0, notes=[];
-  var sd=parseInt((D.subway||'').replace(/[^0-9]/g,''))||null;
-  if(sd!=null){
-    if(sd<=200){f+=0.07;notes.push('⑧지하철 초근접(+7%)');}
-    else if(sd<=400){f+=0.04;notes.push('⑧지하철 도보권(+4%)');}
-    else if(sd<=700){f+=0.01;notes.push('⑧지하철 다소 원거리(+1%)');}
-    else{f-=0.02;notes.push('⑧지하철 원거리(-2%)');}
-  } else {
-    f-=0.03;notes.push('⑧반경 내 지하철역 없음(-3%)');
-  }
-  if(D.mallDist!=null){
-    if(D.mallDist<=500){f+=0.05;notes.push('⑨대형마트·백화점 인접(+5%)');}
-    else if(D.mallDist<=1000){f+=0.02;notes.push('⑨대형마트·백화점 도보권(+2%)');}
-  }
+  // ⑧지하철거리·⑨대형마트·⑫카페수는 이제 estimateBase(회귀식) 자체에 이미 반영되어 있어 여기서는 제외합니다(이중계산 방지).
   if(D.multiplexDist!=null){
     if(D.multiplexDist<=500){f+=0.03;notes.push('⑩멀티플렉스 인접(+3%)');}
     else if(D.multiplexDist<=1000){f+=0.01;notes.push('⑩멀티플렉스 도보권(+1%)');}
   }
   if(D.parkingDist!=null&&D.parkingDist<=300){f+=0.02;notes.push('⑪공영주차장 인접(+2%)');}
-  if((D.cafe||0)>=25){f-=0.06;notes.push('⑫카페 과밀(-6%)');}
-  else if((D.cafe||0)>=15){f-=0.03;notes.push('⑫카페 밀집(-3%)');}
-  else if((D.cafe||0)<=5){f+=0.02;notes.push('⑫카페 희소(+2%)');}
   if((D.lowcafe||0)>=5){f-=0.04;notes.push('⑬저가형카페 과밀(-4%)');}
   else if((D.lowcafe||0)>=3){f-=0.02;notes.push('⑬저가형카페 경쟁(-2%)');}
   return{factor:f,notes:notes};
 }
 
 function generalFactor(D){
-  // 일반기준 = 수동입력(①~⑦, 81점) + 지도데이터(⑧~⑬, 19점) = 정확히 100점 배점
+  // 일반기준 = 회귀식(estimateBase, 유동인구·카페수·지하철거리·대형마트거리·면적 반영) × 나머지 보조 항목 보정(수동입력 51점 + 지도데이터 5점 + 교차로·개발호재)
   var mf=manualFactor(D), gf=mapFactor(D);
   var f=mf.factor+gf.factor-1; // 두 factor(각 1.0 시작)를 합쳐 baseline 1.0 기준 하나로 병합
   var notes=mf.notes.concat(gf.notes);
-  if((D.extra||'').includes('개장')||(D.extra||'').includes('개발')){f+=0.04;notes.push('개발호재 있음(+4%, 100점 배점 외 별도가산)');}
-  if((D.extra||'').includes('재건축')||(D.extra||'').includes('공사')){f-=0.04;notes.push('공사·재건축 이슈(-4%, 100점 배점 외 별도가산)');}
+  if(D.intersection!=null){f+=0.03;notes.push('교차로 인접(+3%)');}
+  if((D.extra||'').includes('개장')||(D.extra||'').includes('개발')){f+=0.04;notes.push('개발호재 있음(+4%)');}
+  if((D.extra||'').includes('재건축')||(D.extra||'').includes('공사')){f-=0.04;notes.push('공사·재건축 이슈(-4%)');}
   f=Math.max(0.6,Math.min(2.1,f));
   return{factor:f,notes:notes};
 }
@@ -1168,28 +1158,22 @@ function runAnalysis(){
 }
 
 function renderScoreDetailHtml(D){
-  var ar={'역세권':0.0095,'오피스·관공서':0.009,'대학가':0.0075,'병원상권':0.008,'일반상권':0.007};
-  var rate=ar[D.atype]||0.008;
-  var pop=D.pop||8000;
-  var raw=Math.round(pop*rate*2500*30);
-  var floorMult=D.floor==='2층'?0.72:D.floor==='지하'?0.78:1.0;
-  var afterFloor=Math.round(raw*floorMult);
+  var base=estimateBase(D);
   var gf2=generalFactor(D);
-  var manualNotes=gf2.notes.filter(function(n){return /^[①②③④⑤⑥⑦]/.test(n);});
-  var mapNotes=gf2.notes.filter(function(n){return /^[⑧⑨⑩⑪⑫⑬]/.test(n);});
-  var extraNotes=gf2.notes.filter(function(n){return !/^[①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬]/.test(n);});
+  var manualNotes=gf2.notes.filter(function(n){return /^[②③④⑤⑥⑦]/.test(n);});
+  var mapNotes=gf2.notes.filter(function(n){return /^[⑩⑪⑬]|^교차로/.test(n);});
+  var extraNotes=gf2.notes.filter(function(n){return !/^[②③④⑤⑥⑦⑩⑪⑬]|^교차로/.test(n)&&(n.indexOf('개발호재')===0||n.indexOf('공사')===0);});
   return '<div class="card" style="margin-top:6px;font-size:11px;line-height:1.9">'+
-    '<div style="font-weight:700;margin-bottom:6px;color:#334155">📐 예상매출 계산 과정 (수동입력 81점 + 지도데이터 19점 = 100점)</div>'+
+    '<div style="font-weight:700;margin-bottom:6px;color:#334155">📐 예상매출 계산 과정 (29개 매장 회귀분석 기준값 + 보조 보정)</div>'+
     '<div style="color:#64748b;margin-bottom:4px">이 매장(떠기다방) 자신의 조건만으로 계산합니다. 기존 가맹점의 실제 매출은 이 계산에 전혀 쓰이지 않습니다.</div>'+
-    '<div>① 유동인구 <b>'+pop.toLocaleString()+'명</b> × '+D.atype+' 업종계수 <b>'+rate+'</b> × 객단가 <b>2,500원</b> × 30일 = <b>'+Math.round(raw/10000).toLocaleString()+'만원</b></div>'+
-    (floorMult!==1?'<div>② 층수 보정('+D.floor+', '+Math.round((1-floorMult)*100)+'% 감액) 적용 = <b>'+Math.round(afterFloor/10000).toLocaleString()+'만원</b></div>':'<div>② 1층이라 층수 보정 없음</div>')+
-    '<div>③ 수동입력(①~⑦, 최대 81점) 반영:</div>'+
+    '<div>① 유동인구 <b>'+(D.pop||0).toLocaleString()+'명</b>, 카페 <b>'+(D.cafe||0)+'개</b>, 지하철 <b>'+(D.subway||'없음')+'</b>, 대형마트 <b>'+(D.mallDist!=null?D.mallDist+'m':'없음')+'</b>, 면적 <b>'+(D.area||15)+'평</b>을 29개 매장 실데이터 회귀식에 대입 = <b>'+base.toLocaleString()+'만원</b></div>'+
+    '<div>② 나머지 보조 항목(편의점매출·저가형매장매출·거주인구·여성비율·20-30대비율·피크시간대) 반영:</div>'+
     (manualNotes.length?
       '<div style="background:#ecfdf5;border:1px solid #bbf7d0;border-radius:6px;padding:6px 10px;margin:4px 0 8px 0">'+
         manualNotes.map(function(n){return '<div style="color:#16a34a">▲ '+n+'</div>';}).join('')+
       '</div>'
     :'<div style="color:#94a3b8;margin:4px 0 8px 0">입력된 수동 항목 없음</div>')+
-    '<div>④ 지도데이터(⑧~⑬, 최대 19점) 반영:</div>'+
+    '<div>③ 멀티플렉스·공영주차장·저가형카페·교차로 반영:</div>'+
     (mapNotes.length?
       '<div style="background:#f8fafc;border-radius:6px;padding:6px 10px;margin:4px 0 8px 0">'+
         mapNotes.map(function(n){
@@ -1197,9 +1181,10 @@ function renderScoreDetailHtml(D){
           return '<div style="color:'+(isPlus?'#16a34a':'#dc2626')+'">'+(isPlus?'▲':'▼')+' '+n+'</div>';
         }).join('')+
       '</div>'
-    :'<div style="color:#94a3b8;margin:4px 0 8px 0">해당하는 지도데이터 항목 없음</div>')+
+    :'<div style="color:#94a3b8;margin:4px 0 8px 0">해당하는 항목 없음</div>')+
     (extraNotes.length?'<div style="color:#94a3b8;margin-bottom:4px">'+extraNotes.join(', ')+'</div>':'')+
-    '<div>⑤ 위 조정 전부 합산(총 '+(gf2.factor>1?'+':'')+Math.round((gf2.factor-1)*100)+'%) 적용 = <b style="color:#1a5c35">최종 '+Math.round(afterFloor*gf2.factor/10000).toLocaleString()+'만원</b></div>'+
+    '<div>④ 위 조정 전부 합산(총 '+(gf2.factor>1?'+':'')+Math.round((gf2.factor-1)*100)+'%) 적용 = <b style="color:#1a5c35">최종 '+Math.round(base*gf2.factor).toLocaleString()+'만원</b></div>'+
+    '<div style="color:#d97706;margin-top:4px">※ 회귀식 설명력(R²)이 0.166으로 낮아, 매장 표본이 적은 지금은 참고치로 활용해주세요. 매장이 늘어나면 재분석해서 정확도를 높일 예정입니다.</div>'+
     '</div>';
 }
 

@@ -166,13 +166,12 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
         <div id="r-subway-disp" style="font-size:12px;font-weight:700;color:#2563eb">-</div>
         <input id="r-subway" type="text" readonly style="display:none">
       </div>
-      <div style="background:#f0fdfa;border:1px solid #99f6e4;border-radius:8px;padding:7px 10px;text-align:center">
-        <div style="font-size:9px;color:#64748b;font-weight:700;margin-bottom:2px">버스정류장(150m)</div>
-        <div id="r-bus-disp" style="font-size:12px;font-weight:700;color:#0d9488">-</div>
-        <input id="r-bus" type="number" readonly style="display:none">
+      <div style="background:#fdf4ff;border:1px solid #e9d5ff;border-radius:8px;padding:7px 10px;text-align:center">
+        <div style="font-size:9px;color:#64748b;font-weight:700;margin-bottom:2px">교차로 인접</div>
+        <div id="r-intersection-disp" style="font-size:12px;font-weight:700;color:#7c3aed">-</div>
       </div>
     </div>
-    <div style="font-size:10px;color:#94a3b8;margin-top:6px;line-height:1.6">카카오맵으로 반경 500m 내(버스정류장은 150m, 교차로는 200m, 대형마트·백화점·멀티플렉스는 최대 1,000m) 실측 수집한 값입니다. 카페·저가형카페 수는 유사도 매칭에, 지하철거리·버스정류장·교차로 인접 여부는 유사도 매칭의 "지하철·버스·교차로 접근성" 항목에 반영됩니다. 교차로는 "OO사거리/교차로" 명칭 검색으로 판단하며, 횡단보도 자체는 카카오맵 API로 확인이 안 되는 정보라 정확한 대체 지표는 아닙니다. 대형마트·백화점·멀티플렉스·공영주차장은 "주변 집객시설" 목록과 지도 마커로 표시됩니다. <b style="color:#d97706">※ 카페·음식점 수는 최대 45개까지만 집계됩니다</b> — 카카오 지도 API가 한 카테고리당 최대 3페이지(15개×3)까지만 결과를 내주는 자체 상한이라, 매장이 45개에 도달하면 실제로는 그보다 훨씬 많더라도 "45개"로 동일하게 표시됩니다 (강남역급 초대형 상권일수록 이 상한에 걸릴 가능성이 높습니다).</div>
+    <div style="font-size:10px;color:#94a3b8;margin-top:6px;line-height:1.6">카카오맵으로 반경 500m 내(교차로는 200m, 대형마트·백화점·멀티플렉스는 최대 1,000m) 실측 수집한 값입니다. 카페·저가형카페 수는 유사도 매칭에, 지하철거리·교차로 인접 여부는 유사도 매칭의 "지하철·교차로 접근성" 항목에 반영됩니다. 교차로는 "OO사거리/교차로" 명칭 검색으로 판단하며, 횡단보도 자체는 카카오맵 API로 확인이 안 되는 정보라 정확한 대체 지표는 아닙니다. <b style="color:#d97706">※ 버스정류장 항목은 뺐습니다</b> — 카카오맵 공식 카테고리에 없고, 정류장이 노선별 고유명사로 등록돼 있어 "버스정류장"이라는 키워드로는 신뢰성 있게 조회가 안 됐습니다. 대형마트·백화점·멀티플렉스·공영주차장은 "주변 집객시설" 목록과 지도 마커로 표시됩니다. <b style="color:#d97706">※ 카페·음식점 수는 최대 45개까지만 집계됩니다</b> — 카카오 지도 API가 한 카테고리당 최대 3페이지(15개×3)까지만 결과를 내주는 자체 상한이라, 매장이 45개에 도달하면 실제로는 그보다 훨씬 많더라도 "45개"로 동일하게 표시됩니다 (강남역급 초대형 상권일수록 이 상한에 걸릴 가능성이 높습니다).</div>
     <div style="margin-top:8px;background:#f8fafc;border:1px solid #dde3ec;border-radius:8px;padding:10px 12px">
       <div style="font-size:10px;color:#64748b;font-weight:700;margin-bottom:6px">주변 집객시설</div>
       <div id="r-anchor-disp" style="font-size:12px;color:#334155;line-height:1.8">주소 검색 후 자동 표시됩니다...</div>
@@ -739,19 +738,6 @@ function searchNearby(lat,lng){
     check();
   },{location:latlng,radius:currentRadius,size:3});
 
-  var busCount=0,busNearest=null;
-  pagedKeywordSearch('버스정류장',1,function(p){
-    var d=Math.round(p.distance);
-    if(d<=150){
-      busCount++;
-      if(busNearest==null||d<busNearest) busNearest=d;
-    }
-  },function(){
-    document.getElementById('r-bus').value=busCount;
-    document.getElementById('r-bus-disp').textContent=busCount+'개'+(busNearest!=null?' (최단 '+busNearest+'m)':'');
-    check();
-  });
-
   var intersectionFound=false,intersectionDist=null,intersectionName=null;
   pagedKeywordSearch('사거리',1,function(p){
     var d=Math.round(p.distance);
@@ -767,10 +753,12 @@ function searchNearby(lat,lng){
         }
       },function(){
         document.getElementById('r-intersection').value=intersectionFound?intersectionDist:'';
+        document.getElementById('r-intersection-disp').textContent=intersectionFound?intersectionDist+'m':'없음';
         check();
       });
     } else {
       document.getElementById('r-intersection').value=intersectionFound?intersectionDist:'';
+      document.getElementById('r-intersection-disp').textContent=intersectionFound?intersectionDist+'m':'없음';
       check();
     }
   });
@@ -895,7 +883,7 @@ function searchNearby(lat,lng){
 
   function check(){
     done++;
-    if(done>=12){
+    if(done>=11){
       document.getElementById('r-anchor').value=anchors.join('\n')||'주요 집객시설 없음';
       document.getElementById('r-anchor-disp').innerHTML=anchors.length?anchors.map(function(a){return'<div style="display:flex;gap:6px;align-items:center"><span style="color:#1a5c35">▶</span><span>'+a+'</span></div>';}).join(''):'주요 집객시설 없음';
       document.getElementById('r-malldist').value=malls.length?malls[0].dist:'';
@@ -919,7 +907,6 @@ function resetAll(){
 
 function scoreBreakdown(D,s){
   var cSub=(typeof D.subway==='number')?D.subway:(parseInt((D.subway||'').replace(/[^0-9]/g,''))||null);
-  var cBus=D.bus||null;
   var cCafeTotal=(D.cafe||0)+(D.lowcafe||0);
   var items=[];
 
@@ -934,26 +921,19 @@ function scoreBreakdown(D,s){
   var transitPt=0,transitParts=[];
   if(s.subway!=null&&cSub!=null){
     var sd=Math.abs(s.subway-cSub);
-    transitPt+=sd<=100?14:sd<=300?10:sd<=600?5:1;
+    transitPt+=sd<=100?20:sd<=300?14:sd<=600?7:2;
     transitParts.push('지하철 '+cSub+'m vs '+s.subway+'m');
   } else if((s.subway==null)===(cSub==null)){
-    transitPt+=6; transitParts.push('둘 다 역세권 아님');
-  }
-  if(s.bus!=null&&cBus!=null){
-    var bd=Math.abs(s.bus-cBus);
-    transitPt+=bd<=1?10:bd<=3?6:2;
-    transitParts.push('버스정류장(150m) '+cBus+'개 vs '+s.bus+'개');
-  } else {
-    transitParts.push('버스데이터 없음(매장 미수집)');
+    transitPt+=8; transitParts.push('둘 다 역세권 아님');
   }
   if(s.intersection!=null&&D.intersection!=null){
-    transitPt+=6; transitParts.push('둘 다 교차로 인접');
+    transitPt+=10; transitParts.push('둘 다 교차로 인접');
   } else if((s.intersection==null)===(D.intersection==null)){
-    transitPt+=2; transitParts.push('둘 다 교차로 비인접');
+    transitPt+=3; transitParts.push('둘 다 교차로 비인접');
   } else {
     transitParts.push('교차로 인접 여부 다름');
   }
-  items.push({label:'②지하철·버스·교차로 접근성',max:30,earned:Math.min(30,transitPt),detail:transitParts.join(', ')});
+  items.push({label:'②지하철·교차로 접근성',max:30,earned:Math.min(30,transitPt),detail:transitParts.join(', ')});
 
   var cafePt=0,cafeDetail='데이터 없음';
   if(s.cafe!=null&&D.cafe!=null){
@@ -976,7 +956,6 @@ function scoreBreakdown(D,s){
 function findSimilar(D,candidates){
   candidates=candidates||STORES;
   var cSub=(typeof D.subway==='number')?D.subway:(parseInt((D.subway||'').replace(/[^0-9]/g,''))||null);
-  var cBus=D.bus||null;
   var cCafeTotal=(D.cafe||0)+(D.lowcafe||0);
   return candidates.map(function(s){
     var sc=0;
@@ -985,23 +964,20 @@ function findSimilar(D,candidates){
       var pd=Math.abs(s.mPop-D.pop);
       if(pd<=2000)sc+=35;else if(pd<=5000)sc+=25;else if(pd<=10000)sc+=15;else if(pd<=20000)sc+=7;
     }
-    // ② 지하철·버스정류장·교차로 접근성 (최대 30점) — 대중교통+이동동선 접근성 종합
-    //   ※ 횡단보도 자체는 카카오맵 API로 확인 불가하여, "OO사거리/교차로" 명칭 검색으로 대체합니다
+    // ② 지하철·교차로 접근성 (최대 30점) — 대중교통+이동동선 접근성 종합
+    //   ※ 버스정류장은 카카오 API 공식 카테고리에 없고 정류장명이 고유명사라 "버스정류장" 키워드로 조회 불가해 제외
+    //   ※ 횡단보도 자체도 카카오맵 API로 확인 불가하여, "OO사거리/교차로" 명칭 검색으로 대체합니다
     var transitPt=0;
     if(s.subway!=null&&cSub!=null){
       var sd=Math.abs(s.subway-cSub);
-      transitPt+=sd<=100?14:sd<=300?10:sd<=600?5:1;
+      transitPt+=sd<=100?20:sd<=300?14:sd<=600?7:2;
     } else if((s.subway==null)===(cSub==null)){
-      transitPt+=6;
-    }
-    if(s.bus!=null&&cBus!=null){
-      var bd=Math.abs(s.bus-cBus);
-      transitPt+=bd<=1?10:bd<=3?6:2;
+      transitPt+=8;
     }
     if(s.intersection!=null&&D.intersection!=null){
-      transitPt+=6;
+      transitPt+=10;
     } else if((s.intersection==null)===(D.intersection==null)){
-      transitPt+=2;
+      transitPt+=3;
     }
     sc+=Math.min(30,transitPt);
     // ③ 카페 경쟁수 (최대 20점) — 카페+저가형카페 합산
@@ -1147,7 +1123,7 @@ function runAnalysis(){
   var D={addr:g('i-addr'),atype:g('i-atype'),floor:g('i-floor'),area:n('i-area'),
     rent:n('i-rent'),deposit:n('i-deposit'),premium:n('i-premium'),remain:g('i-remain'),
     pop:n('i-pop'),female:n('i-female'),young:n('i-young'),households:n('i-households'),
-    cafe:n('r-cafe'),lowcafe:n('r-lowcafe'),subway:g('r-subway'),bus:n('r-bus'),intersection:n('r-intersection')||null,
+    cafe:n('r-cafe'),lowcafe:n('r-lowcafe'),subway:g('r-subway'),intersection:n('r-intersection')||null,
     mallDist:n('r-malldist')||null,multiplexDist:n('r-multiplexdist')||null,parkingDist:n('r-parkingdist')||null,restaurantCount:n('r-restaurant')||null,
     anchor:g('r-anchor'),extra:g('i-extra'),peak:g('i-peak'),
     convSales:n('i-convsales'),compSales:n('i-compsales')};
@@ -1480,16 +1456,16 @@ function renderStores(force){
 function collectStoreStats(lat,lng,cb){
   var loc=new kakao.maps.LatLng(lat,lng);
   var LOW=['메가MGC','메가엠지씨','메가커피','컴포즈','더벤티','빽다방','백다방','우지','바나프레소','텐퍼센트','10%','카페봄봄','댄싱컵','하이요','하삼동'];
-  var cafe=0,lowcafe=0,conv=0,subway=null,subwayName=null,restaurantCount=0,bus=0,intersection=null;
+  var cafe=0,lowcafe=0,conv=0,subway=null,subwayName=null,restaurantCount=0,intersection=null;
   var university=null,govoffice=null,hospital=null,mallDist=null,multiplexDist=null,parkingDist=null;
-  var tasks=11,done=0;
+  var tasks=10,done=0;
   function checkDone(){
     done++;
     if(done>=tasks){
       var atypeInfo=classifyAtype({subway:subway,subwayName:subwayName,university:university,govoffice:govoffice,hospital:hospital});
       cb({cafe:cafe,lowcafe:lowcafe,conv:conv,subway:subway,atype:atypeInfo.atype,atypeReason:atypeInfo.reason,
         mallDist:mallDist,multiplexDist:multiplexDist,parkingDist:parkingDist,restaurantCount:restaurantCount,
-        bus:bus,intersection:intersection});
+        intersection:intersection});
     }
   }
   function pagedCat(code,maxPages,onEach){
@@ -1513,7 +1489,6 @@ function collectStoreStats(lat,lng,cb){
   pagedCat('CE7',3,function(p){cafe++;if(LOW.some(function(b){return p.place_name.includes(b);}))lowcafe++;});
   pagedCat('CS2',3,function(p){conv++;});
   pagedCat('FD6',3,function(p){restaurantCount++;}); // 먹자상권 규모 프록시: 반경 내 음식점 총량 (카카오 API 한도상 최대 45개까지 집계)
-  pagedKeyword('버스정류장',1,150,function(p){if(Math.round(p.distance)<=150)bus++;});
   pagedKeyword('사거리',1,200,function(p){var d=Math.round(p.distance);if(d<=200&&(intersection==null||d<intersection))intersection=d;});
   ps.categorySearch('SW8',function(data,status){
     if(status===kakao.maps.services.Status.OK&&data.length>0){subway=Math.round(data[0].distance);subwayName=data[0].place_name;}
@@ -1636,7 +1611,7 @@ function addCustomStore(){
         months:months,opendate:od,
         cafe:stats.cafe,lowcafe:stats.lowcafe,conv:stats.conv,subway:stats.subway,
         mallDist:stats.mallDist,multiplexDist:stats.multiplexDist,parkingDist:stats.parkingDist,restaurantCount:stats.restaurantCount,
-        bus:stats.bus,intersection:stats.intersection,
+        intersection:stats.intersection,
         custom:true,addr:addr};
       STORES.push(store);
       saveCustomStores();

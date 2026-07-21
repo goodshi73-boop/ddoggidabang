@@ -883,7 +883,7 @@ function searchNearby(lat,lng){
 
   function check(){
     done++;
-    if(done>=11){
+    if(done>=10){
       document.getElementById('r-anchor').value=anchors.join('\n')||'주요 집객시설 없음';
       document.getElementById('r-anchor-disp').innerHTML=anchors.length?anchors.map(function(a){return'<div style="display:flex;gap:6px;align-items:center"><span style="color:#1a5c35">▶</span><span>'+a+'</span></div>';}).join(''):'주요 집객시설 없음';
       document.getElementById('r-malldist').value=malls.length?malls[0].dist:'';

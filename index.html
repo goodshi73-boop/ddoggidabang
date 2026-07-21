@@ -194,7 +194,10 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
       <div><label class="lbl">20~30대 비율 (%)</label><input id="i-young" type="number" placeholder="62"></div>
       <div><label class="lbl">피크 시간대</label><input id="i-peak" type="text" placeholder="예: 12~13시, 18~19시"></div>
     </div>
-    <div style="margin-bottom:8px"><label class="lbl">반경 내 거주인구수 (명) <span style="font-size:9px;color:#64748b">— 현재 선택된 반경(<span id="i-households-radius">500</span>m) 기준</span></label><input id="i-households" type="number" placeholder="예: 8500"></div>
+    <div class="g2" style="gap:8px;margin-bottom:8px">
+      <div><label class="lbl">반경 내 거주인구수 (명) <span style="font-size:9px;color:#64748b">— 현재 선택된 반경(<span id="i-households-radius">500</span>m) 기준</span></label><input id="i-households" type="number" placeholder="예: 8500"></div>
+      <div><label class="lbl">상권 등급 <span style="font-size:9px;color:#64748b">— 소상공인365 상권분석 결과값</span></label><select id="i-grade"><option value="">선택</option><option value="A">A등급</option><option value="B">B등급</option><option value="C">C등급</option><option value="D">D등급</option><option value="E">E등급</option></select></div>
+    </div>
     <div><label class="lbl">특이사항</label><textarea id="i-extra" placeholder="예: 2026년 복합쇼핑몰 개장 예정"></textarea></div>
   </div>
 
@@ -900,6 +903,7 @@ function searchNearby(lat,lng){
 
 function resetAll(){
   ['i-addr','i-area','i-rent','i-deposit','i-premium','i-remain','i-pop','i-female','i-young','i-extra','i-peak','i-convsales','i-compsales','i-households'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  var ig=document.getElementById('i-grade');if(ig)ig.selectedIndex=0;
   document.getElementById('i-atype').selectedIndex=0;
   document.getElementById('i-floor').selectedIndex=0;
   document.getElementById('result-wrap').style.display='none';
@@ -1076,7 +1080,13 @@ function generalFactor(D){
   // (오피스·관공서·역세권은 평균 과대예측, 일반상권은 평균 과소예측되는 패턴 확인됨)
   var atypeBias={'오피스·관공서':0.76,'역세권':0.78,'대학가':0.91,'일반상권':1.21,'병원상권':1.0};
   var ab=atypeBias[D.atype]||1.0;
-  if(ab!==1.0){f*=ab;notes.push('상권유형('+D.atype+') 계통편향 보정 '+(ab<1?'×'+ab:'×'+ab));}
+  if(ab!==1.0){f*=ab;notes.push('상권유형('+D.atype+') 계통편향 보정 ×'+ab);}
+  // 상권등급(소상공인365)도 오차와 가장 강한 상관관계(-0.331)를 보여 보정에 포함 — A등급은 평균 과소예측, C등급 이하는 과대예측되는 경향
+  var gradeBias={'A':1.16,'B':0.98,'C':0.63,'D':0.55,'E':0.5};
+  var gb=D.grade?(gradeBias[D.grade]||1.0):1.0;
+  if(gb!==1.0){f*=gb;notes.push('상권등급('+D.grade+') 보정 ×'+gb);}
+  // 편의점 밀집도(반경 내 상업시설 총 밀도의 대리지표) — 많을수록 개별매장 매출이 희석되는 경향 확인됨
+  if((D.conv||0)>=25){f*=0.75;notes.push('편의점 밀집(경쟁시설 과밀) 보정 ×0.75');}
   f=Math.max(0.5,Math.min(2.1,f));
   return{factor:f,notes:notes};
 }
@@ -1120,9 +1130,9 @@ function runAnalysis(){
   var D={addr:g('i-addr'),atype:g('i-atype'),floor:g('i-floor'),area:n('i-area'),
     rent:n('i-rent'),deposit:n('i-deposit'),premium:n('i-premium'),remain:g('i-remain'),
     pop:n('i-pop'),female:n('i-female'),young:n('i-young'),households:n('i-households'),
-    cafe:n('r-cafe'),lowcafe:n('r-lowcafe'),subway:g('r-subway'),intersection:n('r-intersection')||null,
+    cafe:n('r-cafe'),lowcafe:n('r-lowcafe'),subway:g('r-subway'),intersection:n('r-intersection')||null,conv:n('r-conv'),
     mallDist:n('r-malldist')||null,multiplexDist:n('r-multiplexdist')||null,parkingDist:n('r-parkingdist')||null,restaurantCount:n('r-restaurant')||null,
-    anchor:g('r-anchor'),extra:g('i-extra'),peak:g('i-peak'),
+    anchor:g('r-anchor'),extra:g('i-extra'),peak:g('i-peak'),grade:g('i-grade'),
     convSales:n('i-convsales'),compSales:n('i-compsales')};
   if(!D.addr&&D.pop<=0){alert('주소를 검색하거나 유동인구를 입력해주세요.');return;}
   if(!D.atype||D.atype===''){

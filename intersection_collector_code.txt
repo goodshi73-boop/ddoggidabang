@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>버스정류장 데이터 수집기</title>
+<title>교차로 인접 데이터 수집기</title>
 <style>
   body{font-family:'Malgun Gothic',sans-serif;background:#f5f7fa;margin:0;padding:20px;color:#1e293b}
   h1{font-size:18px;color:#1F3864;margin-bottom:4px}
@@ -19,12 +19,12 @@
 </style>
 </head>
 <body>
-<h1>🚌 버스정류장 데이터 수집기</h1>
-<div class="sub">29개 매장 반경 300m 내 버스정류장 개수를 수집합니다. 유사도 매칭의 "②지하철·버스 접근성" 항목 정확도를 높이기 위한 데이터입니다.</div>
+<h1>🚦 교차로 인접 데이터 수집기</h1>
+<div class="sub">29개 매장 반경 200m 내 교차로(사거리) 인접 여부를 수집합니다. 버스정류장 항목은 카카오맵 공식 카테고리에 없고 "버스정류장"이라는 키워드로 신뢰성 있게 조회가 안 돼서 뺐습니다.</div>
 <div class="status" id="status">대기 중...</div>
 <button id="btnCopy" style="display:none">결과 복사 (STORES 병합용)</button>
 <table>
-<thead><tr><th>점포명</th><th>주소</th><th>버스정류장(300m)</th></tr></thead>
+<thead><tr><th>점포명</th><th>주소</th><th>교차로 인접</th></tr></thead>
 <tbody id="tbody"></tbody>
 </table>
 <textarea id="out" placeholder="결과가 여기 표시됩니다..." readonly></textarea>
@@ -41,13 +41,23 @@ function render(){
     var r = results[i];
     if(!r) return '<tr><td>'+s.storesName+'</td><td>'+s.addr+'</td><td>수집 중...</td></tr>';
     if(!r.ok) return '<tr><td>'+s.storesName+'</td><td>'+s.addr+'</td><td style="color:#dc2626">수집 실패</td></tr>';
-    return '<tr><td>'+s.storesName+'</td><td>'+s.addr+'</td><td>'+r.bus+'개</td></tr>';
+    return '<tr><td>'+s.storesName+'</td><td>'+s.addr+'</td><td>'+(r.intersection!=null?r.intersection+'m':'없음')+'</td></tr>';
   }).join('');
   document.getElementById('status').innerHTML = '<b>'+doneCount+' / '+STORES_ADDR.length+'</b> 건 수집 완료';
   if(doneCount>=STORES_ADDR.length){
     document.getElementById('status').innerHTML += ' — 완료!';
     document.getElementById('btnCopy').style.display='inline-block';
   }
+}
+
+function pagedKeyword(loc,keyword,maxPages,radius,onEach,onDone){
+  var pc=0;
+  ps.keywordSearch(keyword,function(data,status,pagination){
+    if(status===kakao.maps.services.Status.OK){data.forEach(onEach);}
+    pc++;
+    if(status===kakao.maps.services.Status.OK&&pagination&&pagination.hasNextPage&&pc<maxPages){pagination.nextPage();}
+    else{onDone();}
+  },{location:loc,radius:radius,size:15});
 }
 
 function collectOne(i,cb){
@@ -57,22 +67,24 @@ function collectOne(i,cb){
       results[i]={ok:false}; doneCount++; render(); cb(); return;
     }
     var loc = new kakao.maps.LatLng(parseFloat(res[0].y), parseFloat(res[0].x));
-    var busCount=0, pageCount=0;
-    ps.keywordSearch('버스정류장', function(data,status2,pagination){
-      if(status2===kakao.maps.services.Status.OK){
-        data.forEach(function(p){
-          var d = Math.round(p.distance);
-          if(d<=300) busCount++;
-        });
-      }
-      pageCount++;
-      if(status2===kakao.maps.services.Status.OK && pagination && pagination.hasNextPage && pageCount<2){
-        pagination.nextPage();
-      } else {
-        results[i]={ok:true,bus:busCount};
+    var intersectionDist=null;
+    pagedKeyword(loc,'사거리',1,200,function(p){
+      var d=Math.round(p.distance);
+      if(d<=200&&(intersectionDist==null||d<intersectionDist)) intersectionDist=d;
+    },function(){
+      if(intersectionDist!=null){
+        results[i]={ok:true,intersection:intersectionDist};
         doneCount++; render(); cb();
+        return;
       }
-    },{location:loc,radius:300,size:15});
+      pagedKeyword(loc,'교차로',1,200,function(p){
+        var d=Math.round(p.distance);
+        if(d<=200&&(intersectionDist==null||d<intersectionDist)) intersectionDist=d;
+      },function(){
+        results[i]={ok:true,intersection:intersectionDist};
+        doneCount++; render(); cb();
+      });
+    });
   });
 }
 
@@ -98,7 +110,7 @@ document.getElementById('btnCopy').onclick=function(){
   var lines = STORES_ADDR.map(function(s,i){
     var r = results[i]||{};
     if(!r.ok) return "  // "+s.storesName+" 수집 실패";
-    return "  '"+s.storesName+"': "+r.bus+",";
+    return "  '"+s.storesName+"': "+(r.intersection==null?'null':r.intersection)+",";
   }).join('\n');
   var text = '{\n'+lines+'\n}';
   document.getElementById('out').value = text;

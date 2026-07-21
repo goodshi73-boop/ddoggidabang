@@ -1034,10 +1034,11 @@ function manualFactor(D){
   else if(D.female>=45){f+=0.03;notes.push('⑤여성비율 보통(+3%)');}
   else if(D.female>=35){f+=0.02;notes.push('⑤여성비율 다소낮음(+2%)');}
   else if(D.female>0){f+=0.01;notes.push('⑤여성비율 낮음(+1%)');}
-  if(D.young>=70){f+=0.04;notes.push('⑥20-30대비율 매우높음(+4%)');}
-  else if(D.young>=55){f+=0.03;notes.push('⑥20-30대비율 높음(+3%)');}
-  else if(D.young>=40){f+=0.02;notes.push('⑥20-30대비율 보통(+2%)');}
-  else if(D.young>0){f+=0.01;notes.push('⑥20-30대비율 낮음(+1%)');}
+  if(D.young>=30){f+=0.15;notes.push('⑥20-30대비율 매우높음(+15%)');}
+  else if(D.young>=25){f+=0.08;notes.push('⑥20-30대비율 높음(+8%)');}
+  else if(D.young>=20){f+=0.02;notes.push('⑥20-30대비율 보통(+2%)');}
+  else if(D.young>=15){f-=0.06;notes.push('⑥20-30대비율 낮음(-6%)');}
+  else if(D.young>0){f-=0.12;notes.push('⑥20-30대비율 매우낮음(-12%)');}
   if(D.peak){
     var pnums=(D.peak.match(/\d+/g)||[]).map(Number);
     var hasLunch=pnums.some(function(n){return n>=11&&n<=13;});
@@ -1064,14 +1065,19 @@ function mapFactor(D){
 }
 
 function generalFactor(D){
-  // 일반기준 = 회귀식(estimateBase, 유동인구·카페수·지하철거리·대형마트거리·면적 반영) × 나머지 보조 항목 보정(수동입력 51점 + 지도데이터 5점 + 교차로·개발호재)
+  // 일반기준 = 회귀식(estimateBase, 유동인구·카페수·지하철거리·대형마트거리·면적 반영) × 나머지 보조 항목 보정(수동입력 51점 + 지도데이터 5점 + 교차로·개발호재) × 상권유형별 계통편향 보정
   var mf=manualFactor(D), gf=mapFactor(D);
   var f=mf.factor+gf.factor-1; // 두 factor(각 1.0 시작)를 합쳐 baseline 1.0 기준 하나로 병합
   var notes=mf.notes.concat(gf.notes);
   if(D.intersection!=null){f+=0.03;notes.push('교차로 인접(+3%)');}
   if((D.extra||'').includes('개장')||(D.extra||'').includes('개발')){f+=0.04;notes.push('개발호재 있음(+4%)');}
   if((D.extra||'').includes('재건축')||(D.extra||'').includes('공사')){f-=0.04;notes.push('공사·재건축 이슈(-4%)');}
-  f=Math.max(0.6,Math.min(2.1,f));
+  // 29개 매장 오차분석 결과, 회귀식이 상권유형별로 일정하게 치우치는 경향이 있어 곱셈 보정 적용
+  // (오피스·관공서·역세권은 평균 과대예측, 일반상권은 평균 과소예측되는 패턴 확인됨)
+  var atypeBias={'오피스·관공서':0.76,'역세권':0.78,'대학가':0.91,'일반상권':1.21,'병원상권':1.0};
+  var ab=atypeBias[D.atype]||1.0;
+  if(ab!==1.0){f*=ab;notes.push('상권유형('+D.atype+') 계통편향 보정 '+(ab<1?'×'+ab:'×'+ab));}
+  f=Math.max(0.5,Math.min(2.1,f));
   return{factor:f,notes:notes};
 }
 

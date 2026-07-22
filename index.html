@@ -1028,29 +1028,30 @@ function manualFactor(D){
     var cv=D.convSales||7105, cp=D.compSales||2200; // 결측시 29개 매장 평균값 대체
     var corr=Math.max(0.75,Math.min(1.3,0.9335+0.0000325*cv-0.0000325*cp));
     f*=corr;
-    notes.push('②편의점·③저가카페매출(150m) 보정 ×'+corr.toFixed(3));
+    var pctTxt=(corr>1?'+':'')+Math.round((corr-1)*100)+'%';
+    notes.push('②③편의점 '+(D.convSales>0?D.convSales.toLocaleString()+'만원':'미입력(평균대체)')+' · 저가카페 '+(D.compSales>0?D.compSales.toLocaleString()+'만원':'미입력(평균대체)')+' → 결합보정 ×'+corr.toFixed(3)+' ('+pctTxt+')');
   }
   // ④거주인구6 ⑤여성비율6 ⑥20-30대비율4 ⑦피크시간대3 = 19점
-  if(D.households>=15000){f+=0.06;notes.push('④거주인구 많음(+6%)');}
-  else if(D.households>=8000){f+=0.05;notes.push('④거주인구 보통(+5%)');}
-  else if(D.households>=3000){f+=0.03;notes.push('④거주인구 다소적음(+3%)');}
-  else if(D.households>0){f+=0.01;notes.push('④거주인구 적음(+1%)');}
-  if(D.female>=65){f+=0.06;notes.push('⑤여성비율 매우높음(+6%)');}
-  else if(D.female>=55){f+=0.05;notes.push('⑤여성비율 높음(+5%)');}
-  else if(D.female>=45){f+=0.03;notes.push('⑤여성비율 보통(+3%)');}
-  else if(D.female>=35){f+=0.02;notes.push('⑤여성비율 다소낮음(+2%)');}
-  else if(D.female>0){f+=0.01;notes.push('⑤여성비율 낮음(+1%)');}
-  if(D.young>=30){f+=0.15;notes.push('⑥20-30대비율 매우높음(+15%)');}
-  else if(D.young>=25){f+=0.08;notes.push('⑥20-30대비율 높음(+8%)');}
-  else if(D.young>=20){f+=0.02;notes.push('⑥20-30대비율 보통(+2%)');}
-  else if(D.young>=15){f-=0.06;notes.push('⑥20-30대비율 낮음(-6%)');}
-  else if(D.young>0){f-=0.12;notes.push('⑥20-30대비율 매우낮음(-12%)');}
+  if(D.households>=15000){f+=0.06;notes.push('④거주인구 '+D.households.toLocaleString()+'명 → "많음"구간(15,000명 이상) → +6%');}
+  else if(D.households>=8000){f+=0.05;notes.push('④거주인구 '+D.households.toLocaleString()+'명 → "보통"구간(8,000명 이상) → +5%');}
+  else if(D.households>=3000){f+=0.03;notes.push('④거주인구 '+D.households.toLocaleString()+'명 → "다소적음"구간(3,000명 이상) → +3%');}
+  else if(D.households>0){f+=0.01;notes.push('④거주인구 '+D.households.toLocaleString()+'명 → "적음"구간(3,000명 미만) → +1%');}
+  if(D.female>=65){f+=0.06;notes.push('⑤여성비율 '+D.female+'% → "매우높음"구간(65% 이상) → +6%');}
+  else if(D.female>=55){f+=0.05;notes.push('⑤여성비율 '+D.female+'% → "높음"구간(55% 이상) → +5%');}
+  else if(D.female>=45){f+=0.03;notes.push('⑤여성비율 '+D.female+'% → "보통"구간(45% 이상) → +3%');}
+  else if(D.female>=35){f+=0.02;notes.push('⑤여성비율 '+D.female+'% → "다소낮음"구간(35% 이상) → +2%');}
+  else if(D.female>0){f+=0.01;notes.push('⑤여성비율 '+D.female+'% → "낮음"구간(35% 미만) → +1%');}
+  if(D.young>=30){f+=0.15;notes.push('⑥20-30대비율 '+D.young+'% → "매우높음"구간(30% 이상) → +15%');}
+  else if(D.young>=25){f+=0.08;notes.push('⑥20-30대비율 '+D.young+'% → "높음"구간(25% 이상) → +8%');}
+  else if(D.young>=20){f+=0.02;notes.push('⑥20-30대비율 '+D.young+'% → "보통"구간(20% 이상) → +2%');}
+  else if(D.young>=15){f-=0.06;notes.push('⑥20-30대비율 '+D.young+'% → "낮음"구간(15% 이상) → -6%');}
+  else if(D.young>0){f-=0.12;notes.push('⑥20-30대비율 '+D.young+'% → "매우낮음"구간(15% 미만) → -12%');}
   if(D.peak){
     var pnums=(D.peak.match(/\d+/g)||[]).map(Number);
     var hasLunch=pnums.some(function(n){return n>=11&&n<=13;});
     var hasEvening=pnums.some(function(n){return n>=17;});
-    if(hasLunch&&hasEvening){f+=0.03;notes.push('⑦피크시간대 점심+오후 모두 확인(+3%)');}
-    else if(hasLunch||hasEvening){f+=0.02;notes.push('⑦피크시간대 일부 확인(+2%)');}
+    if(hasLunch&&hasEvening){f+=0.03;notes.push('⑦피크시간대 "'+D.peak+'" → 점심·오후 모두 확인 → +3%');}
+    else if(hasLunch||hasEvening){f+=0.02;notes.push('⑦피크시간대 "'+D.peak+'" → 점심 또는 오후 중 하나만 확인 → +2%');}
   }
   return{factor:f,notes:notes};
 }
@@ -1061,12 +1062,12 @@ function mapFactor(D){
   var f=1.0, notes=[];
   // ⑧지하철거리·⑨대형마트·⑫카페수는 이제 estimateBase(회귀식) 자체에 이미 반영되어 있어 여기서는 제외합니다(이중계산 방지).
   if(D.multiplexDist!=null){
-    if(D.multiplexDist<=500){f+=0.03;notes.push('⑩멀티플렉스 인접(+3%)');}
-    else if(D.multiplexDist<=1000){f+=0.01;notes.push('⑩멀티플렉스 도보권(+1%)');}
+    if(D.multiplexDist<=500){f+=0.03;notes.push('⑩멀티플렉스 '+D.multiplexDist+'m → "인접"구간(500m 이내) → +3%');}
+    else if(D.multiplexDist<=1000){f+=0.01;notes.push('⑩멀티플렉스 '+D.multiplexDist+'m → "도보권"구간(1000m 이내) → +1%');}
   }
-  if(D.parkingDist!=null&&D.parkingDist<=300){f+=0.02;notes.push('⑪공영주차장 인접(+2%)');}
-  if((D.lowcafe||0)>=5){f-=0.04;notes.push('⑬저가형카페 과밀(-4%)');}
-  else if((D.lowcafe||0)>=3){f-=0.02;notes.push('⑬저가형카페 경쟁(-2%)');}
+  if(D.parkingDist!=null&&D.parkingDist<=300){f+=0.02;notes.push('⑪공영주차장 '+D.parkingDist+'m → "인접"구간(300m 이내) → +2%');}
+  if((D.lowcafe||0)>=5){f-=0.04;notes.push('⑬저가형카페 '+D.lowcafe+'개 → "과밀"구간(5개 이상) → -4%');}
+  else if((D.lowcafe||0)>=3){f-=0.02;notes.push('⑬저가형카페 '+D.lowcafe+'개 → "경쟁"구간(3개 이상) → -2%');}
   return{factor:f,notes:notes};
 }
 
@@ -1075,20 +1076,20 @@ function generalFactor(D){
   var mf=manualFactor(D), gf=mapFactor(D);
   var f=mf.factor+gf.factor-1; // 두 factor(각 1.0 시작)를 합쳐 baseline 1.0 기준 하나로 병합
   var notes=mf.notes.concat(gf.notes);
-  if(D.intersection!=null){f+=0.03;notes.push('교차로 인접(+3%)');}
-  if((D.extra||'').includes('개장')||(D.extra||'').includes('개발')){f+=0.04;notes.push('개발호재 있음(+4%)');}
-  if((D.extra||'').includes('재건축')||(D.extra||'').includes('공사')){f-=0.04;notes.push('공사·재건축 이슈(-4%)');}
+  if(D.intersection!=null){f+=0.03;notes.push('교차로 '+D.intersection+'m 이내 확인 → +3%');}
+  if((D.extra||'').includes('개장')||(D.extra||'').includes('개발')){f+=0.04;notes.push('특이사항에 개발호재 언급 확인 → +4%');}
+  if((D.extra||'').includes('재건축')||(D.extra||'').includes('공사')){f-=0.04;notes.push('공사·재건축 이슈 있음 → -4%');}
   // 29개 매장 오차분석 결과, 회귀식이 상권유형별로 일정하게 치우치는 경향이 있어 곱셈 보정 적용
   // (오피스·관공서·역세권은 평균 과대예측, 일반상권은 평균 과소예측되는 패턴 확인됨)
   var atypeBias={'오피스·관공서':0.76,'역세권':0.78,'대학가':0.91,'일반상권':1.21,'병원상권':1.0};
   var ab=atypeBias[D.atype]||1.0;
-  if(ab!==1.0){f*=ab;notes.push('상권유형('+D.atype+') 계통편향 보정 ×'+ab);}
+  if(ab!==1.0){f*=ab;notes.push('상권유형("'+D.atype+'") → 29개 매장 오차분석상 계통편향 보정 ×'+ab);}
   // 상권등급(소상공인365)도 오차와 가장 강한 상관관계(-0.331)를 보여 보정에 포함 — A등급은 평균 과소예측, C등급 이하는 과대예측되는 경향
   var gradeBias={'A':1.16,'B':0.98,'C':0.63,'D':0.55,'E':0.5};
   var gb=D.grade?(gradeBias[D.grade]||1.0):1.0;
-  if(gb!==1.0){f*=gb;notes.push('상권등급('+D.grade+') 보정 ×'+gb);}
+  if(gb!==1.0){f*=gb;notes.push('상권등급('+D.grade+(D.gradeAuto?', 자동판정':', 직접지정')+') → 보정 ×'+gb);}
   // 편의점 밀집도(반경 내 상업시설 총 밀도의 대리지표) — 많을수록 개별매장 매출이 희석되는 경향 확인됨
-  if((D.conv||0)>=25){f*=0.75;notes.push('편의점 밀집(경쟁시설 과밀) 보정 ×0.75');}
+  if((D.conv||0)>=25){f*=0.75;notes.push('반경 내 편의점 '+D.conv+'개 → "밀집(25개 이상)"구간 → 경쟁과밀 보정 ×0.75');}
   f=Math.max(0.5,Math.min(2.1,f));
   return{factor:f,notes:notes};
 }
@@ -1189,13 +1190,13 @@ function renderScoreDetailHtml(D){
   var afterMap=base*(mf.factor+gf.factor-1);
   var gf2=generalFactor(D);
 
-  var convNotes=gf2.notes.filter(function(n){return n.indexOf('②편의점')===0;});
+  var convNotes=gf2.notes.filter(function(n){return n.indexOf('②③편의점')===0;});
   var demoNotes=gf2.notes.filter(function(n){return /^[④⑤⑥⑦]/.test(n);});
   var facilityNotes=gf2.notes.filter(function(n){return /^[⑩⑪⑬]/.test(n)||n.indexOf('교차로')===0;});
-  var eventNotes=gf2.notes.filter(function(n){return n.indexOf('개발호재')===0||n.indexOf('공사')===0;});
+  var eventNotes=gf2.notes.filter(function(n){return n.includes('개발호재')||n.includes('공사')||n.includes('재건축');});
   var atypeNote=gf2.notes.filter(function(n){return n.indexOf('상권유형(')===0;});
   var gradeNote=gf2.notes.filter(function(n){return n.indexOf('상권등급(')===0;});
-  var convDensityNote=gf2.notes.filter(function(n){return n.indexOf('편의점 밀집')===0;});
+  var convDensityNote=gf2.notes.filter(function(n){return n.includes('편의점 밀집')||n.includes('경쟁과밀');});
 
   function block(title,notes,color){
     if(!notes.length)return '<div style="color:#94a3b8;margin:2px 0 8px 0">'+title+': 해당 없음</div>';

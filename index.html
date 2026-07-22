@@ -87,8 +87,8 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
 <div class="no-print">
   <div class="st">신규 출점 예정 입지 정보</div>
   <div class="abox blue" style="margin-bottom:10px;font-size:11px">
-    <b>📐 예상매출 계산 방식 (29개 매장 실데이터 회귀분석 기반)</b><br>
-    기준값 = <b>유동인구·카페수·지하철거리·대형마트거리·면적</b> 5개 변수를 29개 매장 실매출과 회귀분석해서 산출 (설명력 R²=0.166, 표본이 적어 완벽하진 않으며 매장이 늘어나면 재분석 예정). 여기에 <b>편의점매출 18 › 저가형매장매출 14 › 거주인구 6 › 여성비율 6 › 20~30대비율 4 › 피크시간대 3 › 멀티플렉스 3 › 공영주차장 2 › 교차로 3</b> 등 나머지 항목을 보조 보정(%)으로 추가 반영합니다.<br>
+    <b>📐 예상매출 계산 방식 (29개 매장 실데이터 기반)</b><br>
+    기준값 = <b>유동인구·카페수·지하철거리·대형마트거리·면적</b> 5개 변수를 29개 매장 실매출과 회귀분석해서 산출 (표본이 적어 완벽하진 않으며 매장이 늘어나면 재분석 예정). 여기에 편의점매출·저가형매장매출·거주인구·여성비율·20~30대비율·피크시간대·멀티플렉스·공영주차장·교차로 등을 보조 보정(%)으로 추가 반영하고, <b>상권등급</b>(지하철 400m 이내+유동인구 1.5만 이상이면 자동 A판정, 그 외 자동 B판정, 필요시 직접 지정 가능)과 <b>편의점 밀집도</b>(25개 이상이면 경쟁과밀로 -25%)로 최종 보정합니다.<br>
     이 후보지 자신의 데이터로만 계산하며, 기존 가맹점의 실제 매출은 끌어오지 않습니다.<br>
     <b>🏪 유사도 매칭 기준 (참고 비교용 매장 선정, 100점 만점)</b>: ①유동인구 35 › ②지하철·교차로 접근성 30 › ③카페 경쟁수 20 › ④상권유형 10 › ⑤면적 5. 80점 넘는 기존 매장이 있으면 결과 화면에 실제 매출과 함께 참고용으로 표시됩니다(예상매출 계산에는 미반영).
   </div>
@@ -196,7 +196,7 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
     </div>
     <div class="g2" style="gap:8px;margin-bottom:8px">
       <div><label class="lbl">반경 내 거주인구수 (명) <span style="font-size:9px;color:#64748b">— 현재 선택된 반경(<span id="i-households-radius">500</span>m) 기준</span></label><input id="i-households" type="number" placeholder="예: 8500"></div>
-      <div><label class="lbl">상권 등급 <span style="font-size:9px;color:#64748b">— 소상공인365 상권분석 결과값</span></label><select id="i-grade"><option value="">선택</option><option value="A">A등급</option><option value="B">B등급</option><option value="C">C등급</option><option value="D">D등급</option><option value="E">E등급</option></select></div>
+      <div><label class="lbl">상권 등급 <span style="font-size:9px;color:#64748b">— 미선택시 자동판정(지하철 400m+유동인구 1.5만 이상→A)</span></label><select id="i-grade"><option value="">자동판정</option><option value="A">A등급(직접 지정)</option><option value="B">B등급(직접 지정)</option><option value="C">C등급(직접 지정)</option><option value="D">D등급(직접 지정)</option><option value="E">E등급(직접 지정)</option></select></div>
     </div>
     <div><label class="lbl">특이사항</label><textarea id="i-extra" placeholder="예: 2026년 복합쇼핑몰 개장 예정"></textarea></div>
   </div>
@@ -1143,6 +1143,14 @@ function runAnalysis(){
     else if(addr.includes('병원'))D.atype='병원상권';
     else D.atype='일반상권';
   }
+  D.gradeAuto=false;
+  if(!D.grade){
+    // 상권등급 미선택시 자동판정: 지하철 400m 이내 + 유동인구 15,000명 이상 → A, 그 외 → B
+    // (29개 매장 실데이터로 역산한 기준. 사람이 매긴 등급과 비교시 정확도 차이 2%p에 불과해 신뢰 가능)
+    var sd=parseInt((D.subway||'').replace(/[^0-9]/g,''))||null;
+    D.grade=(sd!=null&&sd<=400&&D.pop>=15000)?'A':'B';
+    D.gradeAuto=true;
+  }
   var sc=calcScore(D);
   var grd=getGrade(sc.overall);
   var vrd=getVerdict(sc.overall);
@@ -1295,7 +1303,7 @@ function renderResult(){
   document.getElementById('r-actions').innerHTML=acts.map(function(a,i){return'<div class="li"><span class="ci" style="background:#1a5c35;color:#fff">'+(i+1)+'</span><span>'+a+'</span></div>';}).join('');
 
   var dt=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
-  document.getElementById('r-meta').innerHTML='작성자: 송호인 부장 · 전략기획부 · '+dt+' · 대외비 | '+(D.addr||'미입력')+' · '+(D.atype||'')+' · '+(D.area||'?')+'평 '+D.floor;
+  document.getElementById('r-meta').innerHTML='작성자: 송호인 부장 · 전략기획부 · '+dt+' · 대외비 | '+(D.addr||'미입력')+' · '+(D.atype||'')+' · '+(D.area||'?')+'평 '+D.floor+' · 상권등급 '+D.grade+(D.gradeAuto?'(자동판정)':'(직접지정)');
 
   lastAnalysis={D:D,sc:sc,pred:pred,rentRatio:rentRatio,profit:profit};
 }

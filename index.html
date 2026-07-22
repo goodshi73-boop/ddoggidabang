@@ -1020,10 +1020,17 @@ function estimateBase(D){
 
 function manualFactor(D){
   // ①유동인구는 이제 estimateBase(회귀식) 자체에 이미 반영되어 있어 여기서는 제외합니다(이중계산 방지).
-  // ②편의점매출·③저가형매장매출은 실데이터로 검증한 결과 오차 개선에 도움이 안 되어(오히려 악화) 제외했습니다.
-  //   (편의점매출은 상관계수 -0.307로 통계적으로는 있으나 반영해도 평균오차가 그대로/악화, 저가형매장매출은 상관계수 0.015로 사실상 무관 — 참고용 데이터로만 보관)
-  // ④거주인구6 ⑤여성비율6 ⑥20-30대비율4 ⑦피크시간대3 = 19점
+  // ②편의점매출·③저가형매장매출(둘 다 반경 150m 기준) — 우리 가맹점이 아닌 "제3자 실영업매장"의 실매출이라
+  //   유사도 비교(기존 가맹점 매출 배제 원칙)와는 별개로, 그 자리의 실제 구매력·유동인구 지표로 반영합니다.
+  //   29개 매장 결합회귀 분석 결과(R²=0.069, 설명력은 약하지만 실제 데이터 기반) 계수를 그대로 사용합니다.
   var f=1.0, notes=[];
+  if(D.convSales>0||D.compSales>0){
+    var cv=D.convSales||7105, cp=D.compSales||2200; // 결측시 29개 매장 평균값 대체
+    var corr=Math.max(0.75,Math.min(1.3,0.9335+0.0000325*cv-0.0000325*cp));
+    f*=corr;
+    notes.push('②편의점·③저가카페매출(150m) 보정 ×'+corr.toFixed(3));
+  }
+  // ④거주인구6 ⑤여성비율6 ⑥20-30대비율4 ⑦피크시간대3 = 19점
   if(D.households>=15000){f+=0.06;notes.push('④거주인구 많음(+6%)');}
   else if(D.households>=8000){f+=0.05;notes.push('④거주인구 보통(+5%)');}
   else if(D.households>=3000){f+=0.03;notes.push('④거주인구 다소적음(+3%)');}
@@ -1178,32 +1185,48 @@ function runAnalysis(){
 
 function renderScoreDetailHtml(D){
   var base=estimateBase(D);
+  var mf=manualFactor(D), gf=mapFactor(D);
+  var afterMap=base*(mf.factor+gf.factor-1);
   var gf2=generalFactor(D);
-  var manualNotes=gf2.notes.filter(function(n){return /^[②③④⑤⑥⑦]/.test(n);});
-  var mapNotes=gf2.notes.filter(function(n){return /^[⑩⑪⑬]|^교차로/.test(n);});
-  var extraNotes=gf2.notes.filter(function(n){return !/^[②③④⑤⑥⑦⑩⑪⑬]|^교차로/.test(n)&&(n.indexOf('개발호재')===0||n.indexOf('공사')===0);});
-  return '<div class="card" style="margin-top:6px;font-size:11px;line-height:1.9">'+
-    '<div style="font-weight:700;margin-bottom:6px;color:#334155">📐 예상매출 계산 과정 (29개 매장 회귀분석 기준값 + 보조 보정)</div>'+
-    '<div style="color:#64748b;margin-bottom:4px">이 매장(떠기다방) 자신의 조건만으로 계산합니다. 기존 가맹점의 실제 매출은 이 계산에 전혀 쓰이지 않습니다.</div>'+
-    '<div>① 유동인구 <b>'+(D.pop||0).toLocaleString()+'명</b>, 카페 <b>'+(D.cafe||0)+'개</b>, 지하철 <b>'+(D.subway||'없음')+'</b>, 대형마트 <b>'+(D.mallDist!=null?D.mallDist+'m':'없음')+'</b>, 면적 <b>'+(D.area||15)+'평</b>을 29개 매장 실데이터 회귀식에 대입 = <b>'+base.toLocaleString()+'만원</b></div>'+
-    '<div>② 나머지 보조 항목(편의점매출·저가형매장매출·거주인구·여성비율·20-30대비율·피크시간대) 반영:</div>'+
-    (manualNotes.length?
-      '<div style="background:#ecfdf5;border:1px solid #bbf7d0;border-radius:6px;padding:6px 10px;margin:4px 0 8px 0">'+
-        manualNotes.map(function(n){return '<div style="color:#16a34a">▲ '+n+'</div>';}).join('')+
-      '</div>'
-    :'<div style="color:#94a3b8;margin:4px 0 8px 0">입력된 수동 항목 없음</div>')+
-    '<div>③ 멀티플렉스·공영주차장·저가형카페·교차로 반영:</div>'+
-    (mapNotes.length?
-      '<div style="background:#f8fafc;border-radius:6px;padding:6px 10px;margin:4px 0 8px 0">'+
-        mapNotes.map(function(n){
-          var isPlus=n.indexOf('+')>-1;
-          return '<div style="color:'+(isPlus?'#16a34a':'#dc2626')+'">'+(isPlus?'▲':'▼')+' '+n+'</div>';
-        }).join('')+
-      '</div>'
-    :'<div style="color:#94a3b8;margin:4px 0 8px 0">해당하는 항목 없음</div>')+
-    (extraNotes.length?'<div style="color:#94a3b8;margin-bottom:4px">'+extraNotes.join(', ')+'</div>':'')+
-    '<div>④ 위 조정 전부 합산(총 '+(gf2.factor>1?'+':'')+Math.round((gf2.factor-1)*100)+'%) 적용 = <b style="color:#1a5c35">최종 '+Math.round(base*gf2.factor).toLocaleString()+'만원</b></div>'+
-    '<div style="color:#d97706;margin-top:4px">※ 회귀식 설명력(R²)이 0.166으로 낮아, 매장 표본이 적은 지금은 참고치로 활용해주세요. 매장이 늘어나면 재분석해서 정확도를 높일 예정입니다.</div>'+
+
+  var convNotes=gf2.notes.filter(function(n){return n.indexOf('②편의점')===0;});
+  var demoNotes=gf2.notes.filter(function(n){return /^[④⑤⑥⑦]/.test(n);});
+  var facilityNotes=gf2.notes.filter(function(n){return /^[⑩⑪⑬]/.test(n)||n.indexOf('교차로')===0;});
+  var eventNotes=gf2.notes.filter(function(n){return n.indexOf('개발호재')===0||n.indexOf('공사')===0;});
+  var atypeNote=gf2.notes.filter(function(n){return n.indexOf('상권유형(')===0;});
+  var gradeNote=gf2.notes.filter(function(n){return n.indexOf('상권등급(')===0;});
+  var convDensityNote=gf2.notes.filter(function(n){return n.indexOf('편의점 밀집')===0;});
+
+  function block(title,notes,color){
+    if(!notes.length)return '<div style="color:#94a3b8;margin:2px 0 8px 0">'+title+': 해당 없음</div>';
+    return '<div style="margin-bottom:2px">'+title+':</div>'+
+      '<div style="background:'+(color||'#f8fafc')+';border-radius:6px;padding:5px 10px;margin:2px 0 8px 0">'+
+        notes.map(function(n){var p=n.indexOf('+')>-1;return '<div style="color:'+(p?'#16a34a':'#dc2626')+'">'+(p?'▲':'▼')+' '+n+'</div>';}).join('')+
+      '</div>';
+  }
+
+  return '<div class="card" style="margin-top:6px;font-size:11px;line-height:1.8">'+
+    '<div style="font-weight:700;margin-bottom:2px;color:#334155">📐 예상매출 계산 과정 (이 조건을 그대로 대입한 결과입니다)</div>'+
+    '<div style="color:#dc2626;font-weight:700;margin-bottom:6px">※ 아래 계산에 기존 가맹점의 실제 매출은 전혀 쓰이지 않습니다. 결과 하단에 나오는 "가장 유사한 기존 매장"은 예측이 그럴듯한지 눈으로 대조해보는 참고자료일 뿐, 이 계산과는 무관합니다.</div>'+
+    '<div style="border-top:1px solid #eef1f5;margin:6px 0"></div>'+
+    '<div><b>① 기준값 (회귀식)</b> — 유동인구 '+(D.pop||0).toLocaleString()+'명, 카페 '+(D.cafe||0)+'개, 지하철 '+(D.subway||'없음')+', 대형마트 '+(D.mallDist!=null?D.mallDist+'m':'없음')+', 면적 '+(D.area||15)+'평을 29개 매장 실데이터 회귀식에 대입</div>'+
+    '<div style="margin:2px 0 8px 0">→ <b style="color:#1a5c35">'+base.toLocaleString()+'만원</b></div>'+
+    '<div><b>② 편의점·저가카페 매출 보정(150m 기준)</b></div>'+
+    block('결합회귀 보정',convNotes)+
+    '<div><b>③ 수동입력 인구특성 보정</b></div>'+
+    block('거주인구·여성비율·20-30대비율·피크시간대',demoNotes)+
+    '<div><b>④ 주변 시설 보정</b></div>'+
+    block('멀티플렉스·공영주차장·저가형카페·교차로',facilityNotes)+
+    (eventNotes.length?'<div><b>⑤ 특이사항 보정</b></div>'+block('개발호재·공사',eventNotes):'')+
+    '<div style="margin:2px 0 8px 0">→ ①~⑤ 전부 적용 시 <b>'+Math.round(afterMap).toLocaleString()+'만원</b></div>'+
+    '<div><b>⑥ 통계적 편향보정</b> (29개 매장 오차분석으로 발견된 계통 오차를 상쇄하는 배수)</div>'+
+    (atypeNote.length?'<div style="color:#d97706">▪ '+atypeNote[0]+'</div>':'')+
+    (gradeNote.length?'<div style="color:#d97706">▪ '+gradeNote[0]+'</div>':'')+
+    (convDensityNote.length?'<div style="color:#d97706">▪ '+convDensityNote[0]+'</div>':'')+
+    (!atypeNote.length&&!gradeNote.length&&!convDensityNote.length?'<div style="color:#94a3b8">해당 없음</div>':'')+
+    '<div style="border-top:1px solid #eef1f5;margin:8px 0"></div>'+
+    '<div style="font-size:13px">①~⑥ 전부 적용한 <b style="color:#1a5c35">최종 예상매출 = '+Math.round(base*gf2.factor).toLocaleString()+'만원</b> (기준값 대비 총 '+(gf2.factor>1?'+':'')+Math.round((gf2.factor-1)*100)+'%)</div>'+
+    '<div style="color:#94a3b8;margin-top:6px">※ 표본 29개 매장 기준 평균 절대오차 약 22%p입니다. 참고치로 활용하시고, 매장이 늘어나면 재분석해 정확도를 높일 예정입니다.</div>'+
     '</div>';
 }
 
